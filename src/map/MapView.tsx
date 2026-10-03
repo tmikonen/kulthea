@@ -32,9 +32,13 @@ function FitToImage({ map: def }: { map: ContentMap }) {
       const fitZoom = map.getBoundsZoom(bounds);
       if (!Number.isFinite(fitZoom)) return;
       const wasFitted = fittedZoom === undefined || Math.abs(map.getZoom() - fittedZoom) < 0.01;
+      // Move the view first, while the limits are still wide. Setting a limit that the current
+      // zoom violates makes Leaflet start an animated zoom, and while that runs it silently
+      // ignores any further fitBounds, so a quick shrink-then-grow would be lost.
+      if (wasFitted) map.fitBounds(bounds, { animate: false });
+      else if (map.getZoom() < fitZoom) map.setZoom(fitZoom, { animate: false });
       map.setMinZoom(fitZoom);
       map.setMaxZoom(Math.max(fitZoom, 0) + EXTRA_ZOOM);
-      if (wasFitted) map.fitBounds(bounds, { animate: false });
       fittedZoom = fitZoom;
     };
 

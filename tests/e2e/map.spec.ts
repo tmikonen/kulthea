@@ -89,6 +89,21 @@ test.describe('main map (B-4)', () => {
     await expectFitted(page);
   });
 
+  for (const delay of [0, 5, 16, 40]) {
+    test(`FR-1 the map is refitted after the window is dragged smaller and larger again, ${delay} ms between sizes`, async ({ page }) => {
+      await page.goto('./');
+      await expectFitted(page);
+      const sizes = [];
+      for (let w = 1280; w >= 700; w -= 40) sizes.push(w);
+      for (let w = 700; w <= 1260; w += 40) sizes.push(w);
+      for (const width of sizes) {
+        await page.setViewportSize({ width, height: Math.round(width * 0.56) });
+        await page.waitForTimeout(delay);
+      }
+      await expectFitted(page);
+    });
+  }
+
   test('FR-1 a map the user has zoomed in keeps its zoom when the window is resized', async ({ page }) => {
     await page.goto('./');
     await expectFitted(page);

@@ -102,7 +102,7 @@ Automated tests: unit tests for each validation rule (valid and invalid fixtures
 
 ## B-4 Show the main map
 
-Status: done
+Status: accepted
 
 Related: DD-2, FR-1, "Positions".
 

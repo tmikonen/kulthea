@@ -1,0 +1,52 @@
+# Kulthea Campaign Chronicles: Development bugs
+
+Bugs found by the product owner while testing. This is not the list of planned work (that is `BACKLOG.md`): it records what went wrong, why, how it was fixed and which test keeps it from coming back.
+
+## Rules
+
+- Each bug has a code `BUG-<n>`, a one-line title, a status, the related backlog item (if any), the description, the root cause, the fix and the verifying test.
+- Status is `open` or `fixed`.
+- A bug is `fixed` only when a test verifies the fix. The test must have failed before the fix and pass after it, and the row below names it. A fix that is not yet verified by a test stays `open`.
+- When a bug is found, add it as `open` with the description. Fill in the cause, the fix and the test when they are known.
+- Tests are in `tests/`. Test names are given as the file and the test title.
+
+## Summary
+
+| Code | Title | Status | Item |
+|---|---|---|---|
+| BUG-1 | Large map is not fitted to the window on load | fixed | B-4 |
+| BUG-2 | Map is not refitted when the window is resized | fixed | B-4 |
+| BUG-3 | Quick shrink then enlarge of the window loses the refit | fixed | B-4 |
+
+## BUG-1: Large map is not fitted to the window on load
+
+- Status: fixed
+- Related item: B-4 (FR-1)
+- Found: the product owner, in Edge on the desktop.
+- Description: the Bay of Izar map (2930 x 1858 px) was shown at its full pixel size, far larger than the window. It could not be zoomed out far enough for the whole image to be visible.
+- Root cause: Leaflet limits the zoom that fits an image to the map's minimum zoom, which is 0 by default (the image's native size). A large image needs a negative zoom to fit, so the fitted zoom was clamped to 0. The tests did not notice because the fixture map was only 200 x 100 px, which fits at a positive zoom.
+- Fix: the map starts with a very low minimum zoom, so the fit is not clamped. After the fit the component sets the real minimum (the fitted zoom). Commit `6aca125`. The main fixture map was also made 3000 x 1500 px, like the real map, so that the tests cover this case.
+- Verified by: `tests/e2e/map.spec.ts`, "FR-1 the main map image is shown, fitted to the area" (failed before the fix with the image 860 px outside the area; passes now). Related: "FR-1 the view cannot be zoomed out past the fitted map or dragged out of view".
+- Also confirmed by hand by the product owner.
+
+## BUG-2: Map is not refitted when the window is resized
+
+- Status: fixed
+- Related item: B-4 (FR-1)
+- Found: the product owner, by resizing a desktop browser window after the page had loaded.
+- Description: the map was fitted only on load. Making the window smaller left the map too large for the window. Making it larger left the map small, and it grew only after the map was moved.
+- Root cause: two parts. First, on resize the code only updated the zoom limits and never refitted the view. Second, when the code recomputed the fitted zoom, Leaflet clamped the result to the zoom limits set for the previous window size, so a smaller window could not produce a lower fitted zoom.
+- Fix: on resize the zoom limits are widened before the fitted zoom is calculated, and the view is refitted when it was still at the fitted zoom. A map the user has zoomed in keeps its zoom. Commit `87f978a`.
+- Verified by: `tests/e2e/map.spec.ts`, "FR-1 a map left at the fitted zoom is refitted when the window is resized" (failed before the fix, passes now) and "FR-1 a map the user has zoomed in keeps its zoom when the window is resized".
+- Also confirmed by hand by the product owner ("works better", and then fully after BUG-3).
+
+## BUG-3: Quick shrink then enlarge of the window loses the refit
+
+- Status: fixed
+- Related item: B-4 (FR-1)
+- Found: the product owner, by making the window smaller and then larger again in quick succession.
+- Description: only the first resize (the shrink) took effect. The map stayed at the smaller size after the window was enlarged, until the window was resized again.
+- Root cause: when the window shrinks and the map has to be zoomed out, Leaflet's `setMinZoom` clamps the zoom with an animated zoom that takes a fraction of a second. While that animation runs, Leaflet silently ignores `fitBounds`, even with `animate: false`. A resize that arrived inside that window was dropped.
+- Fix: the view is moved first, while the zoom limits are still wide, and the new limits are set afterwards, so the clamping animation never starts. Commit `e244098`.
+- Verified by: `tests/e2e/map.spec.ts`, "FR-1 the map is refitted after the window is dragged smaller and larger again", run with 0, 5, 16 and 40 ms between window sizes. It reproduced the bug before the fix (the final view was too small or larger than the area) and passes now.
+- Also confirmed by hand by the product owner.

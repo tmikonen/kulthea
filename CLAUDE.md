@@ -10,6 +10,7 @@ Read these before doing anything, in this order:
 1. `specifications/REQUIREMENTS.md`: what to build, as requirements FR-1 to FR-9 with acceptance criteria.
 2. `specifications/DESIGN.md`: how it is built, with the file formats, validation rules, architecture and the decision record (DD-1 to DD-6, with the reasons).
 3. `specifications/BACKLOG.md`: the ordered work items, their statuses and the definition of done. This is the source of truth for what to do next and what is finished.
+4. `specifications/BUGS.md`: the development bugs found by the product owner in testing, each with its cause, fix and verifying test. Read it so that a fixed bug is not reintroduced.
 
 If code and documents disagree, stop and sort it out with the product owner. Never let them drift: when implementation requires a change to a requirement or a design decision, update the documents in the same commit and tell the product owner.
 
@@ -19,6 +20,7 @@ If code and documents disagree, stop and sort it out with the product owner. Nev
 - Set the item to `in progress` when you start. Write the tests together with the code, and keep each change small.
 - An item is `done` only when its definition of done in `BACKLOG.md` is met: all acceptance criteria hold, all new and existing tests pass (`npm test`, `npm run typecheck`, `npm run lint`, and `npm run test:e2e` for browser behaviour), the code is committed, and its status is updated.
 - Only the product owner sets `accepted`. After finishing an item, tell the product owner what to expect to see and which "how to check by hand" steps to run. Do not call work complete without running the tests and showing the result.
+- When the product owner reports a bug found in testing, add it to `specifications/BUGS.md` as `open` with its description, and follow the rules at the top of that file. Reproduce the bug with a failing test first where possible, fix it, and keep the test permanently. A bug is `fixed` only when a test verifies the fix. Bugs are fixed within the item they relate to, and each fix is committed with a clear message.
 - If something is unclear or a decision is the product owner's to make, ask. Prefer asking over guessing, and give a recommendation with the trade-off.
 - Keep the scope to the item. Do not add features, abstractions or error handling that the item does not need.
 
@@ -61,4 +63,4 @@ If code and documents disagree, stop and sort it out with the product owner. Nev
 
 ## If this session is lost
 
-Start a new session in the repository root and read this file and the three documents above. `BACKLOG.md` shows what is `done`, `in progress` and `defined`, and `git log` shows what was committed. Check that the working tree is clean and the tests pass before continuing with the first unfinished item.
+Start a new session in the repository root and read this file and the documents above. `BACKLOG.md` shows what is `done`, `in progress` and `defined`, `BUGS.md` shows the bugs that are still `open`, and `git log` shows what was committed. Check that the working tree is clean and the tests pass before continuing with the first unfinished item.

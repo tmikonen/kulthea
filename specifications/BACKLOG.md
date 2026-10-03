@@ -56,7 +56,7 @@ Automated tests: component test for the heading; Playwright smoke test.
 
 ## B-2 Publishing workflow and live site
 
-Status: defined
+Status: in progress
 
 Related: "Deployment".
 
@@ -70,10 +70,10 @@ How to check by hand:
 3. (Optional) Make a test fail on purpose in a scratch branch run, and see that no deployment happens.
 
 Acceptance criteria:
-- [ ] A workflow in `.github/workflows/` runs on every push to `master`: install with `npm ci`, typecheck, lint, unit tests, build, browser tests, then deploy with GitHub's official Pages actions.
-- [ ] A failing step stops the workflow before deployment.
+- [x] A workflow in `.github/workflows/` runs on every push to `master`: install with `npm ci`, typecheck, lint, unit tests, build, browser tests, then deploy with GitHub's official Pages actions.
+- [x] A failing step stops the workflow before deployment.
 - [ ] The live site shows the page from B-1.
-- [ ] Content validation, which is part of the build from B-3 on, therefore also runs before every deployment.
+- [x] Content validation, which is part of the build from B-3 on, therefore also runs before every deployment.
 
 Automated tests: none of its own; the workflow runs all existing tests, and the manual check confirms it.
 

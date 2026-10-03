@@ -1,0 +1,5 @@
+[
+  { "id": "bay-of-izar", "name": { "fi": "Izarinlahti", "en": "Bay of Izar" }, "image": "maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true },
+  { "id": "bog-end",     "name": "Bog End",     "image": "maps/bog-end.jpg",     "width": 4042, "height": 2611 },
+  { "id": "haestra",     "name": "Haestra",     "image": "maps/haestra.jpg",     "width": 4503, "height": 3147 }
+]

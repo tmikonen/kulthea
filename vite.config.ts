@@ -1,10 +1,14 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { contentPlugin } from './plugin/content-plugin.ts';
+
+// Unit tests read the fixtures, never the demo content.
+const contentDir = process.env.CONTENT_DIR ?? (process.env.VITEST ? 'tests/fixtures' : 'content');
 
 export default defineConfig({
   base: '/kulthea/',
-  plugins: [react()],
+  plugins: [react(), contentPlugin({ dir: contentDir })],
   test: {
     environment: 'jsdom',
     globals: true,

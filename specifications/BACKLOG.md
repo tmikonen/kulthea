@@ -79,7 +79,7 @@ Automated tests: none of its own; the workflow runs all existing tests, and the 
 
 ## B-3 Campaign settings and maps content
 
-Status: in progress
+Status: done
 
 Related: "Build and validation", "File formats" (`campaign.json`, `maps.json`), "Validation rules", FR-1, FR-7, FR-9.
 
@@ -91,12 +91,12 @@ How to check by hand:
 3. Change a map's declared width to a wrong value. An error is shown.
 
 Acceptance criteria:
-- [ ] A Vite plugin reads `content/campaign.json` and `content/maps.json` and provides them to the app as one data bundle.
-- [ ] `content/campaign.json` and `content/maps.json` exist with the real data from `DESIGN.md` (three maps with real pixel sizes, the calendar, Finnish and English).
-- [ ] Errors stop the build and name the file and the problem: not exactly one main map; a declared size that does not match the image; a missing image file; a default language that is not in the language list; a configured language with no era, month names, in-date forms or date format; not five months.
-- [ ] A map larger than about 10 MB or 5000 px wide, or not JPEG, PNG or WebP, produces a warning, and the build continues.
-- [ ] In the dev server, saving a content file re-runs the plugin and refreshes the page.
-- [ ] The content folder is set by the environment variable `CONTENT_DIR` (default `content`), and `npm run test:e2e` builds the site from `tests/fixtures/` with it, so browser tests never use the demo content.
+- [x] A Vite plugin reads `content/campaign.json` and `content/maps.json` and provides them to the app as one data bundle.
+- [x] `content/campaign.json` and `content/maps.json` exist with the real data from `DESIGN.md` (three maps with real pixel sizes, the calendar, Finnish and English).
+- [x] Errors stop the build and name the file and the problem: not exactly one main map; a declared size that does not match the image; a missing image file; a default language that is not in the language list; a configured language with no era, month names, in-date forms or date format; not five months.
+- [x] A map larger than about 10 MB or 5000 px wide, or not JPEG, PNG or WebP, produces a warning, and the build continues.
+- [x] In the dev server, saving a content file re-runs the plugin and refreshes the page.
+- [x] The content folder is set by the environment variable `CONTENT_DIR` (default `content`), and `npm run test:e2e` builds the site from `tests/fixtures/` with it, so browser tests never use the demo content.
 
 Automated tests: unit tests for each validation rule (valid and invalid fixtures in `tests/fixtures/`); a test that the plugin output matches the fixture content.
 

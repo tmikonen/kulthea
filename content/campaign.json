@@ -1,0 +1,21 @@
+{
+  "title": "Kulthea Campaign Chronicles",
+  "languages": ["fi", "en"],
+  "defaultLanguage": "fi",
+  "era": {
+    "name": { "fi": "Kolmas Aika", "en": "Third Era" },
+    "abbreviation": { "fi": "K.A.", "en": "TE" }
+  },
+  "months": [
+    { "name": { "fi": "Talvi",  "en": "Winter" }, "inDate": { "fi": "Talven",  "en": "Winter" } },
+    { "name": { "fi": "Kevät",  "en": "Spring" }, "inDate": { "fi": "Kevään",  "en": "Spring" } },
+    { "name": { "fi": "Kesä",   "en": "Summer" }, "inDate": { "fi": "Kesän",   "en": "Summer" } },
+    { "name": { "fi": "Ruska",  "en": "Autumn" }, "inDate": { "fi": "Ruskan",  "en": "Autumn" } },
+    { "name": { "fi": "Marras", "en": "Fall" },   "inDate": { "fi": "Martaan", "en": "Fall" } }
+  ],
+  "daysPerMonth": 70,
+  "dateFormat": {
+    "fi": "{era} {year}, {month} {day}. päivä",
+    "en": "{era} {year}, {day}{ordinal} of {month}"
+  }
+}

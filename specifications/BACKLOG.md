@@ -79,7 +79,7 @@ Automated tests: none of its own; the workflow runs all existing tests, and the 
 
 ## B-3 Campaign settings and maps content
 
-Status: done
+Status: accepted
 
 Related: "Build and validation", "File formats" (`campaign.json`, `maps.json`), "Validation rules", FR-1, FR-7, FR-9.
 
@@ -102,7 +102,7 @@ Automated tests: unit tests for each validation rule (valid and invalid fixtures
 
 ## B-4 Show the main map
 
-Status: defined
+Status: in progress
 
 Related: DD-2, FR-1, "Positions".
 

@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { imageSize } from 'image-size';
-import type { Campaign, ContentBundle, MapDef, Month } from '../src/content/types.ts';
+import type { Campaign, LoadedContent, MapDef, Month } from '../src/content/types.ts';
 
 export interface LoadResult {
-  bundle: ContentBundle | null;
+  bundle: LoadedContent | null;
   errors: string[];
   warnings: string[];
 }

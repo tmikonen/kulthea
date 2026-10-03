@@ -24,7 +24,14 @@ export function contentPlugin(options: { dir: string }): Plugin {
       if (errors.length > 0) {
         throw new Error(`Content errors:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
       }
-      return `export default ${JSON.stringify(bundle)};`;
+      // Map images are imported so that Vite serves them in dev and emits them, hashed, in the build.
+      const imports = bundle!.maps.map(
+        (map, i) => `import mapImage${i} from ${JSON.stringify(path.join(contentDir, map.image).split(path.sep).join('/'))};`,
+      );
+      const maps = bundle!.maps.map(
+        (map, i) => `{ ...${JSON.stringify(map)}, imageUrl: mapImage${i} }`,
+      );
+      return `${imports.join('\n')}\nexport default { campaign: ${JSON.stringify(bundle!.campaign)}, maps: [${maps.join(', ')}] };`;
     },
     configureServer(server) {
       server.watcher.add(contentDir);

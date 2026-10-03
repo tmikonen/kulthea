@@ -25,7 +25,19 @@ export interface MapDef {
   main: boolean;
 }
 
-export interface ContentBundle {
+/** A map as the app sees it: the validated definition plus the served URL of its image. */
+export interface ContentMap extends MapDef {
+  imageUrl: string;
+}
+
+/** What the content folder holds once it has been read and validated. */
+export interface LoadedContent {
   campaign: Campaign;
   maps: MapDef[];
+}
+
+/** What the app receives from `virtual:content`. */
+export interface ContentBundle {
+  campaign: Campaign;
+  maps: ContentMap[];
 }

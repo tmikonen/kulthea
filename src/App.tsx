@@ -1,21 +1,18 @@
 import content from 'virtual:content';
 import { resolveText } from './content/text';
+import { MapView } from './map/MapView';
 import styles from './App.module.css';
 
 export function App() {
   const { campaign, maps } = content;
   const lang = campaign.defaultLanguage;
+  const main = maps.find((map) => map.main)!;
   return (
-    <main className={styles.app}>
-      <h1>{resolveText(campaign.title, lang, lang)}</h1>
-      {/* Temporary list, replaced by the map switcher in B-5. */}
-      <ul aria-label="Maps">
-        {maps.map((map) => (
-          <li key={map.id}>
-            {resolveText(map.name, lang, lang)} ({map.width} x {map.height})
-          </li>
-        ))}
-      </ul>
-    </main>
+    <div className={styles.app}>
+      <header className={styles.header}>
+        <h1>{resolveText(campaign.title, lang, lang)}</h1>
+      </header>
+      <MapView map={main} label={resolveText(main.name, lang, lang)} />
+    </div>
   );
 }

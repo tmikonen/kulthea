@@ -102,7 +102,7 @@ Automated tests: unit tests for each validation rule (valid and invalid fixtures
 
 ## B-4 Show the main map
 
-Status: in progress
+Status: done
 
 Related: DD-2, FR-1, "Positions".
 
@@ -114,9 +114,9 @@ How to check by hand:
 3. Resize the window and use the browser's phone view. The map stays usable.
 
 Acceptance criteria:
-- [ ] The main map is shown with Leaflet using a flat image, fitted to the area on load.
-- [ ] Pan and zoom work with mouse, wheel, buttons and touch, and the view is limited to the map bounds.
-- [ ] A single conversion function turns `[x, y]` percent positions into Leaflet coordinates, with y measured from the top.
+- [x] The main map is shown with Leaflet using a flat image, fitted to the area on load.
+- [x] Pan and zoom work with mouse, wheel, buttons and touch, and the view is limited to the map bounds.
+- [x] A single conversion function turns `[x, y]` percent positions into Leaflet coordinates, with y measured from the top.
 
 Automated tests: unit tests for the converter (corners, centre, and that the y axis is inverted correctly); a component test that the map renders; a Playwright test that the map image is visible and the zoom button changes the zoom.
 

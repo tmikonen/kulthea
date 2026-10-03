@@ -3,6 +3,20 @@ import { test, expect, type Page } from '@playwright/test';
 const imageWidth = (page: Page) =>
   page.locator('img.leaflet-image-layer').evaluate((img) => img.getBoundingClientRect().width);
 
+async function expectFitted(page: Page) {
+  const image = page.locator('img.leaflet-image-layer');
+  await expect.poll(async () => {
+    const area = (await page.locator('.leaflet-container').boundingBox())!;
+    const box = (await image.boundingBox())!;
+    const inside = box.x >= area.x - 1 && box.y >= area.y - 1
+      && box.x + box.width <= area.x + area.width + 1
+      && box.y + box.height <= area.y + area.height + 1;
+    const fillsWidth = Math.abs(box.width - area.width) < 2;
+    const fillsHeight = Math.abs(box.height - area.height) < 2;
+    return inside && (fillsWidth || fillsHeight);
+  }).toBe(true);
+}
+
 test.describe('main map (B-4)', () => {
   test('FR-1 the main map image is shown, fitted to the area', async ({ page }) => {
     await page.goto('./');
@@ -62,6 +76,29 @@ test.describe('main map (B-4)', () => {
     // Dragged as far right and down as possible: the image's top-left corner is at the area's, not beyond.
     expect(box.x).toBeLessThanOrEqual(area.x + 2);
     expect(box.y).toBeLessThanOrEqual(area.y + 2);
+  });
+
+  test('FR-1 a map left at the fitted zoom is refitted when the window is resized', async ({ page }) => {
+    await page.goto('./');
+    await expectFitted(page);
+    await page.setViewportSize({ width: 800, height: 500 });
+    await expectFitted(page);
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await expectFitted(page);
+    await page.setViewportSize({ width: 600, height: 900 });
+    await expectFitted(page);
+  });
+
+  test('FR-1 a map the user has zoomed in keeps its zoom when the window is resized', async ({ page }) => {
+    await page.goto('./');
+    await expectFitted(page);
+    await page.locator('.leaflet-control-zoom-in').click();
+    await page.locator('.leaflet-control-zoom-in').click();
+    await page.waitForTimeout(500);
+    const zoomed = await imageWidth(page);
+    await page.setViewportSize({ width: 900, height: 600 });
+    await page.waitForTimeout(500);
+    expect(await imageWidth(page)).toBeGreaterThan(zoomed * 0.9);
   });
 
   test('FR-1 the map works in a phone-sized window', async ({ page }) => {

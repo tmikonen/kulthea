@@ -7,29 +7,39 @@ import { imageBounds } from './coords';
 import styles from './MapView.module.css';
 
 /**
- * Leaflet clamps the zoom that fits an image to the map's minimum zoom, which defaults to 0
- * (the image's native size). Large images need a negative zoom to fit, so start far lower;
- * FitToImage then sets the real minimum.
+ * Leaflet clamps the zoom that fits an image to the map's zoom limits, which default to a
+ * minimum of 0 (the image's native size). Large images need a negative zoom to fit, so the map
+ * starts with wide limits, and FitToImage widens them again before every fit and then sets the
+ * real ones.
  */
 const INITIAL_MIN_ZOOM = -20;
+const INITIAL_MAX_ZOOM = 20;
 
 /** How far past the fitted view, and past the image's native size, the user can zoom in. */
 const EXTRA_ZOOM = 2;
 
-/** Fits the image to the area, and keeps the zoom limits right when the area is resized. */
+/** Fits the image to the area, and refits it on resize unless the user has zoomed in. */
 function FitToImage({ map: def }: { map: ContentMap }) {
   const map = useMap();
   useEffect(() => {
     const bounds = imageBounds(def);
+    let fittedZoom: number | undefined;
+
     const fit = () => {
+      // getBoundsZoom clamps to the current zoom limits, which belong to the previous size.
+      map.setMinZoom(INITIAL_MIN_ZOOM);
+      map.setMaxZoom(INITIAL_MAX_ZOOM);
       const fitZoom = map.getBoundsZoom(bounds);
       if (!Number.isFinite(fitZoom)) return;
+      const wasFitted = fittedZoom === undefined || Math.abs(map.getZoom() - fittedZoom) < 0.01;
       map.setMinZoom(fitZoom);
       map.setMaxZoom(Math.max(fitZoom, 0) + EXTRA_ZOOM);
-      return fitZoom;
+      if (wasFitted) map.fitBounds(bounds, { animate: false });
+      fittedZoom = fitZoom;
     };
+
     map.invalidateSize();
-    if (fit() !== undefined) map.fitBounds(bounds, { animate: false });
+    fit();
     map.on('resize', fit);
     return () => {
       map.off('resize', fit);

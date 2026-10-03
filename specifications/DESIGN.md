@@ -1,11 +1,11 @@
-# Campaign Chronicles: Software Design Description
+# Kulthea Campaign Chronicles: Software Design Description
 
-Status: all topics have been discussed and agreed. Requirement ids (FR-1 to FR-8) refer to `REQUIREMENTS.md`.
+Status: all topics have been discussed and agreed. Requirement ids (FR-1 to FR-9) refer to `REQUIREMENTS.md`.
 
 ## Data model
 
 - Locations: named places in a shared locations file, each with a coordinate per map. Events refer to a location by id, so many events can share a place. An event may instead use a one-off coordinate when it is not at a named place.
-- Event files: one Markdown file per event. The date lives only in the file name, in the form `6050-1-037-02-ambush.md`: year, month number, day, then an order number within that day, then a free-text slug. Months are numbered 1 to 5 in the data (1 Winter, 2 Spring, 3 Summer, 4 Autumn, 5 Fall) and always shown spelled out in the UI, for example "TE 6050, 37th of Winter". The build rejects two events with the same date and order number.
+- Event files: one Markdown file per event. The date lives only in the file name, in the form `6050-1-037-02-ambush.md`: year, month number, day, then an order number within that day, then a free-text slug. Months are numbered 1 to 5 in the data (1 Winter, 2 Spring, 3 Summer, 4 Autumn, 5 Fall) and always shown spelled out in the UI in the chosen language, for example "TE 6050, 37th of Winter" (see the calendar settings in "File formats"). The build rejects two events with the same date and order number.
 - Journal links: wiki-style, `[[aldric]]` or `[[aldric|the knight]]`. The build checks that every id exists.
 - Tracks: a `track` field in the event front matter. Omitted means the party, a free-text name means a split group, and `none` means a standalone event. An optional `newSegment: true` suppresses the route line into that event.
 - Event fields: a required title, plus the date from the file name, the location(s), and the Markdown body. No summary, session or characters-present fields; the characters and items an event involves come from the journal links in its text.
@@ -16,37 +16,66 @@ Status: all topics have been discussed and agreed. Requirement ids (FR-1 to FR-8
 - NPCs have the same fields as player characters except the motto. Items and notes have a name, an image and a description. All entry types except locations get the automatic list of events that link to them; location entries list the events held at that place instead.
 - Positions: every position on a map is written as `[x, y]` in percent of the image width and height, measured from the top-left corner. Percent survives resizing or re-exporting an image. The app converts it once to Leaflet's coordinates. The maps file still declares each image's pixel size so the build can check the image and Leaflet can use its aspect ratio.
 
+## Languages
+
+Finnish and English are supported, with Finnish as the default (see FR-9). The rule is one file per item, with all languages inside that file.
+
+- Configuration: `campaign.json` lists the languages (`fi`, `en`) and the default language (`fi`). The default language must always be complete, and other languages are optional.
+- Short text fields (an event's `title`, a journal entry's `name` and `motto`, the names of locations and maps, the campaign title) are written as a language map, for example `title: { fi: ..., en: ... }`. A plain value means the default language only.
+- Long text (the Markdown body of an event or journal entry) is split into language sections by marker lines such as `@fi` and `@en`. Everything up to the next marker belongs to that language. Text with no marker is the default language. Each section is complete in itself: it holds its own images (with alt text and captions), `[[links]]` and `:::journal` blocks.
+- Interface texts live in one `ui.json`, with each text given in both languages, for example `"next": { "fi": "Seuraava", "en": "Next" }`. It is read by a small piece of our own code, with no translation library.
+- Language in the URL: a `lang` query parameter, for example `/#/event/<event-id>?lang=en`, like `map` and `journal`. A missing or unknown value means the default language. A language switch (FI | EN) changes only this parameter, so the current event, map and open journal entry are kept. The choice is not remembered in the browser.
+- Fallback: each field falls back to the default language when it has no text in the chosen language. When an item's body falls back, a small "not available in this language" note is shown; short fields fall back silently.
+- Journal excerpts, link texts and the date display follow the chosen language. A `[[aldric]]` link without custom text shows the entry's name in the chosen language, and the "In the campaign" excerpts are built from the matching language section of each event, falling back to the default language together with the note.
+- Ids, file names, folder names, field names and all documents stay in English, whatever the language of the content.
+- The page's `lang` attribute follows the chosen language.
+
 ## File formats (agreed examples)
 
-Maps (`maps.json`): exactly one map has `main: true`; width and height are the image's pixel size.
+Maps (`maps.json`): exactly one map has `main: true`; width and height are the image's pixel size. `bay-of-izar` is the main campaign map, `bog-end` is the finer-scale map and `haestra` is the largest-scale map, used for character backgrounds. Ids are the file names, and names are the title-cased display names.
 ```json
 [
-  { "id": "main",  "name": "Haestra Region", "image": "maps/haestra.jpg", "width": 1600, "height": 1100, "main": true },
-  { "id": "fine",  "name": "Stroane Valley", "image": "maps/stroane.jpg", "width": 1600, "height": 1000 },
-  { "id": "world", "name": "Emer",           "image": "maps/emer.jpg",    "width": 1600, "height": 1200 }
+  { "id": "bay-of-izar", "name": "Bay of Izar", "image": "maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true },
+  { "id": "bog-end",     "name": "Bog End",     "image": "maps/bog-end.jpg",     "width": 4042, "height": 2611 },
+  { "id": "haestra",     "name": "Haestra",     "image": "maps/haestra.jpg",     "width": 4503, "height": 3147 }
 ]
 ```
+Names are short text fields (see "Languages"): a plain value is the default language, which other languages fall back to, and `"name": { "fi": "Izarinlahti", "en": "Bay of Izar" }` gives each language its own. The same applies to the names in `locations.json`.
 
 Locations (`locations.json`): a position is `[x, y]` in percent of the map image, from the top-left. A location appears only on maps it has a position for.
 ```json
 [
   { "id": "haestra-keep", "name": "Haestra Keep",
-    "positions": { "main": [50.8, 41.4], "fine": [75.3, 69.0] } },
-  { "id": "ford-crossing", "name": "The Ford", "positions": { "fine": [40.0, 31.0] } }
+    "positions": { "bay-of-izar": [50.8, 41.4], "bog-end": [75.3, 69.0] } },
+  { "id": "ford-crossing", "name": "The Ford", "positions": { "bog-end": [40.0, 31.0] } }
 ]
 ```
 
-Event (`events/6050-1-037-02-ambush.md`):
+Event (`events/6050-1-037-02-ambush.md`), here with both languages (a Finnish-only event simply has a plain `title` and an unmarked body):
 ```markdown
 ---
-title: Ambush at the Ford
+title:
+  fi: Väijytys kahlaamolla
+  en: Ambush at the Ford
 location: haestra-keep          # main-map location, "n/a" for none, or position: [50.8, 41.4]
 showOn:                         # optional: show this event on another map instead of the main one
-  map: fine
+  map: bog-end
   location: ford-crossing       # or position: [x, y]
 track: aldric                   # omit for the party, "none" for standalone
 newSegment: true                # optional
 ---
+@fi
+Seurue saapui joelle hämärissä. [[aldric]] meni edeltä yksin.
+
+![Hämärä leveän, matalan joen yllä](images/ford.jpg "Stroanen kahlaamo")
+
+[[mira|Tiedustelija]] huomasi ratsastajia vastarannalla.
+
+:::journal{for="aldric"}
+Aldric alkoi epäillä käskyä jo tässä, vaikka ei kertonut kenellekään.
+:::
+
+@en
 The party reached the river at dusk. [[aldric]] went ahead alone.
 
 ![Dusk over a wide, shallow river](images/ford.jpg "The ford at Stroane")
@@ -64,9 +93,10 @@ Folder layout:
 ```
 content/
   campaign.json
+  ui.json
   maps.json
   locations.json
-  maps/            haestra.jpg, stroane.jpg, emer.jpg
+  maps/            bay-of-izar.jpg, bog-end.jpg, haestra.jpg
   images/          ford.jpg, aldric.jpg, ...
   events/          6050-1-037-02-ambush.md, ...
   journal/         aldric.md, mira.md, ring-of-stroane.md, stroane-war.md, ...
@@ -75,14 +105,40 @@ content/
 Campaign settings (`campaign.json`): the calendar and site text live here, so nothing about the calendar is hard-coded.
 ```json
 {
-  "title": "Chronicles of Haestra",
-  "era": { "name": "Third Era", "abbreviation": "TE" },
-  "months": ["Winter", "Spring", "Summer", "Autumn", "Fall"],
-  "daysPerMonth": 70
+  "title": "Kulthea Campaign Chronicles",
+  "languages": ["fi", "en"],
+  "defaultLanguage": "fi",
+  "era": {
+    "name": { "fi": "Kolmas Aika", "en": "Third Era" },
+    "abbreviation": { "fi": "K.A.", "en": "TE" }
+  },
+  "months": [
+    { "name": { "fi": "Talvi",  "en": "Winter" }, "inDate": { "fi": "Talven",  "en": "Winter" } },
+    { "name": { "fi": "Kevät",  "en": "Spring" }, "inDate": { "fi": "Kevään",  "en": "Spring" } },
+    { "name": { "fi": "Kesä",   "en": "Summer" }, "inDate": { "fi": "Kesän",   "en": "Summer" } },
+    { "name": { "fi": "Ruska",  "en": "Autumn" }, "inDate": { "fi": "Ruskan",  "en": "Autumn" } },
+    { "name": { "fi": "Marras", "en": "Fall" },   "inDate": { "fi": "Martaan", "en": "Fall" } }
+  ],
+  "daysPerMonth": 70,
+  "dateFormat": {
+    "fi": "{era} {year}, {month} {day}. päivä",
+    "en": "{era} {year}, {day}{ordinal} of {month}"
+  }
+}
+```
+Dates: month number 1 to 5 in a file name selects the month in this list. In a date, `{era}` is the era abbreviation, `{month}` is the month's `inDate` form (Finnish inflects the name, so "Talven 37. päivä", while English keeps "Winter"), and `{ordinal}` is the English ordinal suffix ("st", "nd", "rd", "th") and empty in Finnish. The `name` form is used where a month is mentioned on its own. The result is "K.A. 6050, Talven 37. päivä" in Finnish and "TE 6050, 37th of Winter" in English. Every configured language must supply the era, the five months and a date format, because a date cannot fall back to another language without mixing them.
+
+Interface texts (`ui.json`): each text has a key and a value per language. The default language must have every text, and a missing text in another language falls back to the default language.
+```json
+{
+  "previous": { "fi": "Edellinen", "en": "Previous" },
+  "next": { "fi": "Seuraava", "en": "Next" },
+  "journal": { "fi": "Päiväkirja", "en": "Journal" },
+  "notTranslated": { "fi": "Ei saatavilla tällä kielellä", "en": "Not available in this language" }
 }
 ```
 
-Journal entries (`journal/<id>.md`): the id is the file name, and every entry type uses `image` for its picture. For player characters and NPCs the body text is the background, with no separate description field. The campaign events list is generated automatically (see "Character event lists").
+Journal entries (`journal/<id>.md`): the id is the file name, and every entry type uses `image` for its lead picture (the portrait for a character). An entry can have any number of further images, placed in the text with ordinary Markdown image syntax, exactly as in events; their alt text and captions are written in each language section, and the build checks them like any other image. For player characters and NPCs the body text is the background, with no separate description field. The campaign events list is generated automatically (see "Character event lists"). The `name` and `motto` fields and the body follow the rules in "Languages": the examples below use a single language (written in English for readability), so their texts are plain values and unmarked bodies, and a translated entry would write `name: { fi: ..., en: ... }` and add an `@en` section.
 
 Player character (`journal/aldric.md`):
 ```markdown
@@ -93,6 +149,8 @@ image: images/aldric.jpg
 motto: "The river remembers."
 ---
 Born in a river village in the Stroane valley, Aldric served the [[order-of-the-ford]] until the end of the war...
+
+![Aldric at the ford, sketched in charcoal](images/aldric-sketch.jpg "A sketch by the party's scribe")
 ```
 
 NPC (`journal/mira.md`): as a player character, without the motto.
@@ -146,27 +204,31 @@ Free-form lore, a faction summary, a session recap, ...
 Errors (stop the build):
 - Files and dates: an event file name doesn't match `year-month-day-order-slug.md`, or the month is outside 1 to 5 or the day outside 1 to 70; two events share the same year, month, day and order number; a required field is missing (an event title, or a journal entry's type or, except for locations, its name); a `location` journal entry's id doesn't match any location in `locations.json`; a location entry has a `name` field.
 - Maps and locations: `maps.json` doesn't have exactly one `main` map, or a map's declared size doesn't match its image; a `location` or `showOn.location` id doesn't exist; a location has no position on the map it is used for, or a position is outside 0 to 100 percent; an event has `n/a` on the main map and no `showOn`.
-- Links and references: a `[[id]]` link or a `:::journal{for="..."}` id doesn't match any journal entry; an image or map file doesn't exist; raw HTML appears in the text.
+- Languages: `campaign.json` doesn't define a default language that is one of its languages; a configured language lacks an era name, an abbreviation, five month names and in-date forms, or a date format; a language map or `@` section uses a language that isn't configured; a text field or section is repeated for the same language; a field or body has no default-language text; unmarked text is combined with an explicit section for the default language; a text in `ui.json` has no default-language value.
+- Links and references: a `[[id]]` link or a `:::journal{for="..."}` id doesn't match any journal entry (checked in every language section); an image or map file doesn't exist; raw HTML appears in the text.
 
 Warnings (the build continues):
-- An image is over about 1 MB or 1600 px wide, or isn't JPEG, PNG or WebP.
+- An ordinary image is over about 1 MB or 1600 px wide, or isn't JPEG, PNG or WebP.
+- A map image is over about 10 MB or 5000 px wide, or isn't JPEG, PNG or WebP. Maps have their own, higher limit than ordinary images.
 - An image, location or journal entry is never used.
 - An image has empty alt text.
 - A split `track` has no later event returning to the party.
+- Missing translations are reported as one summary line per language, for example "English: 12 of 40 events have no text", not as a warning per item.
 
 A `track` value is free text and is not checked against the journal, so a mistyped name creates a new track. The "never returns to the party" warning is the only safeguard.
 
 ## Application architecture
 
-- State: the URL is the single source of truth for the current event, the active map and the open journal entry, read through React Router's hash router. The back button, a reload and later shareable links work without a second copy of the state. Map pan and zoom stay as local component state.
+- State: the URL is the single source of truth for the current event, the active map, the open journal entry and the language, read through React Router's hash router. The back button, a reload and later shareable links work without a second copy of the state. Map pan and zoom stay as local component state.
 - Layout on desktop: the map fills the upper area, with the stepper and the event details (title, date, text, images and previous/next controls) in a lower panel, like Wheel of Timelines. The journal panel slides in from the right over the main view. On a phone the journal panel covers the screen.
 - Styling: plain CSS with CSS Modules, so styles are scoped per component and a custom fantasy look is easy to build.
 - Map switching: a manual map switch lasts only until the next step. Stepping always shows the new event on its own map.
 
 URLs (hash router):
 - `/#/event/<event-id>`: the main view at that event; the id is the file name without `.md`.
-- `/#/event/<event-id>?map=world`: the same, with a manual map switch applied.
+- `/#/event/<event-id>?map=haestra`: the same, with a manual map switch applied.
 - `/#/event/<event-id>?journal=aldric`: the journal panel open over that event.
+- `/#/event/<event-id>?lang=en`: the same event in English. `lang` can be combined with `map` and `journal`, and a missing or unknown value means the default language.
 - `/#/journal`: the journal index open, over the current event.
 - `/#/` redirects to the first event.
 
@@ -175,25 +237,29 @@ Components:
 - MainView: the map area plus the lower panel.
   - MapView: the Leaflet map for the active map, with a MapSwitcher, location markers, route lines and the current event's marker.
   - StepperPanel: previous/next controls, plus EventDetails (title, date, the location as a link when it has a journal entry, rendered text, images).
+- LanguageSwitch: the FI | EN control, which changes only the `lang` parameter in the URL. It sits at the top right of the main view, next to the JournalButton.
 - JournalButton: top right of the main view, opening the journal index from the same side the panel slides in from. It may later be styled as a book.
 - JournalPanel: the sliding panel, showing either the JournalIndex (grouped by type) or a JournalEntry (image, text, "In the campaign" excerpts, linked events).
 - ImageViewer: full-size view when an image is clicked.
-- Shared logic without UI: a route builder (the per-map, per-track route rules), a date formatter and a coordinate converter (percent to Leaflet).
+- Shared logic without UI: a route builder (the per-map, per-track route rules), a date formatter (per language), a text resolver (the chosen language, falling back to the default) and a coordinate converter (percent to Leaflet).
 
 Map markers: the map shows the current event's marker prominently, plus small dots for the places visited so far on that map. Places the story hasn't reached yet are not shown. Clicking a marker to select its events is a future improvement, not part of the first version.
 
 ## Data flow
 
 At build time the Vite plugin turns the content files into one bundle containing:
-- the campaign settings, the maps and the locations;
-- all events in date order, each with its date, title, rendered HTML text, image references, and resolved main-map position and optional `showOn` position;
-- all journal entries, each with its rendered text, its image, its "In the campaign" excerpts (the paragraphs and journal-only passages from events) and the ids of the events that link to it (for location entries, the events held at that location).
+- the campaign settings, the interface texts, the maps and the locations;
+- all events in date order, each with its date, title and rendered HTML text in every language it has, image references, and resolved main-map position and optional `showOn` position;
+- all journal entries, each with its rendered text in every language it has, its image, its "In the campaign" excerpts (the paragraphs and journal-only passages from events) and the ids of the events that link to it (for location entries, the events held at that location).
 
 At runtime:
 1. The app loads the bundle once at start.
-2. The router reads the URL: an event id, an optional `map` and an optional `journal`.
+2. The router reads the URL: an event id, an optional `map`, an optional `journal` and an optional `lang`.
 3. The event id gives the current event's position in the ordered list. Previous and next move that position and update the URL.
-4. From the current event the app derives what is shown. The displayed map is the URL's `map` override if present, otherwise the event's `showOn` map, otherwise the main map. The markers and route lines for that map run up to and including the current event. The journal panel shows the entry or index named in the URL.
+4. The language is the `lang` value, or the default language. Every text shown is taken in that language, falling back to the default language where it is missing (see "Languages"). The bundle holds all languages, so switching language needs no download.
+5. From the current event the app derives what is shown. The displayed map is the URL's `map` override if present, otherwise the event's `showOn` map, otherwise the main map. The markers and route lines for that map run up to and including the current event. The journal panel shows the entry or index named in the URL.
+
+Map loading: the main map loads first. Once it and the first event are shown, the app downloads the other maps in the background, so switching to them is quick later. Maps are used at full size, with no resizing or tiling.
 
 Routes are worked out at runtime, once when the app loads. A plain function builds all segments per map and track from the ordered events, and stepping shows the segments up to the current event. This is cheap for about 300 events, easy to unit-test, and keeps the route rules in the app code rather than the build plugin.
 
@@ -204,17 +270,26 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 - Publishing: a GitHub Actions workflow runs on every push to the `master` branch. It installs dependencies, runs the tests and the content validation, builds the site and deploys it with GitHub's official Pages action. Nothing built is committed to the repository, and a failed validation never replaces the live site.
 - The site uses an existing public repository, `https://github.com/tmikonen/kulthea`, separate from the Jekyll blog. Its default branch is `master` and it already holds the three map images. GitHub Pages is not yet enabled; it must be switched on in the repository settings with the source set to "GitHub Actions".
 - The `specifications` folder stays in the repository.
-- The existing map images exceed the image limits (about 1 MB, 1600 px wide). That is accepted for now: the build reports them as warnings and continues. Their real sizes are unknown, so the 3 s load target may be at risk, and a higher limit for maps or a resize may be needed later.
+- The three existing maps are in `content/maps/` and are used as they are: `bay-of-izar.jpg` (1.3 MB, 2930 x 1858, the main map), `bog-end.jpg` (1.3 MB, 4042 x 2611) and `haestra.jpg` (8.1 MB, 4503 x 3147). Maps have their own, higher limit (see "Validation rules"), so they do not trigger the ordinary image warning. The 3 s load target applies to the main map and the first event, with the other maps loading afterwards in the background. The risk is that the 8 MB `haestra.jpg` competes for bandwidth on a slow connection and that very old phones struggle to decode it, to be checked by hand on the deployed site.
 - Address: the project site `https://tmikonen.github.io/kulthea/`, which leaves the Jekyll blog untouched. The app is built with `/kulthea/` as its base path. A custom domain is not planned.
 
 ## Testing approach
 
 - Logic and components: Vitest and React Testing Library. Vitest covers the pure logic (route rules, date handling, coordinate conversion, the content parser and validator, journal excerpts). React Testing Library covers component behaviour such as the stepper and the journal panel.
 - Browser tests: Playwright against the built site, for the key flows, because Leaflet and layout do not work properly in a simulated environment. These check the main acceptance criteria: stepping updates the map, the journal panel keeps the event and map position, the back button and Escape close the panel, and a phone-sized screen works.
-- Fixtures: a small handcrafted miniature campaign (a few events, two maps, a split track, a journal-only passage, an `n/a` event) is used by the tests instead of the real content. Test names include requirement ids such as FR-5, so it is visible which acceptance criteria are covered.
+- Fixtures: a small handcrafted miniature campaign (a few events, two maps, a split track, a journal-only passage, an `n/a` event, an event translated into English and one that is not) is used by the tests instead of the real content. Test names include requirement ids such as FR-5, so it is visible which acceptance criteria are covered.
 - Performance: the 200 ms stepping target is measured in Playwright. The 3 s first-load target depends on the real maps, so it is checked by hand against the deployed site.
 - The validator is tested too, with cases for each error and warning in the validation rules.
 - The tests run in the publishing workflow before the build is deployed.
+- Test content: the content folder is configurable (the environment variable `CONTENT_DIR`, default `content`), so the browser tests build the site from the fixtures in `tests/fixtures/` instead of the demo content.
+
+## Technology stack
+
+- App: React, TypeScript (strict), Vite and CSS Modules.
+- Map: Leaflet through react-leaflet. Routing: React Router with the hash router.
+- Content pipeline (the Vite plugin): unified and remark for Markdown, with a directive plugin for the `:::journal` blocks, a YAML front-matter parser and a small library that reads image dimensions. The exact packages are chosen when the backlog item that needs them is implemented.
+- Quality: Vitest, React Testing Library, Playwright, and ESLint with TypeScript support.
+- No other runtime libraries are added without agreement with the product owner.
 
 ## Decision record
 
@@ -256,9 +331,23 @@ Reasons: GitHub Pages has no server-side rewrites, so path URLs would need a 404
 
 Consequences: addresses are less tidy than path URLs.
 
-### DD-5 Content layout: hybrid JSON and Markdown
+### DD-5 Languages: one file per item, all languages inside
 
-Decision: short structured data (the campaign settings, maps and locations) is stored as JSON. Each event and each journal entry is its own Markdown file with front matter (for events: title, locations, track; the date comes from the file name) followed by the prose.
+Decision: Finnish and English are supported, with Finnish as the default. Every item is a single file holding all its languages: short fields as language maps, long text as `@fi` / `@en` sections, interface texts in one `ui.json`. The language is a `lang` query parameter in the URL.
+
+Reasons:
+- The content author requires one file per event, entry or location, with the content for all languages in it.
+- It follows the same philosophy as the rest of the design: structure is written once in the file, the default language is always complete, and everything the visitor can change lives in the URL.
+- A plain value or unmarked body means the default language, so starting in Finnish needs no language syntax, and English is added later by adding a map or a section.
+- Missing translations fall back to the default language with a note, so the site is always complete.
+
+Alternatives not chosen: a folder per language with mirrored files, language-suffixed files and complete parallel files, all of which split an item across several files; a translation library such as i18next, which would add a dependency and a second way to store translations for a handful of short texts; a language prefix in the path, which changes every route; remembering the choice in the browser, which reintroduces stored state.
+
+Consequences: files with both languages are longer and mix two languages in one editor, and the build must check each language section separately (links, images, `:::journal` blocks).
+
+### DD-6 Content layout: hybrid JSON and Markdown
+
+Decision: short structured data (the campaign settings, interface texts, maps and locations) is stored as JSON. Each event and each journal entry is its own Markdown file with front matter (for events: title, locations, track; the date comes from the file name) followed by the prose.
 
 Reasons: long descriptions are pleasant to write and review in Markdown files, one file per item keeps Git diffs small, and compact tabular data is clearer in JSON than in front matter.
 

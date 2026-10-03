@@ -1,4 +1,4 @@
-# Campaign Chronicles: Requirements
+# Kulthea Campaign Chronicles: Requirements
 
 ## 1. Purpose and scope
 
@@ -8,12 +8,14 @@ A static website that presents a chronicle of past sessions of a Shadow World ca
 - Content: events from past sessions, plus character background events such as birthplaces (see FR-8). No planned or future events.
 - Everything is visible. There is no spoiler control.
 - Authoring: the DM, mostly by hand-editing data files.
+- Languages: the displayed language can be Finnish or English (see FR-9). The campaign is written in Finnish first.
 
 ## 2. Functional requirements (MVP)
 
 ### FR-1 Map
-Several independent map images of different scales (a main campaign map, a fine-scale regional map, and a largest-scale map for character backgrounds). Each is screen-sized with simple pan and zoom. Maps are unrelated images: each has its own coordinates and they need not align.
+Several independent map images of different scales: a main campaign map (Bay of Izar), a finer-scale map (Bog End) and a largest-scale map for character backgrounds (Haestra). The maps are a few thousand pixels wide, with simple pan and zoom to explore them. Maps are unrelated images: each has its own coordinates and they need not align.
 - AC: the active map loads and zooms on desktop and on a phone.
+- AC: the main map is shown first; the other maps download in the background once the main map and first event are visible.
 - AC: 50 markers stay responsive.
 - AC: the map shows the current event's marker prominently, small dots for the locations of earlier events on that map (standalone events included), and nothing for places the story has not reached.
 - AC: the user can switch maps manually from a map switcher.
@@ -29,7 +31,7 @@ Events are shown in chronological order and stepped with previous/next controls.
 
 ### FR-3 Event
 An event is a scene or moment at one location on one date, with a Markdown description and images. Several consecutive events may share a location. Order within a day follows an order number in the event's file name.
-- AC: details show the date as "TE 6050, 37th of Winter", the location, the text and the images.
+- AC: details show the date in the chosen language's format (see FR-7), the location, the text and the images.
 - AC: clicking an image opens it at full size in a viewer that can be closed.
 
 Every event defines a location on the main map, which may be "N/A". An event may also define a location on at most one other map. If it does, that other map is the one displayed for the event, and otherwise the main map is displayed. An event with "N/A" on the main map must define a location on another map.
@@ -72,9 +74,11 @@ Journal entries (player characters, major NPCs, items, locations and free-form n
 - AC: an event can carry a passage that is attached to a character and shown only in that character's journal, not in the event.
 - AC: a player character entry shows a name, picture, background and motto; an NPC entry shows the same except the motto.
 - AC: each entry shows its images and text without horizontal scrolling on a phone.
+- AC: an entry has a lead image and can contain any number of further images in its text, and clicking an image opens it at full size as in events.
 
 ### FR-7 Calendar
-Third Era, five months of 70 days each, in the order Winter, Spring, Summer, Autumn, Fall.
+Third Era, five months of 70 days each, in the order Winter, Spring, Summer, Autumn, Fall. In Finnish the era is Kolmas Aika (K.A.) and the months are Talvi, Kevät, Kesä, Ruska, Marras, which are inflected in a date.
+- AC: a date is displayed according to the chosen language: "TE 6050, 37th of Winter" in English and "K.A. 6050, Talven 37. päivä" in Finnish.
 - AC: days 1 to 70 validate and anything else is rejected.
 - AC: events sort by year, month, day, then the order number in the file name.
 - AC: two events with the same date and order number are rejected.
@@ -83,6 +87,16 @@ Third Era, five months of 70 days each, in the order Winter, Spring, Summer, Aut
 Events that are not part of any route, such as a player character's birthplace or background, are ordinary events in the same timeline. They are stepped in date order with everything else, show a single marker on their map, and have no route line.
 - AC: a standalone event appears in the stepper in date order and displays its map and marker.
 - AC: it adds no route line and does not interrupt the party's route.
+
+### FR-9 Languages
+The site can be shown in Finnish or English. Finnish is the default language, the one the site opens in and the one that must always be complete. The campaign content will first be written in Finnish only, so English must be optional and can be added gradually. Everything else (planning, documents, file formats, ids) stays in English.
+- AC: a language switch (FI | EN) is always visible at the top right of the main view, next to the journal button, and switching changes the interface and all content to the chosen language without reloading the page.
+- AC: switching language keeps the current event, the active map and the open journal entry.
+- AC: the chosen language is part of the web address, so a shared link opens in the language it was shared in. An address with no language, or an unknown one, opens in the default language.
+- AC: interface texts, event titles and text, journal entries, location and map names, the era and month names in dates, and image alt texts and captions all appear in the chosen language when it is available.
+- AC: when an item has no text in the chosen language, the default language text is shown with a small "not available in this language" note.
+- AC: a site with content in the default language only builds and works completely, without errors for missing translations.
+- AC: the page's declared language follows the chosen language.
 
 ## 3. Post-MVP
 
@@ -93,14 +107,14 @@ Events that are not part of any route, such as a player character's birthplace o
 
 ## 4. Non-functional requirements
 
-- Performance: map and first event visible within 3 s on broadband; images lazy-load. Scale target is about 300 events, 50 locations and 30 journal entries.
+- Performance: the main map and first event visible within 3 s on broadband (the other maps load afterwards); images lazy-load. Scale target is about 300 events, 50 locations and 30 journal entries.
 - Devices: desktop first, usable on mobile. Current Chrome, Firefox, Safari and Edge.
 - Hosting: GitHub Pages from its own repository (`tmikonen/kulthea`), published by a GitHub Actions workflow, static files only, no backend.
 - Authoring: data in JSON and Markdown files, with a build-time check that catches broken references and invalid dates.
 - Single application: map, stepper and journal run in one page without full page loads. Journal entries are not separate pages, so search engines will not index them individually. This is accepted because the main audience is the DM and the players.
 - Back button: browser history reflects the open journal entry and the current event, so back and forward behave as expected.
 - Accessibility (practical basics, no formal WCAG claim): keyboard-operable stepping, alt text on images, readable contrast and text size, semantic page structure.
-- Images: JPEG, PNG or WebP, at most about 1 MB each and 1600 px wide. The build warns about files over the limit but does not fail. The existing map images exceed the limit and are accepted for now, so the 3 s load target may need a higher limit for maps or a resize.
+- Images: JPEG, PNG or WebP, at most about 1 MB each and 1600 px wide. The build warns about files over the limit but does not fail. Maps have their own, higher limit (about 10 MB and 5000 px wide) and are used at full size without resizing or tiling.
 
 ## 5. Open items
 

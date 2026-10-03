@@ -56,7 +56,7 @@ Automated tests: component test for the heading; Playwright smoke test.
 
 ## B-2 Publishing workflow and live site
 
-Status: in progress
+Status: done
 
 Related: "Deployment".
 
@@ -72,14 +72,14 @@ How to check by hand:
 Acceptance criteria:
 - [x] A workflow in `.github/workflows/` runs on every push to `master`: install with `npm ci`, typecheck, lint, unit tests, build, browser tests, then deploy with GitHub's official Pages actions.
 - [x] A failing step stops the workflow before deployment.
-- [ ] The live site shows the page from B-1.
+- [x] The live site shows the page from B-1.
 - [x] Content validation, which is part of the build from B-3 on, therefore also runs before every deployment.
 
 Automated tests: none of its own; the workflow runs all existing tests, and the manual check confirms it.
 
 ## B-3 Campaign settings and maps content
 
-Status: defined
+Status: in progress
 
 Related: "Build and validation", "File formats" (`campaign.json`, `maps.json`), "Validation rules", FR-1, FR-7, FR-9.
 

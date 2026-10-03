@@ -33,7 +33,7 @@ The next item may start once the previous one is done. Problems found at accepta
 
 ## B-1 Project scaffold and test tooling
 
-Status: defined
+Status: done
 
 Related: DD-1, "Testing approach", "Deployment".
 
@@ -45,12 +45,12 @@ How to check by hand:
 3. Run `npm run test:e2e`. The browser smoke test passes.
 
 Acceptance criteria:
-- [ ] A React, Vite and TypeScript (strict) project is in the repository root, with the existing `content/` and `specifications/` folders untouched.
-- [ ] The Vite base path is `/kulthea/`, and CSS Modules are usable.
-- [ ] `package.json` has the scripts `dev`, `build`, `preview`, `test`, `typecheck`, `lint` and `test:e2e`.
-- [ ] `.gitignore` excludes `node_modules` and the build output.
-- [ ] Vitest with React Testing Library runs a first component test.
-- [ ] Playwright runs a smoke test against the built site (via `preview`) and checks the heading.
+- [x] A React, Vite and TypeScript (strict) project is in the repository root, with the existing `content/` and `specifications/` folders untouched.
+- [x] The Vite base path is `/kulthea/`, and CSS Modules are usable.
+- [x] `package.json` has the scripts `dev`, `build`, `preview`, `test`, `typecheck`, `lint` and `test:e2e`.
+- [x] `.gitignore` excludes `node_modules` and the build output.
+- [x] Vitest with React Testing Library runs a first component test.
+- [x] Playwright runs a smoke test against the built site (via `preview`) and checks the heading.
 
 Automated tests: component test for the heading; Playwright smoke test.
 

@@ -8,7 +8,7 @@ test.describe('main map (B-4)', () => {
     await page.goto('./');
     const image = page.locator('img.leaflet-image-layer');
     await expect(image).toBeVisible();
-    await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(200);
+    await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(3000);
 
     const area = await page.locator('.leaflet-container').boundingBox();
     const box = await image.boundingBox();

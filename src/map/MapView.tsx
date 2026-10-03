@@ -6,6 +6,13 @@ import type { ContentMap } from '../content/types';
 import { imageBounds } from './coords';
 import styles from './MapView.module.css';
 
+/**
+ * Leaflet clamps the zoom that fits an image to the map's minimum zoom, which defaults to 0
+ * (the image's native size). Large images need a negative zoom to fit, so start far lower;
+ * FitToImage then sets the real minimum.
+ */
+const INITIAL_MIN_ZOOM = -20;
+
 /** How far past the fitted view, and past the image's native size, the user can zoom in. */
 const EXTRA_ZOOM = 2;
 
@@ -42,6 +49,7 @@ export function MapView({ map: def, label }: { map: ContentMap; label: string })
         bounds={bounds}
         maxBounds={bounds}
         maxBoundsViscosity={1}
+        minZoom={INITIAL_MIN_ZOOM}
         zoomSnap={0}
         zoomDelta={0.5}
         attributionControl={false}

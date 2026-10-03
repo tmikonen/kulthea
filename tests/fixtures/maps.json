@@ -1,4 +1,4 @@
 [
-  { "id": "main-map",   "name": { "fi": "Pääkartta", "en": "Main Map" }, "image": "maps/main-map.png",   "width": 200, "height": 100, "main": true },
+  { "id": "main-map",   "name": { "fi": "Pääkartta", "en": "Main Map" }, "image": "maps/main-map.png",   "width": 3000, "height": 1500, "main": true },
   { "id": "second-map", "name": "Second Map",                            "image": "maps/second-map.png", "width": 120, "height": 80 }
 ]

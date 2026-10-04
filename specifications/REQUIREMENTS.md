@@ -33,7 +33,7 @@ Events are shown in chronological order and stepped with previous/next controls.
 ### FR-3 Event
 An event is a scene or moment at one location on one date, with a Markdown description and images. Several consecutive events may share a location. Order within a day follows an order number in the event's file name.
 - AC: details show the date in the chosen language's format (see FR-7), the location, the text and the images.
-- AC: clicking an image opens it at full size in a viewer that can be closed.
+- AC: clicking an image opens it in a viewer that can be closed, as large as the window allows and never larger than the image itself.
 
 Every event defines a location on the main map, which may be "N/A". An event may also define a location on at most one other map. If it does, that other map is the one displayed for the event, and otherwise the main map is displayed. An event with "N/A" on the main map must define a location on another map. "N/A" means that the event is outside the main map's region, so an event inside it should have a main location, and "show on" chooses the map it is displayed on.
 
@@ -73,15 +73,16 @@ Journal entries (player characters, major NPCs, items, locations and free-form n
 - AC: a web address that names a journal entry that does not exist is ignored and the event is shown.
 - AC: the build rejects event or journal text that links to a journal entry that does not exist.
 - AC: opening or closing the panel never changes the current event, the map position or the zoom level, and does not reload the page.
-- AC: following a link from one journal entry to another replaces the panel content without closing it.
-- AC: the browser back button and the Escape key close the panel and return to the same event.
+- AC: following a link from one journal entry to another replaces the panel content without closing it, and the back button returns to the previous entry.
+- AC: Escape and a close button close the panel, and the browser back button goes back one step, so it closes a panel that was just opened. The event stays the same in all of them.
+- AC: stepping to another event closes the panel.
 - AC: event text can link to a journal entry with a simple syntax, and events are expected to contain many such links.
-- AC: each entry other than a location lists the events that link to it, and selecting one of them goes to that event.
+- AC: each entry other than a location lists the events that link to it, and selecting one of them goes to that event and closes the panel. Which events link to an entry is decided from the text shown in the chosen language.
 - AC: for player characters and NPCs, every paragraph of an event that links to the character is also shown in the character's journal entry, with the event's title and date and a link back to the event.
-- AC: an event can carry a passage that is attached to a character and shown only in that character's journal, not in the event.
+- AC: an event can carry a passage that is attached to a player character or an NPC and shown only in that character's journal, not in the event.
 - AC: a player character entry shows a name, picture, background and motto; an NPC entry shows the same except the motto.
 - AC: each entry shows its images and text without horizontal scrolling on a phone.
-- AC: an entry has a lead image and can contain any number of further images in its text, and clicking an image opens it at full size as in events.
+- AC: an entry may have a lead image (the image is optional) and can contain any number of further images in its text, and clicking an image opens it at full size as in events.
 
 ### FR-7 Calendar
 Third Era, five months of 70 days each, in the order Winter, Spring, Summer, Autumn, Fall. In Finnish the era is Kolmas Aika (K.A.) and the months are Talvi, Kevät, Kesä, Ruska, Marras, which are inflected in a date.

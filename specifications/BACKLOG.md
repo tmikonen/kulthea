@@ -626,37 +626,269 @@ Feedback wanted:
 - whether the routes help the story or crowd the map, especially with many events. The main map keeps the whole route, and fading or limiting the old lines is an option if it gets crowded;
 - whether showing only the current visit on the fine maps feels right, and whether Haestra should keep its history.
 
+## B-20 Journal content
+
+Status: defined
+
+Related: FR-6, FR-9, "Journal entries" and "Location entries" (file formats), "Validation rules".
+
+Depends on: B-10 (the language sections and the Markdown pipeline).
+
+Scope note: the build side of the journal, with no screen yet: the entries are read, checked and put in the bundle, and B-21 shows them. Links `[[...]]`, images in text and `:::journal` blocks are not interpreted yet (they come in B-23, B-27 and B-26), so the demo entries contain none until then. The lead image is handled here, because it is a field of the entry. Decided with the product owner: the lead image is optional for every type. This item also adds the demo journal (see the criteria) to `content/`, and leaves `campaign/` without entries for now.
+
+You will see: nothing new on the screen. Errors and warnings in the terminal when you break a demo entry file.
+
+How to check by hand:
+1. Run `npm run build` (or `npm run dev`). It succeeds, and the demo entries are in `content/journal/`.
+2. In a demo location entry, rename the file so that its name is not a location id. The build fails and names the file.
+3. Add a `motto` to a demo NPC, or remove the `name` of a demo character. The build fails and names the file and the field.
+4. Point an `image` at a file that does not exist. The build fails. Use a very large image. The build warns and does not fail.
+
+Acceptance criteria:
+- [ ] Every file in `journal/` is an entry. Its id is the file name without `.md`: lowercase letters, digits and hyphens. `index` is reserved (B-21 uses it in the address) and is an error as an id. An empty or missing `journal/` folder is allowed.
+- [ ] The front matter has `type` (`pc`, `npc`, `item`, `location` or `note`), `name` (a short text field, so a plain value or a language map), an optional `image` (a path from the content folder) and, for `pc` only, an optional `motto` (a short text field). Errors: a missing or unknown `type`; a missing `name`, except for `location`, which must not have one (its name is the location's); a `motto` on any other type; a `location` entry whose id is not in `locations.json`.
+- [ ] The body follows the same language rules as an event's: sections `@fi`, `@en`, a required default-language text, rendered to HTML at build time, raw HTML is an error.
+- [ ] A missing `image` file is an error. An image over about 1 MB or 1600 px wide, or not JPEG, PNG or WebP, is a warning. The image is served from a hashed URL in the build, like the maps, and its width and height are in the bundle.
+- [ ] The bundle has the entries, each with `id`, `type`, `name` (a location's from `locations.json`), `motto`, the HTML text per language, and the image URL, width and height. The index order is by type (player characters, NPCs, items, locations, notes) and then by name in the chosen language (at runtime, B-21).
+- [ ] The demo journal in `content/journal/` has 2 player characters, 2 NPCs, 1 item, 2 locations (places that exist on the maps, for example the ruins and Suonperä) and 1 note, with invented placeholder pictures in `content/images/`. Ids start with `demo-` and names with "Demo:", as for the demo events, except the location entries, whose ids and names are those of the real locations they describe (their text is invented). Some entries have English texts. `content/README.md` says so.
+
+Automated tests: unit tests for every error and warning above, for the language rules, the id rules and the bundle shape, using their own fixtures.
+
+## B-21 Journal button and panel
+
+Status: defined
+
+Related: FR-6, FR-9, "URLs", "Components" (JournalButton, JournalPanel), "Bad links".
+
+Depends on: B-20 and B-12 (stepping).
+
+Scope note: decisions made with the product owner. (1) The panel is held in the address by the `journal` parameter on the event address: `?journal=index` is the index, `?journal=<entry-id>` an entry, no parameter means closed. The design's `/#/journal` is dropped, because an address with no event id has no current event. The existing unit test that uses `/journal/nowhere` still holds, since that path is unknown and redirects to the first event. (2) Stepping closes the panel, as it also ends a manual map choice. Stepping drops `journal` as well as `map`; a language switch keeps it. (3) Opening a panel, and moving from one entry to another, adds a history entry; closing it with the close button or Escape adds one without `journal`. So back after closing opens the panel again, and back after opening closes it. FR-6 is reworded for this. (4) The unknown-event notice (B-11) keeps working: an address with an unknown event and a `journal` parameter is redirected to the first event, keeps `journal`, and the notice is carried as before. The entry itself is added in B-22; here an entry id opens a placeholder with the entry's name.
+
+You will see: a "Päiväkirja" button at the top right of the page, next to the language switch. It opens a panel that slides in from the right over the map and the event, with the journal index grouped by type. The map and the event stay as they were.
+
+How to check by hand:
+1. Zoom the map in and pan it. Click the button. The panel slides in, the index shows the demo entries under their types, and the map and the event have not moved.
+2. Press Escape, or the close button. The panel closes and the map is still where it was. Press the browser's back button. The panel is open again. Back again closes it.
+3. Open the panel and press Next. The panel closes and the next event is shown.
+4. Open the panel, switch to EN. It stays open and the texts change.
+5. Add `?journal=nowhere` to an address. The event is shown with no panel. Add `?journal=index` and reload. The index opens.
+
+Acceptance criteria:
+- [ ] The button is at the top right, next to the language switch, with its text from `ui.json`. It opens the index, and the address gets `journal=index`.
+- [ ] The panel slides in from the right over the main view (a short transition, none when the user prefers reduced motion), and looks distinct from the main view.
+- [ ] The index groups the entries by type with headings in the chosen language, and sorts them by name in the chosen language. An entry in it is a link that opens it (`journal=<id>`).
+- [ ] Opening and closing the panel never changes the current event, the map, its position or its zoom, and does not reload the page or the map.
+- [ ] Escape and the close button close the panel by adding an address without `journal`. The back button goes back one step, so opening then back closes the panel. The event stays the same in all of them.
+- [ ] Stepping with the buttons or the arrow keys closes the panel. The arrow keys do not step while focus is inside the panel.
+- [ ] An unknown entry in the address is ignored: the event is shown and the address is left as it is. Changing the language keeps the open panel.
+- [ ] When the panel opens, focus moves into it, and when it closes, focus returns to the element that opened it.
+- [ ] The notice for an unknown event still works, also with a `journal` parameter, and the design's URL list is updated.
+
+Automated tests: component tests for the address handling (index, entry, unknown, language kept, stepping dropping it, the notice); Playwright tests that open and close the panel with the button, Escape and back, check that the map's position and zoom and the event do not change, and check the arrow keys and focus.
+
+## B-22 Journal entry view
+
+Status: defined
+
+Related: FR-6, FR-9.
+
+Depends on: B-21.
+
+You will see: an entry opened from the index shows its picture, name, motto for a player character, and text, in the chosen language.
+
+How to check by hand:
+1. Open the journal and click a demo player character. The panel shows the picture, the name, the motto and the background.
+2. Click an NPC. It is the same without a motto. Open an item, a location and the note.
+3. Switch to EN. An entry with English text shows it. An entry without shows the Finnish text with the note "Ei saatavilla tällä kielellä" / "Not available in this language".
+4. Press "Päiväkirja" at the top of the panel to return to the index. Use back to return to the entry.
+5. Open an address with `?journal=<id>` of an entry directly. It opens.
+
+Acceptance criteria:
+- [ ] An entry shows, in this order: a link back to the index, the lead image (if it has one), the name, the motto (player characters only, if it has one), and the text. The lead image has the entry's name as its alt text, and it fits the panel's width without horizontal scrolling.
+- [ ] The name, motto and text are in the chosen language, with silent fallback for the name and motto and the "not available" note when the text falls back.
+- [ ] A location entry's name is the location's name.
+- [ ] Going from the index to an entry, or from an entry back to the index through the link, adds a history entry. The panel scrolls to the top when the entry changes.
+- [ ] The texts for the link back and the type headings are in `ui.json`.
+
+Automated tests: component tests for each type, the language fallback and the missing image; a Playwright test that opens each type from the index and checks the fields.
+
+### Milestone 3: the journal opens (after B-22)
+
+The first checkpoint for the journal, to be tested by hand before the links between story and journal are built. The demo journal has invented entries and no links in the texts yet.
+
+What to try: open and close the journal in every way (the button, Escape, the close button, back), with the map zoomed in, in both languages. (The phone layout comes in B-29.) Read every demo entry type.
+
+Feedback wanted:
+- the look of the panel: its width, how it slides in, how different it is from the main view, and the type headings in the index;
+- how an entry reads: the order of picture, name, motto and text, and the picture size;
+- whether stepping closing the panel and back reopening it feel right;
+- whether the Finnish type names ("Pelaajahahmot", "Henkilöt", "Esineet", "Paikat", "Muistiinpanot") are the words you want.
+
+## B-23 Journal links in text
+
+Status: defined
+
+Related: FR-6, FR-9, "Journal links" (data model), "Validation rules".
+
+Depends on: B-22.
+
+Scope note: `[[id]]` and `[[id|text]]` work in event text and in entry text, in every language section. The id must be an entry id (for a location, the location's id). The link text is the text after `|`, or else the entry's name in the language of that section, with fallback to the default language. Links are resolved when the text is rendered at build time. A link is an ordinary anchor that the app handles: following it opens the entry in the panel, keeps the event, `map` and `lang`, and adds a history entry. A link to the entry that is already open does nothing. The link syntax is read only in running text, not in code spans or code blocks. The demo event texts and entries get links.
+
+You will see: names in the event text are links. Clicking one opens that entry in the panel, over the same event.
+
+How to check by hand:
+1. Step to a demo event whose text names a character. The name is a link. Click it. The panel opens on that entry.
+2. In the entry, click a link to another entry. The content is replaced, and back returns to the previous one.
+3. Write `[[nobody]]` in a demo event file. The build fails, naming the file and the id. Write `[[demo-id|my text]]` and see "my text" as the link.
+4. Switch to EN. An entry's name in a link follows the language.
+
+Acceptance criteria:
+- [ ] `[[id]]` and `[[id|text]]` become links in event and entry text. Several links in one paragraph work, and the syntax inside code is left as written.
+- [ ] A link without text shows the entry's name in the language of the text (a location's name for a location entry), falling back to the default language's name.
+- [ ] Following a link in an event opens the panel on the entry, and the event, map and language are unchanged. Following a link inside an entry replaces the panel content and adds a history entry.
+- [ ] The build fails, naming the file and the id, when a link names an id that is not an entry, in any language section of an event or an entry. A malformed link (empty id, or an unclosed `[[`) is also an error.
+- [ ] A link can be reached and followed with the keyboard (Tab and Enter).
+
+Automated tests: unit tests for the link parser (both forms, several in a paragraph, code, errors, language names and fallback); component tests for following links in an event and in an entry; a Playwright test that clicks a link in an event, then one in the entry, and goes back.
+
+## B-24 Events listed on entries
+
+Status: defined
+
+Related: FR-6, FR-3, "Location entries", "Character event lists".
+
+Depends on: B-23.
+
+Scope note: for every entry except a location, the events whose text links to it. For a location entry, the events held at that place: those whose `location` or `showOn.location` is the place, and not events that only mention it. The events are in date order. Which events link to an entry is decided from the text that is shown in the chosen language (the event's own section, or the default one when it has none), so the list can differ between languages. The location line of the event panel becomes a link when the location has an entry. Selecting an event in a list goes to that event, keeps `lang`, drops `map` and `journal`, and so the panel closes. B-26 adds the events that have a passage for the entry.
+
+You will see: under an entry, a list "Tapahtumat" / "Events" with the date and title of each event, as links. In an event, a location name that has an entry is a link.
+
+How to check by hand:
+1. Open a character that is named in several demo events. The list shows those events in date order. Click one: the event is shown and the panel is closed.
+2. Open a location entry. It lists the events held there, and not an event that only names the place in its text.
+3. Step to an event at a place that has an entry. The location line is a link. Click it. The entry opens.
+4. Step to an event at a place with no entry. The location is plain text.
+5. Switch to EN. The titles and dates follow the language.
+
+Acceptance criteria:
+- [ ] A non-location entry lists the events that link to it, a location entry the events held there, each with its date (in the chosen language's format) and title, in date order. An entry with no events shows no list.
+- [ ] Selecting an event goes to it, and closes the panel. `lang` is kept.
+- [ ] The location line in the event panel is a link to the location's entry when there is one, and plain text otherwise. The link opens the panel and changes nothing else.
+- [ ] The lists are built at build time and per language, by the rule in the scope note.
+- [ ] The headings are in `ui.json`.
+
+Automated tests: unit tests for the lists (links, location events, a mention that does not count, date order, a language whose section has no link, the default fallback); component tests for the list and the location link; a Playwright test that follows an event link from an entry, and a location link from an event.
+
+### Milestone 4: story and journal are linked (after B-24)
+
+The second checkpoint for the journal: the story and the journal lead to each other. Names in events open entries, and entries lead back to events.
+
+What to try: step through the demo events and click every name and place you find. Follow links between entries. In an entry, go to an event from its list. Do it in both languages, and try back and Escape in the middle of it all.
+
+Feedback wanted:
+- whether a link in the text is easy to see and not in the way of reading (colour, underline);
+- whether going to an event from an entry (which closes the panel) feels right;
+- whether the events list under an entry is what you expected, especially for locations;
+- whether the history behaviour (each followed link is a step back) is comfortable.
+
+## B-25 Character excerpts
+
+Status: defined
+
+Related: FR-6, "Character event lists".
+
+Depends on: B-23 and B-24.
+
+Scope note: only for player characters and NPCs. An excerpt is a Markdown paragraph of an event that contains a link to the character (`[[id]]` or `[[id|text]]`), in the language shown for that event (as for the lists in B-24). The paragraph is shown as it is, with its links. A paragraph with several links to different characters appears in all of their entries, and a paragraph counts once for one character. The excerpts of an event are grouped under the event's title (a link to the event, as in B-24) and date, and the groups are in date order. When an event has no section in the chosen language, its excerpts are those of the default language, with the "not available" note once for that event. Items, notes and locations have no excerpts. The entry shows "In the campaign" first, and then the list of events from B-24.
+
+You will see: in a character's entry, under "Kampanjassa" / "In the campaign", the paragraphs of the events that mention the character, each group with the event's title and date.
+
+How to check by hand:
+1. Open a demo player character. "In the campaign" has one group for each event that names them, with only the paragraphs that name them. A paragraph that names someone else is not there.
+2. Click a group's title. The event opens and the panel closes.
+3. Open an NPC. The same applies.
+4. Switch to EN, then to an event with no English text. Its group shows the Finnish paragraph with the note.
+5. Open an item. It has no "In the campaign".
+
+Acceptance criteria:
+- [ ] A player character or NPC entry shows "In the campaign" with a group for each event that has at least one paragraph linking to the character, in date order, with the event's title as a link, its date, and those paragraphs.
+- [ ] The paragraphs are in the language shown for the event, with the fallback and the note for events that have no section in the chosen language.
+- [ ] A paragraph appears once per character, even if it links to the character twice, and appears in every character it links to.
+- [ ] Items, notes and locations have no such section, and a character with no excerpts shows none.
+- [ ] The groups are built at build time and per language.
+
+Automated tests: unit tests for the paragraph extraction (one and several links, two characters in one paragraph, a link in a list item, a paragraph with no link, order, language and fallback); a component test for the section; a Playwright test for a character in the fixtures.
+
+## B-26 Journal-only passages
+
+Status: defined
+
+Related: FR-6, "Character event lists", "File formats" (event).
+
+Depends on: B-25.
+
+Scope note: a block of lines `:::journal{for="id"}` (or `for="id1,id2"`) up to a line `:::`, in an event's text. The block is not shown in the event. Its content is shown in the entries it names, in the "In the campaign" group of that event, in document order together with the event's paragraphs for that character. It is read by a line scanner of our own, so a colon in ordinary text is never taken for a directive, and no library is needed. A block belongs to the language section it is in. Links in a block work in the entry, and do not make the event link to the entries they name. An event with a passage for a character is also in that character's events list (B-24).
+
+You will see: a passage that is missing from the event text, but is in the character's entry under "In the campaign".
+
+How to check by hand:
+1. Step to a demo event that has a passage. Its text does not show it.
+2. Open the character that it is for. The passage is in the group of that event.
+3. Make the passage for two characters (`for="a,b"`). It is in both entries.
+4. Remove the closing `:::` or name an unknown id. The build fails with the file and the problem.
+
+Acceptance criteria:
+- [ ] A `:::journal{for="..."}` block is removed from the event's HTML, and its content is added to the excerpts of each named entry, in the event's group and in document order.
+- [ ] Each `for` id must name a player character or an NPC. Errors, naming the file: an unknown id, an id of another type, an empty `for`, a block that is not closed, a block inside a block, another block name (`:::foo`), and a `:::journal` block in an entry's text (they are for events only).
+- [ ] The passage and the language rules: it is per section, and a section's passages are used only for that language (the default's, with the note, when the event has no section in it).
+- [ ] The event is in the events list of every character it has a passage for.
+
+Automated tests: unit tests for the scanner (one and several ids, document order with paragraphs, every error, a colon in ordinary text, language sections, the events list); a Playwright test that checks that the passage is not in the event and is in the entry.
+
+## B-27 Images in text
+
+Status: defined
+
+Related: FR-3, FR-4, FR-6, FR-9, "Images" (data model), "Validation rules".
+
+Depends on: B-22 (and so the entry view). It is independent of B-23 to B-26.
+
+Scope note: an image is written as in `![alt text](images/ford.jpg "caption")`: the alt text in the brackets, the path from the content folder, and the optional title text as a visible caption. It works in events and in entries, and alt text and caption are written in each language section. The images are served from hashed URLs, as the maps are. The lead image of an entry (B-20) also opens in the viewer. The demo events and entries get images, with their captions.
+
+You will see: pictures with captions in events and entries, which fit the panel. Click one and it opens large, in a viewer you can close.
+
+How to check by hand:
+1. Step to a demo event with a picture. It fits the event panel's width, with its caption under it. Open an entry with a picture in its text.
+2. Click a picture. A viewer opens with the picture as large as the window allows. Press Escape. Only the viewer closes, and the journal panel under it stays. Open it again and close it with the close button, and by clicking outside the picture.
+3. Switch to EN. The alt text and caption follow the language.
+4. Point an image at a missing file. The build fails. Add an image with no alt text, and one over 1 MB. The build warns and does not fail.
+
+Acceptance criteria:
+- [ ] Markdown images in event and entry text are shown as images with `loading="lazy"` and their width and height set, so the layout does not jump. They never scroll horizontally in the event panel or in the journal panel: they are scaled down to the width of the panel and never enlarged.
+- [ ] A title text becomes a visible caption under the image, and the alt text is the image's alt text. Both are in the language section's language.
+- [ ] Clicking an image (also the lead image of an entry) opens it in a viewer, scaled down to the window if needed and never enlarged, with the caption. The viewer closes with Escape, with a close button, and with a click outside the image. Escape closes only the viewer, and focus returns to the image. The image can be opened with the keyboard (Tab and Enter).
+- [ ] Errors: an image file that is not in the content folder (a missing file, or a path outside the folder, or a web address). Warnings, which do not fail the build: an image over about 1 MB or 1600 px wide or not JPEG, PNG or WebP, and an image with empty alt text.
+- [ ] The viewer's close text is in `ui.json`.
+
+Automated tests: unit tests for the image handling (path, caption, size and format warnings, missing file, empty alt, languages); component tests for the viewer; Playwright tests that open and close the viewer with each method, check that Escape leaves the journal panel open, and check that a wide picture does not make the panel scroll sideways.
+
+### Milestone 5: the journal is complete (after B-27)
+
+The third checkpoint for the journal, before the build summary, the phone layout and the accessibility work. The demo content now shows everything: links, lists, character excerpts, a journal-only passage and pictures.
+
+What to try: read the story through the demo events and read the characters' entries as a player would, expecting each character's entry to tell their own story. Add a few paragraphs, links, a passage and a picture of your own in a demo event or entry, in the way you would write the real ones. Try an error on purpose to see how clear the messages are.
+
+Feedback wanted:
+- whether "In the campaign" reads well as a character's story: the groups, the title and date lines, the paragraph-level selection (one sentence in its own paragraph is the way to mark it);
+- whether the journal-only passage syntax is comfortable to write;
+- the pictures: the size in the event panel, the captions, the viewer;
+- how it is to write content: the `[[...]]` links, the image syntax, and the error messages.
+
 ---
 
 # Outlined items (status: backlog)
 
 These are outlined only. Each is refined into a defined item, with acceptance criteria, automated tests and a manual check, when its turn comes. Each will also state what you can expect to see and how to check it by hand.
-
-## B-20 Journal content
-Read journal entries (player character, NPC, item, location, note) with their fields and language rules, and validate them, including that a location entry's id exists in `locations.json`. A temporary list of entries is shown. FR-6.
-
-## B-21 Journal button and panel
-Note for the refinement: decide these before the item is defined. (1) `DESIGN.md` lists `/#/journal` as the journal index "over the current event", but an address with no event id has no current event, and since B-11 every path other than `/event/<id>` redirects to the first event (a unit test uses `/journal/nowhere` for that). Decide how the panel is held in the address, for example a `journal` query parameter on the event address (also for the index), and update the URL list in the design and that test. (2) Stepping keeps every parameter except `map` (B-12), so an open panel would stay open when the event changes. Decide whether that is wanted. The arrow-key stepping lives in the event panel and must not fire while the journal panel has focus. (3) Opening and closing the panel must add history entries, so that back and Escape return to the same event, and an unknown entry in the address is ignored (FR-6). (4) The dismissible notice for an unknown event is kept in the history state of the redirected entry (B-11), which must keep working with the panel's entries.
-
-A button at the top right that opens a panel sliding in from the right with the journal index grouped by type. Escape and the back button close it, and the event and map stay untouched. You will see the panel open and close over the live map. FR-6.
-
-## B-22 Journal entry view
-Open an entry from the index: name, lead image, motto for player characters, and text. You will see a character page in the panel. FR-6.
-
-## B-23 Journal links in text
-`[[id]]` and `[[id|text]]` links in event and journal text that open the entry in the panel, with build errors for links to entries that do not exist. You will see names in the event text become links. FR-6.
-
-## B-24 Events listed on entries
-Each entry lists the events that link to it, a location entry lists the events held at that place, and the location in an event's details links to its entry. You will see the event lists in the panel and the location name in an event become a link. FR-6.
-
-## B-25 Character excerpts
-The paragraphs of events that link to a character appear in the character's entry under "In the campaign", with the event's title, date and a link back. FR-6.
-
-## B-26 Journal-only passages
-The `:::journal{for="..."}` block, hidden in the event and shown only in the named entries. You will see a passage that is missing from the event text but present in the character's entry. FR-6.
-
-## B-27 Images in text
-Images in event and journal text with captions, a full-size viewer, lazy loading, and build warnings for large or missing alt text. You will see pictures with captions in events and entries, and click one to open it large. FR-3, FR-4, FR-6.
 
 ## B-28 Build summary and warnings
 The summary per language of missing translations, and warnings for unused images, locations and entries, and tracks that never return to the party. (The warning for an event that is `n/a` on the main map although its `showOn` location has a main position is in B-34.) You will see the warnings and the per-language summary in the terminal when you build. "Validation rules".

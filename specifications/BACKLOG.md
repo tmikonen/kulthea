@@ -150,7 +150,7 @@ Automated tests: unit tests for reading and validating the `map` parameter; unit
 
 ## B-6 Interface languages
 
-Status: done
+Status: accepted
 
 Related: FR-9, DD-5, "Languages", `ui.json`.
 

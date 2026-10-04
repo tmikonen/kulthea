@@ -1,0 +1,20 @@
+[
+  { "id": "port-of-izar",  "name": { "fi": "Izarinportti", "en": "Port of Izar" },
+    "positions": { "bay-of-izar": [45.3, 79.0], "haestra": [48.8, 72.4] } },
+  { "id": "bentara",       "name": "Bentara",
+    "positions": { "bay-of-izar": [75.4, 57.7], "haestra": [58.3, 65.8] } },
+  { "id": "ton-bor",       "name": "Ton-Bor",
+    "positions": { "bay-of-izar": [98.7, 13.6], "haestra": [66.5, 52.0] } },
+  { "id": "bog-end",       "name": { "fi": "Suonperä", "en": "Bog End" },
+    "positions": { "bay-of-izar": [71.3, 38.8], "haestra": [57.7, 59.8], "bog-end": [73.5, 44.5] } },
+  { "id": "ancient-jinteni-ruins", "name": { "fi": "Muinaiset jintenirauniot", "en": "Ancient Jinteni Ruins" },
+    "positions": { "bay-of-izar": [64.3, 39.1], "haestra": [55.6, 59.9], "bog-end": [36.8, 36.0] } },
+  { "id": "lean",          "name": "Lean",
+    "positions": { "bay-of-izar": [61.0, 60.7] } },
+  { "id": "ruined-tower",  "name": { "fi": "Rauniotorni", "en": "Ruined Tower" },
+    "positions": { "bay-of-izar": [59.3, 56.6] } },
+  { "id": "troll-cave",    "name": { "fi": "Peikkoluola", "en": "Troll Cave" },
+    "positions": { "bay-of-izar": [60.7, 52.6] } },
+  { "id": "sammals-farm", "name": "Sammal's Farm",
+    "positions": { "bay-of-izar": [60.2, 58.7] } }
+]

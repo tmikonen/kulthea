@@ -332,7 +332,7 @@ Keyboard operation of the whole interface, focus handling for the journal panel,
 A generated stress content set of 300 events, 50 locations and 30 entries, a test that stepping takes under 200 ms, and a manual load check of the deployed site. You will see the site stay responsive with a campaign of that size and the first load time on the real site. FR-2, "Performance".
 
 ## B-32 Replacing the demo content
-A short guide for replacing the demo content with the real campaign content, and a final check of the documents against the finished system. You will see your own first real events running on the site.
+A short guide for replacing the demo content in `content/` with the real campaign content, which is drafted in `campaign/` meanwhile (see `campaign/README.md`), and a final check of the documents against the finished system. You will see your own first real events running on the site.
 
 ---
 

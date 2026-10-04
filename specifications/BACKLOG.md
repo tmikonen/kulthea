@@ -522,7 +522,7 @@ Automated tests: the unit tests of the worked examples, plus tests that a segmen
 
 ## B-17 Drawing the party route
 
-Status: defined
+Status: in progress
 
 Related: FR-5.
 

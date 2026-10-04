@@ -555,7 +555,7 @@ Automated tests: component tests that the right number of lines is drawn for a g
 
 ## B-18 Split-group route logic
 
-Status: done
+Status: accepted
 
 Related: FR-5, FR-8.
 
@@ -589,7 +589,7 @@ Automated tests: the unit tests of the worked examples, plus tests that two grou
 
 ## B-19 Drawing split routes
 
-Status: done
+Status: accepted
 
 Related: FR-5.
 

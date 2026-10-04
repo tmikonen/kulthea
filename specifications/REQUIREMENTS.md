@@ -17,7 +17,7 @@ Several independent map images of different scales: a main campaign map (Bay of 
 - AC: the active map loads and zooms on desktop and on a phone.
 - AC: the main map is shown first; the other maps download in the background once the main map and first event are visible.
 - AC: 50 markers stay responsive.
-- AC: the map shows the current event's marker prominently, small dots for the locations of earlier events on that map (standalone events included), and nothing for places the story has not reached.
+- AC: the map shows the current event's marker prominently, small dots for the places of earlier events that have a place on that map (standalone events included), and nothing for places the story has not reached.
 - AC: the user can switch maps manually from a map switcher.
 - AC: stepping to an event whose displayed map differs from the current one switches maps automatically.
 - AC: switching maps does not change the current event.
@@ -47,12 +47,12 @@ The party is one group by default. A character or sub-group gets its own route o
 
 Routes are derived from event order, so the DM writes no route data. A route is drawn per map, and connects consecutive events of the same track that both have a location on that map. An event without a location on the map ("N/A") breaks the route on that map. Events that took place on another map still have main-map locations, so they stay part of the main route when the user returns to the main map. Each separate visit to another map is its own route segment.
 
-Tracks: the party is one track by default. A character or sub-group gets its own track only while split from the party, and its route ends at the event where the group rejoins and merges back into the main route. Standalone events (see FR-8) belong to no track and are ignored by every route.
+Tracks: the party is one track by default. A character or sub-group gets its own track only while split from the party, and its route ends at the event where the group rejoins and merges back into the main route. The group's route starts at the party's last event before the group's first event and ends at the first party event after the group's last event (the rejoin). The party's own events in between do not end the split, and a start or an end is drawn on a map only if that event has a place on it. Standalone events (see FR-8) belong to no track and are ignored by every route.
 
 An event may carry an optional "new segment" flag. It means no line is drawn from the previous event of its track to this one, for jumps such as teleporting.
 - AC: routes up to the current event are drawn.
 - AC: split tracks are visually distinct from the main route.
-- AC: a split route stops at the rejoin event.
+- AC: a split route starts at the party's place where the group left it and stops at the rejoin event.
 - AC: the main route connects party events on either side of a standalone event as if it were absent.
 - AC: an event placed only on another map (main location N/A) adds no line to the main map, and the main route breaks there.
 - AC: a "new segment" flag suppresses the line into that event on every map.
@@ -118,6 +118,6 @@ The site can be shown in Finnish or English. Finnish is the default language, th
 
 ## 5. Open items
 
-None.
+- Locations and routes on several maps: an event has a place only on the maps it is placed on (FR-3), so the dots and routes of FR-1 and FR-5 follow that. It is unresolved whether a visited named place should also be shown on other maps where its location has a position, and whether routes should then be drawn between such places. To be decided after the map-and-marker work has been seen in use (`BACKLOG.md`, "Open questions").
 
 Future ideas such as route waypoints along roads are not in scope.

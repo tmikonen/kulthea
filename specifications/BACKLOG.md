@@ -33,7 +33,7 @@ The next item may start once the previous one is done. Problems found at accepta
 
 ## B-1 Project scaffold and test tooling
 
-Status: done
+Status: accepted
 
 Related: DD-1, "Testing approach", "Deployment".
 
@@ -56,7 +56,7 @@ Automated tests: component test for the heading; Playwright smoke test.
 
 ## B-2 Publishing workflow and live site
 
-Status: done
+Status: accepted
 
 Related: "Deployment".
 
@@ -322,9 +322,7 @@ Automated tests: unit tests for the section splitter, the language rules and the
 
 ## B-15 Events on another map
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-1, FR-3, DD-3, "Data flow" (step 5), "Map switching".
 
@@ -352,15 +350,13 @@ Automated tests: unit tests for the displayed-map function (known, unknown and m
 
 ## B-13 Current event marker
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-1, FR-2, FR-3, FR-8, "Map markers".
 
 Depends on: B-15 (the displayed map).
 
-Scope note: an event has at most two places, its main-map place and, when it has `showOn`, its place on one other map. The event's place on a map is: on the main map its main place (none for `n/a`), on the `showOn` map its `showOn` place, and on any other map none. A named location that merely has a position on another map does not give the event a place there. This is also the rule for the dots in B-14 and the routes in B-16 and B-18, and I will write it into `DESIGN.md` when the product owner approves it. The B-7 markers for all locations stay until B-14, and the current marker is drawn above them.
+Scope note: an event has at most two places, its main-map place and, when it has `showOn`, its place on one other map. The event's place on a map is: on the main map its main place (none for `n/a`), on the `showOn` map its `showOn` place, and on any other map none. A named location that merely has a position on another map does not give the event a place there. This is also the rule for the dots in B-14 and the routes in B-16 and B-18. It is written into `DESIGN.md` and `REQUIREMENTS.md` (FR-1), and an unresolved question about it is recorded under "Open questions" at the end of this file. The B-7 markers for all locations stay until B-14, and the current marker is drawn above them.
 
 You will see: a large marker on the map at the current event's place. It moves as you step. A standalone event has one too. An event shown on another map has its marker on that map. When you have zoomed in and the marker is outside the visible area, the map pans to it, and the zoom does not change.
 
@@ -382,15 +378,13 @@ Automated tests: unit tests for the place function (main, `showOn`, `n/a`, one-o
 
 ## B-14 Places visited so far
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-1, FR-8, "Map markers".
 
 Depends on: B-13 (an event's place on a map and the current marker).
 
-Scope note: this item replaces the B-7 markers for all locations, so the map now shows only where the story has been. The dots on a map are the places of the earlier events, in date order, that have a place on that map (the rule from B-13). Standalone events count. A place that was visited several times is one dot, and a place that is the current marker has no dot. Locations that have a position on a map but were not visited are not shown. A named place visited by an event on one map is not shown on another map where it also happens to have a position; that could be added after the first version.
+Scope note: this item replaces the B-7 markers for all locations, so the map now shows only where the story has been. The dots on a map are the places of the earlier events, in date order, that have a place on that map (the rule from B-13). Standalone events count. A place that was visited several times is one dot, and a place that is the current marker has no dot. Locations that have a position on a map but were not visited are not shown. A named place visited by an event on one map is not shown on another map where it also happens to have a position. That is an open question (see "Open questions" at the end of this file).
 
 You will see: at the first event there is only the current marker. Each step adds a small dot for the place you came from, and stepping back takes dots away. Several events at one place make one dot.
 
@@ -423,9 +417,7 @@ Feedback wanted:
 
 ## B-16 Party route logic
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-5, FR-8, DD-3, "Data flow" (routes), "Shared logic without UI".
 
@@ -458,9 +450,7 @@ Automated tests: the unit tests of the worked examples, plus tests that a segmen
 
 ## B-17 Drawing the party route
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-5.
 
@@ -488,15 +478,13 @@ Automated tests: component tests that the right number of lines is drawn for a g
 
 ## B-18 Split-group route logic
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-5, FR-8.
 
 Depends on: B-16 (the party route logic).
 
-Scope note: this extends the route function from B-16 to named groups (a `track` that is not empty and not `none`). It was "Tracks, standalone events and new segments" in the outline, and the standalone and `newSegment` rules moved to B-16. It is accepted together with B-19. The rules below are my reading of FR-5 where it is not exact, and I would like you to confirm them.
+Scope note: this extends the route function from B-16 to named groups (a `track` that is not empty and not `none`). It was "Tracks, standalone events and new segments" in the outline, and the standalone and `newSegment` rules moved to B-16. It is accepted together with B-19. The rules below make FR-5 exact where it was not, and the product owner has approved them. They are written into `REQUIREMENTS.md` (FR-5) and `DESIGN.md`.
 
 Rules: a group's events are joined in date order, among themselves only. The party's events in between do not end the split, so the party and the group can go on at the same time. A group's line starts at the party's last event before the group's first event, and ends at the first party event after the group's last event, which is where the group rejoins. A start or an end is drawn on a map only when that party event has a place on that map. A group with no later party event ends at its last event. Breaks, other-map visits, and `newSegment` work as for the party. A group that is split twice under the same name is one line, unless `newSegment` or another name is used for the second split.
 
@@ -524,9 +512,7 @@ Automated tests: the unit tests of the worked examples, plus tests that two grou
 
 ## B-19 Drawing split routes
 
-Status: backlog
-
-Draft: written for the product owner's approval. It becomes `defined` when approved.
+Status: defined
 
 Related: FR-5.
 
@@ -572,6 +558,8 @@ These are outlined only. Each is refined into a defined item, with acceptance cr
 Read journal entries (player character, NPC, item, location, note) with their fields and language rules, and validate them, including that a location entry's id exists in `locations.json`. A temporary list of entries is shown. FR-6.
 
 ## B-21 Journal button and panel
+Note for the refinement: decide these before the item is defined. (1) `DESIGN.md` lists `/#/journal` as the journal index "over the current event", but an address with no event id has no current event, and since B-11 every path other than `/event/<id>` redirects to the first event (a unit test uses `/journal/nowhere` for that). Decide how the panel is held in the address, for example a `journal` query parameter on the event address (also for the index), and update the URL list in the design and that test. (2) Stepping keeps every parameter except `map` (B-12), so an open panel would stay open when the event changes. Decide whether that is wanted. The arrow-key stepping lives in the event panel and must not fire while the journal panel has focus. (3) Opening and closing the panel must add history entries, so that back and Escape return to the same event, and an unknown entry in the address is ignored (FR-6). (4) The dismissible notice for an unknown event is kept in the history state of the redirected entry (B-11), which must keep working with the panel's entries.
+
 A button at the top right that opens a panel sliding in from the right with the journal index grouped by type. Escape and the back button close it, and the event and map stay untouched. You will see the panel open and close over the live map. FR-6.
 
 ## B-22 Journal entry view
@@ -608,6 +596,10 @@ A generated stress content set of 300 events, 50 locations and 30 entries, a tes
 A short guide for replacing the demo content in `content/` with the real campaign content, which is drafted in `campaign/` meanwhile (see `campaign/README.md`), and a final check of the documents against the finished system. You will see your own first real events running on the site.
 
 ---
+
+# Open questions
+
+- **Locations and routes on several maps.** The rule from B-13 is that an event has a place only on the maps it is placed on: its main place on the main map and its `showOn` place on one other map. The dots (B-14) and the routes (B-16 to B-19) follow it. It is unresolved whether a visited named place should also be shown on the other maps where its location has a position (for example Bentara on Haestra when the event is placed only on Bay of Izar), and, if so, whether routes should also be drawn between such places there. Showing them would make the extra positions in `locations.json` useful on every map. It would also change FR-3 and FR-5, where an event is placed on at most two maps and a route on a map joins the events placed on it, and it needs a rule for what a route on a map means when only some of the visited places are placed there. To be decided with the product owner after Milestone 1, when the current rule can be seen in use.
 
 # After the first version (not scheduled)
 

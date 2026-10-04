@@ -245,7 +245,7 @@ Components:
 - ImageViewer: full-size view when an image is clicked.
 - Shared logic without UI: a route builder (the per-map, per-track route rules), a date formatter (per language), a text resolver (the chosen language, falling back to the default) and a coordinate converter (percent to Leaflet).
 
-Map markers: the map shows the current event's marker prominently, plus small dots for the places visited so far on that map. Places the story hasn't reached yet are not shown. Clicking a marker to select its events is a future improvement, not part of the first version.
+Map markers: the map shows the current event's marker prominently, plus small dots for the places visited so far on that map. Places the story hasn't reached yet are not shown. An event has at most two places: its main-map place (its `location` or `position`, none for `n/a`) and, when it has `showOn`, its place on one other map. On a map an event's place is its main place on the main map, its `showOn` place on the `showOn` map, and none on any other map. A named location that merely has a position on another map does not give the event a place there (an open question, see "Open items" in `REQUIREMENTS.md`). The dots are the places of the earlier events, in date order, that have a place on the displayed map (standalone events included), one dot per place and none at the current marker. Clicking a marker to select its events is a future improvement, not part of the first version.
 
 ## Data flow
 
@@ -264,6 +264,11 @@ At runtime:
 Map loading: the main map loads first. Once it and the first event are shown, the app downloads the other maps in the background, so switching to them is quick later. Maps are used at full size, with no resizing or tiling.
 
 Routes are worked out at runtime, once when the app loads. A plain function builds all segments per map and track from the ordered events, and stepping shows the segments up to the current event. This is cheap for about 300 events, easy to unit-test, and keeps the route rules in the app code rather than the build plugin.
+
+Route rules, using the places of an event on a map as defined under "Map markers":
+- The party's route on a map joins consecutive party events (no `track`) that both have a place on it. A party event with no place on the map (`n/a` on the main map, or any event not shown on another map) breaks the route. Each visit to another map is its own segment. `newSegment` starts a new segment on every map. Two events in a row at the same position leave no zero-length line. Standalone events (`track: none`) are ignored.
+- A split group's events are joined in date order among themselves only, and the party's events in between do not end the split. The group's line starts at the party's last event before the group's first event and ends at the first party event after the group's last event, which is where it rejoins. A start or an end is drawn on a map only when that party event has a place on it. A group with no later party event ends at its last event. A group that is split twice under one name is one line, unless `newSegment` or another name is used.
+- Drawing: the party's line is solid, and each group's line is dashed in its own colour from a fixed palette. Lines are drawn below the dots and the current marker.
 
 Bad links: if the URL names an event that doesn't exist, the app shows the first event with a dismissible notice. The address is replaced with the first event's, and the notice is carried in the history entry's state, so dismissing it does not change the address and it does not come back on reload after being dismissed. If it names a journal entry that doesn't exist, the entry is ignored and the event is shown. The app never shows a blank screen.
 

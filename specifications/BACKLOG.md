@@ -297,7 +297,7 @@ Automated tests: unit tests for the formatter in both languages for all five mon
 
 ## B-10 Event text and language sections
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-9, DD-5, "Languages", "Validation rules" (languages, raw HTML).
 

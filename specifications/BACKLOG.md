@@ -198,7 +198,7 @@ Automated tests: unit tests for the validation; a test that the markers are plac
 
 ## B-8 Events content
 
-Status: done
+Status: accepted
 
 Related: "File formats" (events), "Data model", "Validation rules", FR-3.
 
@@ -222,7 +222,7 @@ Automated tests: unit tests for the file name parser, the sort order and each va
 
 ## B-11 Event view and routing
 
-Status: done
+Status: accepted
 
 Related: FR-2, FR-3, DD-4, "URLs", "Bad links", "Application architecture" (layout).
 
@@ -248,7 +248,7 @@ Automated tests: unit tests for finding the current event from an id; component 
 
 ## B-12 Stepping through events
 
-Status: done
+Status: accepted
 
 Related: FR-2, DD-4, "Data flow".
 
@@ -274,7 +274,7 @@ Automated tests: unit tests for finding the previous and next ids (none at the e
 
 ## B-9 Calendar and dates
 
-Status: defined
+Status: in progress
 
 Related: FR-7, "File formats" (`campaign.json` dates), "Languages".
 

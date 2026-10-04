@@ -92,6 +92,21 @@ describe('journal button and panel (B-21)', () => {
     expect(search()).toBe('?lang=en');
   });
 
+  it('FR-6 the journal button closes the panel when it is open, on the index and on an entry, keeping the event and language', () => {
+    renderApp('/event/6050-1-001-01-first?journal=index&lang=en');
+    fireEvent.click(screen.getByRole('button', { name: 'Journal' }));
+    expect(panel()).toBeNull();
+    expect(search()).toBe('?lang=en');
+    fireEvent.click(screen.getByRole('button', { name: 'Journal' }));
+    expect(search()).toBe('?lang=en&journal=index');
+    fireEvent.click(within(panel()!).getByRole('link', { name: 'Hero' }));
+    expect(search()).toBe('?lang=en&journal=hero');
+    fireEvent.click(screen.getByRole('button', { name: 'Journal', expanded: true }));
+    expect(panel()).toBeNull();
+    expect(search()).toBe('?lang=en');
+    expect(pathname()).toBe('/event/6050-1-001-01-first');
+  });
+
   it('FR-6 Escape does nothing when the panel is closed', () => {
     renderApp();
     fireEvent.keyDown(window, { key: 'Escape' });

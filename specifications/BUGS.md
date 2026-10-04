@@ -21,6 +21,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-5 | The Previous and Next buttons move up when the event has no location line | fixed | B-12 |
 | BUG-6 | A regional map's route is broken by events at places that are not on it | fixed | B-17 |
 | BUG-7 | Markers and route lines are drawn at wrong places and snap into place when stepping quickly | fixed | B-33 |
+| BUG-8 | The whole page shifts sideways, with a scroll bar, while the journal panel slides in | fixed | B-21 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -97,3 +98,13 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Fix: when the event changes on a map with a focus zoom, a layout effect stops the flight that is running, before the markers and lines are updated in the effects that follow. Stopping redraws the layers at the zoom that the flight has reached, and the next flight starts from there, so an interrupted move continues smoothly to the new event.
 - Verified by: `tests/e2e/focus.spec.ts`, "FR-1 on every frame of the move, also when stepping quickly, markers, dots and lines are where their places are" (it clicks Next four times, 100 ms apart, and checks every animation frame; it failed before the fix with a worst displacement of about 285 px, and passes now), and "FR-1 a single step also keeps everything at its place on every frame".
 - Also confirmed by hand by the product owner.
+
+## BUG-8: The whole page shifts sideways, with a scroll bar, while the journal panel slides in
+
+- Status: fixed
+- Related item: B-21 (the journal panel)
+- Found: the product owner, on opening the journal.
+- Description: when the journal opens, the whole page (the header, the map and the event panel) moves sideways, and a horizontal scroll bar appears. Within a second the page settles and the panel is open with the page in a normal position, but the movement is disturbing.
+- Root cause: confirmed by reproduction. The panel's slide-in starts with it moved 100% of its width to the right, outside the window, which made the page wider than the window. Moving focus into the panel (B-21) then made the browser scroll the page sideways to bring the panel into view, by 416 px in the test, and the page moved back as the panel slid in.
+- Fix: the area that holds the map, the event panel and the journal panel clips what is outside it, so the sliding panel cannot widen the page, and the focus is moved into the panel without scrolling. Each of the two alone was shown not to be enough for the test.
+- Verified by: `tests/e2e/journal.spec.ts`, "FR-6 while the panel slides in, the page under it does not move and does not get a horizontal scroll bar (BUG-8)" (it samples every animation frame of the opening: it failed before the fix with a sideways scroll of 416 px, and passes now).

@@ -31,7 +31,8 @@ export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const opener = document.activeElement;
-    panel.current?.focus();
+    // Without preventScroll the browser scrolls the page to bring the panel into view while it is still sliding in.
+    panel.current?.focus({ preventScroll: true });
     return () => {
       if (document.activeElement === document.body && opener instanceof HTMLElement && opener.isConnected) opener.focus();
     };

@@ -668,13 +668,13 @@ You will see: a "Päiväkirja" button at the top right of the page, next to the 
 
 How to check by hand:
 1. Zoom the map in and pan it. Click the button. The panel slides in, the index shows the demo entries under their types, and the map and the event have not moved.
-2. Press Escape, or the close button. The panel closes and the map is still where it was. Press the browser's back button. The panel is open again. Back again closes it.
+2. Press Escape, the close button, or the journal button again. The panel closes and the map is still where it was. Press the browser's back button. The panel is open again. Back again closes it.
 3. Open the panel and press Next. The panel closes and the next event is shown.
 4. Open the panel, switch to EN. It stays open and the texts change.
 5. Add `?journal=nowhere` to an address. The event is shown with no panel. Add `?journal=index` and reload. The index opens.
 
 Acceptance criteria:
-- [x] The button is at the top right, next to the language switch, with its text from `ui.json`. It opens the index, and the address gets `journal=index`.
+- [x] The button is at the top right, next to the language switch, with its text from `ui.json`. It opens the index, and the address gets `journal=index`. When the panel is open (the index or an entry), the same button closes it, like Escape.
 - [x] The panel slides in from the right over the main view (a short transition, none when the user prefers reduced motion), and looks distinct from the main view.
 - [x] The index groups the entries by type with headings in the chosen language, and sorts them by name in the chosen language. An entry in it is a link that opens it (`journal=<id>`).
 - [x] Opening and closing the panel never changes the current event, the map, its position or its zoom, and does not reload the page or the map.

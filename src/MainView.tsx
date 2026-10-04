@@ -108,7 +108,7 @@ export function MainView({ event }: { event?: EventDef }) {
             type="button"
             className={styles.journalButton}
             aria-expanded={view !== null}
-            onClick={() => setParams(withJournal(INDEX_PARAM))}
+            onClick={() => (view ? closeJournal() : setParams(withJournal(INDEX_PARAM)))}
           >
             {uiText(ui, 'journal', lang, defaultLang)}
           </button>

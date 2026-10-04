@@ -30,6 +30,17 @@ test.describe('journal button and panel (B-21)', () => {
     await expect(page.getByRole('region', { name: 'Tapahtuma' }).getByRole('heading', { level: 2 })).toHaveText('Ensimmäinen');
   });
 
+  test('FR-6 the journal button closes the panel when it is open, and back then reopens it', async ({ page }) => {
+    await open(page);
+    await button(page).click();
+    await expect(panel(page)).toBeVisible();
+    await button(page).click();
+    await expect(panel(page)).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}$`));
+    await page.goBack();
+    await expect(panel(page)).toBeVisible();
+  });
+
   test('FR-6 the back button closes a panel that was just opened, and after closing it brings it back', async ({ page }) => {
     await open(page);
     await button(page).click();
@@ -88,6 +99,50 @@ test.describe('journal button and panel (B-21)', () => {
     // The map is still there under it, and so is the event panel.
     await expect(image(page)).toBeVisible();
     await expect(page.getByRole('region', { name: 'Tapahtuma' })).toBeVisible();
+  });
+
+  test('FR-6 while the panel slides in, the page under it does not move and does not get a horizontal scroll bar (BUG-8)', async ({ page }) => {
+    await open(page);
+    // Sample every animation frame from just before the click until the slide has ended.
+    await page.evaluate(() => {
+      const box = (selector: string) => {
+        const r = document.querySelector(selector)!.getBoundingClientRect();
+        return [r.x, r.y, r.width, r.height];
+      };
+      const sample = () => ({
+        scrollX: window.scrollX,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        header: box('header'),
+        map: box('.leaflet-container'),
+        event: box('section[aria-label="Tapahtuma"]'),
+      });
+      const w = window as unknown as { frames: ReturnType<typeof sample>[]; stop: boolean };
+      w.frames = [];
+      w.stop = false;
+      const tick = () => {
+        w.frames.push(sample());
+        if (!w.stop) requestAnimationFrame(tick);
+      };
+      tick();
+    });
+    await page.waitForTimeout(100);
+    await button(page).click();
+    await expect(panel(page)).toBeVisible();
+    await page.waitForTimeout(600);
+    const frames = await page.evaluate(() => {
+      const w = window as unknown as { frames: unknown[]; stop: boolean };
+      w.stop = true;
+      return w.frames as { scrollX: number; overflow: number; header: number[]; map: number[]; event: number[] }[];
+    });
+    expect(frames.length).toBeGreaterThan(10);
+    const first = frames[0];
+    for (const frame of frames) {
+      expect(frame.scrollX).toBe(0);
+      expect(frame.overflow).toBeLessThanOrEqual(0);
+      expect(frame.header).toEqual(first.header);
+      expect(frame.map).toEqual(first.map);
+      expect(frame.event).toEqual(first.event);
+    }
   });
 
   test('FR-6 the panel slides in with an animation, and without one when the user prefers reduced motion', async ({ page }) => {

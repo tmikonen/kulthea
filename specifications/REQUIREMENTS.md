@@ -66,7 +66,7 @@ An event may carry an optional "new segment" flag. It means no line is drawn fro
 
 ### FR-6 Journal
 Journal entries (player characters, major NPCs, items, locations and free-form notes) are mostly images plus text, written in Markdown. They open in a panel that slides in over the main view from the side, so the map and the current event stay in place underneath. The journal is visually distinct from the main view.
-- AC: an entry opens from a link in event text or from a journal index, opened with a button at the top right of the main view.
+- AC: an entry opens from a link in event text or from a journal index, opened with a button at the top right of the main view. The same button closes the panel when it is open.
 - AC: the journal index groups entries by type (player characters, NPCs, items, locations, notes).
 - AC: a location entry shows the location's name, an image, descriptive text and the list of events held at that location, in date order, each linking to its event.
 - AC: where a location has a journal entry, the location shown in an event's details links to that entry.

@@ -19,6 +19,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-3 | Quick shrink then enlarge of the window loses the refit | fixed | B-4 |
 | BUG-4 | The map is not refitted when its area changes size, and the area changes with the event text | fixed | B-15 |
 | BUG-5 | The Previous and Next buttons move up when the event has no location line | fixed | B-12 |
+| BUG-6 | A regional map's route is broken by events at places that are not on it | open | B-17 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -73,3 +74,13 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Fix: the buttons have a row of their own at the top of the panel, above the details. The title, date, location, note and text are in a scrolling area below the row, so a long text scrolls under the buttons and they stay in view.
 - Verified by: `tests/e2e/events.spec.ts`, "FR-2 the buttons stay in the same place for every event, with or without a location line", "FR-2 the buttons do not move while stepping, so Next can be clicked again and again", "FR-2 the buttons stay in the same place in English, with the note for a missing translation" and "FR-2 a long text scrolls under the buttons, which stay in view" (all failed before the fix and pass now).
 - Also confirmed by hand by the product owner.
+
+## BUG-6: A regional map's route is broken by events at places that are not on it
+
+- Status: open
+- Related item: B-17 (FR-5), with the place rule from B-34
+- Found: the product owner, when testing B-17 on the Haestra map.
+- Description: at the demo event "Takaisin Izarin satamassa" the Haestra map showed only the route Bentara, Suonperä, the ruins, Bentara, Port of Izar. The earlier visit to the Port of Izar was cut off, and Lean, the watchtower and the camp were skipped together with the lines to them, which looks strange.
+- Root cause: an event that has no place on a map breaks the route there, so that leaving a detail map such as Bog End ends the visit. Lean, the watchtower and the camp have no position on Haestra, so each of them broke the Haestra route, and Haestra, which shows only the current visit, drew just the last unbroken stretch. The rule is right for a detail map, where an event that is not on it means the party has left. It is wrong for Haestra, which covers the whole region including Bay of Izar: the party has not left Haestra when it is at Lean, the place is only not marked there.
+- Fix: not made yet. A map's `routes` setting gets a third value, `overview`: the whole route up to the current event, in which events with no place on the map are skipped and do not break the route. Haestra uses it.
+- Verified by: not yet.

@@ -453,7 +453,7 @@ Feedback wanted:
 
 ## B-34 Places on every map
 
-Status: done
+Status: accepted
 
 Related: FR-1, FR-3, FR-5, DD-3, "Map markers", "Validation rules".
 
@@ -486,7 +486,7 @@ Automated tests: unit tests for the place function (each rule, the precedence, `
 
 ## B-16 Party route logic
 
-Status: done
+Status: accepted
 
 Related: FR-5, FR-8, DD-3, "Data flow" (routes), "Shared logic without UI".
 
@@ -525,7 +525,7 @@ Automated tests: the unit tests of the worked examples, plus tests that a segmen
 
 ## B-17 Drawing the party route
 
-Status: done
+Status: accepted
 
 Related: FR-5.
 

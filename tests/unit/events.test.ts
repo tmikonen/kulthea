@@ -3,7 +3,7 @@ import { eventLocationName, eventPath, findEvent, neighbours } from '../../src/c
 import type { EventDef, LocationDef } from '../../src/content/types';
 
 const event = (id: string, extra: Partial<EventDef> = {}): EventDef => ({
-  id, year: 6050, month: 1, day: 1, order: 1, title: id,
+  id, year: 6050, month: 1, day: 1, order: 1, title: id, text: {},
   location: null, position: null, showOn: null, track: null, newSegment: false, ...extra,
 });
 

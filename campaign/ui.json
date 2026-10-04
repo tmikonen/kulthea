@@ -4,6 +4,7 @@
   "event": {"fi": "Tapahtuma", "en": "Event"},
   "previous": {"fi": "Edellinen", "en": "Previous"},
   "next": {"fi": "Seuraava", "en": "Next"},
+  "notTranslated": {"fi": "Ei saatavilla tällä kielellä", "en": "Not available in this language"},
   "unknownEvent": {"fi": "Tapahtumaa ei löytynyt, joten näytetään ensimmäinen tapahtuma.", "en": "That event was not found, so the first event is shown."},
   "dismiss": {"fi": "Sulje", "en": "Close"}
 }

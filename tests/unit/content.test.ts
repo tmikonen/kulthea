@@ -54,7 +54,7 @@ describe('content loading (B-3)', () => {
       name: { fi: 'Molemmat paikat', en: 'Both Places' },
       positions: { 'main-map': [25, 75], 'second-map': [50, 50] },
     });
-    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' } });
+    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true },
       { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false },
@@ -308,6 +308,7 @@ describe('events (B-8)', () => {
     expect(events['first']).toEqual({
       id: '6050-1-001-01-first', year: 6050, month: 1, day: 1, order: 1,
       title: { fi: 'Ensimmäinen', en: 'First' },
+      text: { fi: '<p>Ensimmäisen tapahtuman teksti.</p>', en: '<p>The text of the first event.</p>' },
       location: 'main-only', position: [80, 20], showOn: null, track: null, newSegment: false,
     });
     expect(events['second'].title).toBe('Toinen');
@@ -511,6 +512,92 @@ describe('events (B-8)', () => {
         writeEvent(dir, '6050-4-001-02-b.md', 'title: B\nlocation: n/a');
       });
       expect(only(result)).toHaveLength(3);
+    });
+  });
+});
+
+describe('event text (B-10)', () => {
+  const ev = (slug: string) => loadContent(FIXTURES).bundle!.events.find((e) => e.id.endsWith(slug))!;
+
+  it('FR-9 splits the text of an event into its languages and renders it to HTML', () => {
+    expect(ev('first').text).toEqual({
+      fi: '<p>Ensimmäisen tapahtuman teksti.</p>',
+      en: '<p>The text of the first event.</p>',
+    });
+  });
+
+  it('FR-9 an event with no markers has its text in the default language only, with Markdown rendered', () => {
+    expect(ev('second').text).toEqual({
+      fi: '<p>Toisen tapahtuman <em>korostettu</em> teksti.</p>\n<p>Toinen kappale.</p>',
+    });
+  });
+
+  it('FR-9 an event with an explicit default-language section has only that language', () => {
+    expect(ev('ninth').text).toEqual({ fi: '<p>Yhdeksännen tapahtuman teksti.</p>' });
+  });
+
+  it('FR-9 every fixture event has default-language text', () => {
+    for (const e of loadContent(FIXTURES).bundle!.events) expect(e.text.fi).toBeTruthy();
+  });
+
+  it('FR-9 reads sections from a file with Windows line endings', () => {
+    const { bundle, errors } = loadModified((dir) =>
+      fs.writeFileSync(path.join(dir, 'events/6050-4-001-01-crlf.md'),
+        '---\r\ntitle: Windows\r\nlocation: main-only\r\n---\r\n@fi\r\nSuomeksi.\r\n\r\n@en\r\nIn English.\r\n'));
+    expect(errors).toEqual([]);
+    expect(bundle!.events.find((e) => e.id.endsWith('crlf'))?.text).toEqual({
+      fi: '<p>Suomeksi.</p>', en: '<p>In English.</p>',
+    });
+  });
+
+  it('FR-3 allows an HTML tag written as code', () => {
+    const { errors } = loadModified((dir) =>
+      writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: main-only', 'Kirjoita `<b>` näin.'));
+    expect(errors).toEqual([]);
+  });
+
+  describe('errors', () => {
+    const failing = (body: string) =>
+      loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: main-only', body));
+
+    it('FR-9 rejects a language that is not configured, and names the file', () => {
+      const result = failing('Suomeksi.\n\n@de\nAuf Deutsch.');
+      expect(result.bundle).toBeNull();
+      expect(result.errors).toEqual([expect.stringMatching(/6050-4-001-01-x\.md: the text uses the language "de", which is not configured \(fi, en\)/)]);
+    });
+
+    it('FR-9 rejects a language section that is repeated', () => {
+      expect(failing('@fi\nYksi.\n\n@en\nOne.\n\n@en\nTwo.').errors)
+        .toEqual([expect.stringMatching(/the text has more than one "@en" section/)]);
+    });
+
+    it('FR-9 rejects a text with no default-language text', () => {
+      expect(failing('@en\nOnly English.').errors)
+        .toEqual([expect.stringMatching(/the text has no text in the default language "fi"/)]);
+    });
+
+    it('FR-9 rejects an event with no text at all', () => {
+      expect(failing('').errors).toEqual([expect.stringMatching(/the text has no text in the default language "fi"/)]);
+    });
+
+    it('FR-9 rejects unmarked text together with an explicit default-language section', () => {
+      expect(failing('Ensin.\n\n@fi\nSitten.').errors)
+        .toEqual([expect.stringMatching(/unmarked text together with an explicit "@fi" section/)]);
+    });
+
+    it('FR-3 rejects raw HTML, and names the language and the HTML', () => {
+      expect(failing('Teksti <b>lihava</b>.').errors)
+        .toEqual([expect.stringMatching(/6050-4-001-01-x\.md: raw HTML is not allowed in the "fi" text \(found <b>\)/)]);
+    });
+
+    it('FR-3 rejects raw HTML in a translation, and names that language', () => {
+      expect(failing('@fi\nSuomeksi.\n\n@en\nEnglish <script>alert(1)</script>').errors)
+        .toEqual([expect.stringMatching(/raw HTML is not allowed in the "en" text/)]);
+    });
+
+    it('FR-3 rejects an HTML comment', () => {
+      expect(failing('Teksti.\n\n<!-- piilotettu -->').errors)
+        .toEqual([expect.stringMatching(/raw HTML is not allowed/)]);
     });
   });
 });

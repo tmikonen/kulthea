@@ -8,6 +8,10 @@ interface Props {
   locationName: string | null;
   /** The date, written out in the chosen language. */
   date: string;
+  /** The text as HTML, from the build, which does not allow raw HTML in it. */
+  textHtml: string;
+  /** The text note shown when it is in the default language because there is no translation. */
+  notTranslated: string | null;
   label: string;
   lang: string;
   defaultLang: string;
@@ -21,7 +25,7 @@ interface Props {
 
 /** The current event's details, below the map, with the buttons to step to the neighbouring events. */
 export function EventPanel({
-  event, locationName, date, label, lang, defaultLang, previous, next, previousLabel, nextLabel, onStep,
+  event, locationName, date, textHtml, notTranslated, label, lang, defaultLang, previous, next, previousLabel, nextLabel, onStep,
 }: Props) {
   // The arrow keys step while focus is in the panel. They are not handled on the map, which pans
   // with them, and a modified arrow (such as Alt+Left, the browser's back) is left alone.
@@ -47,6 +51,8 @@ export function EventPanel({
           {nextLabel}
         </button>
       </div>
+      {notTranslated && <p className={styles.note}>{notTranslated}</p>}
+      <div className={styles.text} dangerouslySetInnerHTML={{ __html: textHtml }} />
     </section>
   );
 }

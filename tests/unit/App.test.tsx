@@ -174,8 +174,8 @@ describe('event view and routing (B-11)', () => {
     renderApp('/event/6050-3-001-01-jump');
     const panel = screen.getByRole('region', { name: 'Tapahtuma' });
     expect(within(panel).getByRole('heading', { level: 2, name: 'Hyppy' })).toBeInTheDocument();
-    // Only the date line: there is no location line.
-    expect(Array.from(panel.querySelectorAll('p')).map((p) => p.textContent)).toEqual(['K.A. 6050, Kesän 1. päivä']);
+    expect(within(panel).getByText('K.A. 6050, Kesän 1. päivä')).toBeInTheDocument();
+    expect(panel.querySelector('.location')).toBeNull();
   });
 
   it('FR-2 an unknown event shows the first event with a notice, and the address names the first event', () => {
@@ -330,5 +330,46 @@ describe('dates in the panel (B-9)', () => {
     expect(within(panel('Event')).getByText('TE 6050, 70th of Spring')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(within(panel('Event')).getByText('TE 6050, 1st of Summer')).toBeInTheDocument();
+  });
+});
+
+describe('event text (B-10)', () => {
+  const panel = (name: string) => screen.getByRole('region', { name });
+
+  it('FR-3 shows the text of the event, with its Markdown rendered', () => {
+    renderApp('/event/6050-1-001-02-second');
+    const text = panel('Tapahtuma');
+    expect(within(text).getByText('korostettu').tagName).toBe('EM');
+    expect(within(text).getByText('Toinen kappale.')).toBeInTheDocument();
+    expect(within(text).queryByText('Ei saatavilla tällä kielellä')).toBeNull();
+  });
+
+  it('FR-9 shows the text in the chosen language, and switches with the language', () => {
+    renderApp('/event/6050-1-001-01-first');
+    expect(within(panel('Tapahtuma')).getByText('Ensimmäisen tapahtuman teksti.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+    expect(within(panel('Event')).getByText('The text of the first event.')).toBeInTheDocument();
+    expect(within(panel('Event')).queryByText('Ensimmäisen tapahtuman teksti.')).toBeNull();
+    expect(within(panel('Event')).queryByText('Not available in this language')).toBeNull();
+  });
+
+  it('FR-9 an event with no English text shows the Finnish text and a note when English is chosen', () => {
+    renderApp('/event/6050-1-001-02-second?lang=en');
+    const text = panel('Event');
+    expect(within(text).getByText('Not available in this language')).toBeInTheDocument();
+    expect(within(text).getByText('Toinen kappale.')).toBeInTheDocument();
+  });
+
+  it('FR-9 the note goes away when stepping to an event that has an English text', () => {
+    renderApp('/event/6050-1-001-02-second?lang=en');
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    expect(within(panel('Event')).queryByText('Not available in this language')).toBeNull();
+    expect(within(panel('Event')).getByText('The text of the first event.')).toBeInTheDocument();
+  });
+
+  it('FR-9 in the default language the note is never shown', () => {
+    renderApp('/event/6050-1-9-01-ninth');
+    expect(within(panel('Tapahtuma')).getByText('Yhdeksännen tapahtuman teksti.')).toBeInTheDocument();
+    expect(within(panel('Tapahtuma')).queryByText('Ei saatavilla tällä kielellä')).toBeNull();
   });
 });

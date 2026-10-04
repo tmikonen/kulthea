@@ -4,7 +4,7 @@ import content from 'virtual:content';
 import { activeLanguage } from './content/language';
 import { resolveText, uiText } from './content/text';
 import { formatDate } from './content/dates';
-import { eventLocationName, eventPath, neighbours } from './content/events';
+import { eventLocationName, eventPath, eventText, neighbours } from './content/events';
 import type { EventDef } from './content/types';
 import { EventPanel } from './EventPanel';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -38,6 +38,7 @@ export function MainView({ event }: { event?: EventDef }) {
   usePreloadMaps(maps, shown);
 
   const { previous, next } = neighbours(content.events, event?.id);
+  const text = event ? eventText(event, lang, defaultLang) : { html: '', fallback: false };
   /** Steps to another event. A manual map choice lasts only until the next step, so `map` is dropped. */
   const step = (target: EventDef) => {
     const kept = new URLSearchParams(params);
@@ -89,6 +90,8 @@ export function MainView({ event }: { event?: EventDef }) {
           event={event}
           locationName={eventLocationName(event, locations, lang, defaultLang)}
           date={formatDate(campaign, lang, event)}
+          textHtml={text.html}
+          notTranslated={text.fallback ? uiText(ui, 'notTranslated', lang, defaultLang) : null}
           label={uiText(ui, 'event', lang, defaultLang)}
           lang={lang}
           defaultLang={defaultLang}

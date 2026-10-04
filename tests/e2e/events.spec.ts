@@ -204,3 +204,46 @@ test.describe('dates (B-9)', () => {
     await expect(page).toHaveURL(/#\/event\/6050-2-003-01-split\?lang=en$/);
   });
 });
+
+test.describe('event text (B-10)', () => {
+  const panel = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ });
+
+  test('FR-9 the text follows the language switch', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-01-first');
+    await expect(panel(page)).toContainText('Ensimmäisen tapahtuman teksti.');
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
+    await expect(panel(page)).toContainText('The text of the first event.');
+    await expect(panel(page)).not.toContainText('Ensimmäisen tapahtuman teksti.');
+    await expect(panel(page)).not.toContainText('Not available in this language');
+  });
+
+  test('FR-9 an event with no English text shows the Finnish text with the note', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second?lang=en');
+    await expect(panel(page)).toContainText('Not available in this language');
+    await expect(panel(page)).toContainText('Toinen kappale.');
+    await expect(panel(page).locator('em')).toHaveText('korostettu');
+  });
+
+  test('FR-9 stepping from a translated event to an untranslated one, and back, adds and removes the note', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-01-first?lang=en');
+    await expect(panel(page)).not.toContainText('Not available in this language');
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(panel(page)).toContainText('Not available in this language');
+    await page.getByRole('button', { name: 'Previous' }).click();
+    await expect(panel(page)).not.toContainText('Not available in this language');
+  });
+
+  test('FR-9 the note is shown in the language of the interface', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second?lang=fi');
+    await expect(panel(page)).not.toContainText('Ei saatavilla tällä kielellä');
+  });
+
+  test('FR-1 a long event text scrolls inside the panel, and the map keeps its place', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second');
+    await expect(panel(page)).toBeVisible();
+    const map = (await page.locator('.leaflet-container').boundingBox())!;
+    const box = (await panel(page).boundingBox())!;
+    expect(map.y + map.height).toBeLessThanOrEqual(box.y + 1);
+    expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
+  });
+});

@@ -297,7 +297,7 @@ Automated tests: unit tests for the formatter in both languages for all five mon
 
 ## B-10 Event text and language sections
 
-Status: in progress
+Status: done
 
 Related: FR-3, FR-9, DD-5, "Languages", "Validation rules" (languages, raw HTML).
 
@@ -312,11 +312,11 @@ How to check by hand:
 4. Add an `@de` section. An error is shown for an unconfigured language.
 
 Acceptance criteria:
-- [ ] The event body is split into language sections by marker lines (`@fi`, `@en`); text with no marker is the default language.
-- [ ] The Markdown is rendered to HTML at build time, and raw HTML is not allowed.
-- [ ] The text is taken in the chosen language, falling back to the default language together with the "not available in this language" note (from `ui.json`).
-- [ ] Links (`[[...]]`), images and `:::journal` blocks are not interpreted yet: they are added in B-23, B-27 and B-26, so the demo event texts contain none of them until then.
-- [ ] Errors: an unconfigured language, a repeated section for the same language, no default-language text, unmarked text together with an explicit default-language section, raw HTML.
+- [x] The event body is split into language sections by marker lines (`@fi`, `@en`); text with no marker is the default language.
+- [x] The Markdown is rendered to HTML at build time, and raw HTML is not allowed.
+- [x] The text is taken in the chosen language, falling back to the default language together with the "not available in this language" note (from `ui.json`).
+- [x] Links (`[[...]]`), images and `:::journal` blocks are not interpreted yet: they are added in B-23, B-27 and B-26, so the demo event texts contain none of them until then.
+- [x] Errors: an unconfigured language, a repeated section for the same language, no default-language text, unmarked text together with an explicit default-language section, raw HTML.
 
 Automated tests: unit tests for the section splitter, the language rules and the HTML check; component tests for the fallback note; a Playwright test for the language switch on event text.
 

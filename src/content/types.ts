@@ -49,6 +49,8 @@ export interface EventDef {
   day: number;
   order: number;
   title: LocalizedText;
+  /** The text as HTML, in each language that has one. The default language always has it. */
+  text: Record<string, string>;
   /** The main-map location id, or null for a one-off position or for no place (n/a). */
   location: string | null;
   /** The resolved main-map position, or null for n/a. */

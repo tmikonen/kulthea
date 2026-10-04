@@ -7,4 +7,8 @@ showOn:
   map: second-map
   location: second-only
 ---
+@fi
 Tapahtuma, jolla ei ole paikkaa pääkartalla.
+
+@en
+An event with no place on the main map.

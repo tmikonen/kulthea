@@ -22,7 +22,7 @@ Finnish and English are supported, with Finnish as the default (see FR-9). The r
 
 - Configuration: `campaign.json` lists the languages (`fi`, `en`) and the default language (`fi`). The default language must always be complete, and other languages are optional.
 - Short text fields (an event's `title`, a journal entry's `name` and `motto`, the names of locations and maps, the campaign title) are written as a language map, for example `title: { fi: ..., en: ... }`. A plain value means the default language only.
-- Long text (the Markdown body of an event or journal entry) is split into language sections by marker lines such as `@fi` and `@en`. Everything up to the next marker belongs to that language. Text with no marker is the default language. Each section is complete in itself: it holds its own images (with alt text and captions), `[[links]]` and `:::journal` blocks.
+- Long text (the Markdown body of an event or journal entry) is split into language sections by marker lines such as `@fi` and `@en`. A marker is a line that holds only `@` and a language code of two or three lowercase letters, so a line such as `@mira` is ordinary text. Everything up to the next marker belongs to that language. Text with no marker is the default language. Each section is complete in itself: it holds its own images (with alt text and captions), `[[links]]` and `:::journal` blocks.
 - Interface texts live in one `ui.json`, with each text given in both languages, for example `"next": { "fi": "Seuraava", "en": "Next" }`. It is read by a small piece of our own code, with no translation library.
 - Language in the URL: a `lang` query parameter, for example `/#/event/<event-id>?lang=en`, like `map` and `journal`. A missing or unknown value means the default language. A language switch (FI | EN) changes only this parameter, so the current event, map and open journal entry are kept. The choice is not remembered in the browser.
 - Fallback: each field falls back to the default language when it has no text in the chosen language. When an item's body falls back, a small "not available in this language" note is shown; short fields fall back silently.
@@ -289,7 +289,7 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 
 - App: React, TypeScript (strict), Vite and CSS Modules.
 - Map: Leaflet through react-leaflet. Routing: React Router with the hash router.
-- Content pipeline (the Vite plugin): unified and remark for Markdown, with a directive plugin for the `:::journal` blocks, a YAML front-matter parser (the `yaml` package, with the front matter block split off by our own code) and a small library that reads image dimensions. The exact packages are chosen when the backlog item that needs them is implemented.
+- Content pipeline (the Vite plugin): unified and remark for Markdown (`unified`, `remark-parse`, `remark-rehype` and `rehype-stringify`, which produce the HTML at build time), with a directive plugin for the `:::journal` blocks, a YAML front-matter parser (the `yaml` package, with the front matter block split off by our own code) and a small library that reads image dimensions. The exact packages are chosen when the backlog item that needs them is implemented.
 - Quality: Vitest, React Testing Library, Playwright, and ESLint with TypeScript support.
 - No other runtime libraries are added without agreement with the product owner.
 

@@ -3,6 +3,8 @@ import path from 'node:path';
 import { imageSize } from 'image-size';
 import { parse as parseYaml } from 'yaml';
 import { compareEvents, parseEventFileName } from '../src/content/eventName.ts';
+import { splitSections } from '../src/content/sections.ts';
+import { findRawHtml, renderMarkdown } from './markdown.ts';
 import type { Campaign, EventDef, EventShowOn, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
 export interface LoadResult {
@@ -203,6 +205,11 @@ function validateLocations(
 
 const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 
+/** The part of an event file after the front matter. */
+function eventBody(fileText: string, frontMatterLength: number): string {
+  return fileText.slice(frontMatterLength);
+}
+
 function isNotApplicable(value: unknown): boolean {
   return typeof value === 'string' && value.trim().toLowerCase() === 'n/a';
 }
@@ -251,8 +258,8 @@ function validateEvents(
     if (sameDate) err(`has the same date and order number as ${sameDate}`);
     else dates.set(dateKey, file);
 
-    const text = fs.readFileSync(path.join(eventsDir, fileName), 'utf8');
-    const match = FRONT_MATTER.exec(text);
+    const fileText = fs.readFileSync(path.join(eventsDir, fileName), 'utf8');
+    const match = FRONT_MATTER.exec(fileText);
     if (!match) {
       err('the file must start with a front matter block between two "---" lines');
       continue;
@@ -270,6 +277,15 @@ function validateEvents(
     }
 
     const eventErrors = errors.length;
+    const text: Record<string, string> = {};
+    const { sections, errors: sectionErrors } = splitSections(
+      eventBody(fileText, match[0].length), campaign.languages, defaultLang);
+    for (const problem of sectionErrors) err(problem);
+    for (const [lang, markdown] of Object.entries(sections)) {
+      const html = findRawHtml(markdown);
+      if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
+      else text[lang] = renderMarkdown(markdown);
+    }
     if (front.title === undefined) err('"title" is missing');
     else if (!hasText(front.title, defaultLang, defaultLang)) {
       err(`"title" has no text in the default language "${defaultLang}"`);
@@ -357,6 +373,7 @@ function validateEvents(
         day: name.day,
         order: name.order,
         title: front.title as EventDef['title'],
+        text,
         location: main.location,
         position: main.position,
         showOn,

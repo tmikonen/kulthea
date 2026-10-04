@@ -35,3 +35,15 @@ export function neighbours(
   if (index < 0) return { previous: null, next: null };
   return { previous: events[index - 1] ?? null, next: events[index + 1] ?? null };
 }
+
+/** The event's text in the chosen language, or in the default language when it has none (`fallback`). */
+export function eventText(
+  event: EventDef,
+  lang: string,
+  defaultLang: string,
+): { html: string; fallback: boolean } {
+  const own = event.text[lang];
+  return own === undefined
+    ? { html: event.text[defaultLang] ?? '', fallback: lang !== defaultLang }
+    : { html: own, fallback: false };
+}

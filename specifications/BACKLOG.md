@@ -656,7 +656,7 @@ Automated tests: unit tests for every error and warning above, for the language 
 
 ## B-21 Journal button and panel
 
-Status: defined
+Status: done
 
 Related: FR-6, FR-9, "URLs", "Components" (JournalButton, JournalPanel), "Bad links".
 
@@ -674,15 +674,15 @@ How to check by hand:
 5. Add `?journal=nowhere` to an address. The event is shown with no panel. Add `?journal=index` and reload. The index opens.
 
 Acceptance criteria:
-- [ ] The button is at the top right, next to the language switch, with its text from `ui.json`. It opens the index, and the address gets `journal=index`.
-- [ ] The panel slides in from the right over the main view (a short transition, none when the user prefers reduced motion), and looks distinct from the main view.
-- [ ] The index groups the entries by type with headings in the chosen language, and sorts them by name in the chosen language. An entry in it is a link that opens it (`journal=<id>`).
-- [ ] Opening and closing the panel never changes the current event, the map, its position or its zoom, and does not reload the page or the map.
-- [ ] Escape and the close button close the panel by adding an address without `journal`. The back button goes back one step, so opening then back closes the panel. The event stays the same in all of them.
-- [ ] Stepping with the buttons or the arrow keys closes the panel. The arrow keys do not step while focus is inside the panel.
-- [ ] An unknown entry in the address is ignored: the event is shown and the address is left as it is. Changing the language keeps the open panel.
-- [ ] When the panel opens, focus moves into it, and when it closes, focus returns to the element that opened it.
-- [ ] The notice for an unknown event still works, also with a `journal` parameter, and the design's URL list is updated.
+- [x] The button is at the top right, next to the language switch, with its text from `ui.json`. It opens the index, and the address gets `journal=index`.
+- [x] The panel slides in from the right over the main view (a short transition, none when the user prefers reduced motion), and looks distinct from the main view.
+- [x] The index groups the entries by type with headings in the chosen language, and sorts them by name in the chosen language. An entry in it is a link that opens it (`journal=<id>`).
+- [x] Opening and closing the panel never changes the current event, the map, its position or its zoom, and does not reload the page or the map.
+- [x] Escape and the close button close the panel by adding an address without `journal`. The back button goes back one step, so opening then back closes the panel. The event stays the same in all of them.
+- [x] Stepping with the buttons or the arrow keys closes the panel. The arrow keys do not step while focus is inside the panel.
+- [x] An unknown entry in the address is ignored: the event is shown and the address is left as it is. Changing the language keeps the open panel.
+- [x] When the panel opens, focus moves into it, and when it closes, focus returns to the element that opened it.
+- [x] The notice for an unknown event still works, also with a `journal` parameter, and the design's URL list is updated.
 
 Automated tests: component tests for the address handling (index, entry, unknown, language kept, stepping dropping it, the notice); Playwright tests that open and close the panel with the button, Escape and back, check that the map's position and zoom and the event do not change, and check the arrow keys and focus.
 

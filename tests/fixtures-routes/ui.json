@@ -6,5 +6,12 @@
   "next": {"fi": "Seuraava", "en": "Next"},
   "notTranslated": {"fi": "Ei saatavilla tällä kielellä", "en": "Not available in this language"},
   "unknownEvent": {"fi": "Tapahtumaa ei löytynyt, joten näytetään ensimmäinen tapahtuma.", "en": "That event was not found, so the first event is shown."},
-  "dismiss": {"fi": "Sulje", "en": "Close"}
+  "dismiss": {"fi": "Sulje", "en": "Close"},
+  "journal": {"fi": "Päiväkirja", "en": "Journal"},
+  "closeJournal": {"fi": "Sulje päiväkirja", "en": "Close the journal"},
+  "typePc": {"fi": "Pelaajahahmot", "en": "Player characters"},
+  "typeNpc": {"fi": "Henkilöt", "en": "NPCs"},
+  "typeItem": {"fi": "Esineet", "en": "Items"},
+  "typeLocation": {"fi": "Paikat", "en": "Locations"},
+  "typeNote": {"fi": "Muistiinpanot", "en": "Notes"}
 }

@@ -14,6 +14,8 @@ import { dotsFor } from './map/markers';
 import { buildRoutes, visibleRoutes } from './map/routes';
 import { eventPlaceOn, placeName, visitedPlaces } from './map/places';
 import { MapView } from './map/MapView';
+import { groupEntries, journalView, INDEX_PARAM } from './journal/journal';
+import { JournalPanel } from './journal/JournalPanel';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './MainView.module.css';
@@ -58,6 +60,7 @@ export function MainView({ event }: { event?: EventDef }) {
   const step = (target: EventDef) => {
     const kept = new URLSearchParams(params);
     kept.delete('map');
+    kept.delete('journal');
     navigate({ pathname: eventPath(target.id), search: kept.toString() });
   };
 
@@ -72,6 +75,23 @@ export function MainView({ event }: { event?: EventDef }) {
     : [];
   const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId, locations) : [];
 
+  const view = journalView(params.get('journal'), content.journal);
+  const withJournal = (value: string | null) => {
+    const next = new URLSearchParams(params);
+    if (value === null) next.delete('journal');
+    else next.set('journal', value);
+    return next;
+  };
+  const closeJournal = () => setParams(withJournal(null));
+  useEffect(() => {
+    if (!view) return;
+    const onKey = (key: KeyboardEvent) => {
+      if (key.key === 'Escape') closeJournal();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   const nameOf = (map: (typeof maps)[number]) => resolveText(map.name, lang, defaultLang);
   const setParam = (name: string, value: string) => {
     const next = new URLSearchParams(params);
@@ -83,54 +103,85 @@ export function MainView({ event }: { event?: EventDef }) {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>{resolveText(campaign.title, lang, defaultLang)}</h1>
-        <LanguageSwitch
-          languages={campaign.languages}
-          activeLanguage={lang}
-          label={uiText(ui, 'language', lang, defaultLang)}
-          onSelect={(language) => setParam('lang', language)}
-        />
+        <div className={styles.tools}>
+          <button
+            type="button"
+            className={styles.journalButton}
+            aria-expanded={view !== null}
+            onClick={() => setParams(withJournal(INDEX_PARAM))}
+          >
+            {uiText(ui, 'journal', lang, defaultLang)}
+          </button>
+          <LanguageSwitch
+            languages={campaign.languages}
+            activeLanguage={lang}
+            label={uiText(ui, 'language', lang, defaultLang)}
+            onSelect={(language) => setParam('lang', language)}
+          />
+        </div>
       </header>
-      <MapView
-        map={current}
-        label={nameOf(current)}
-        routes={lines}
-        markers={dotsFor(visited, locations, lang, defaultLang)}
-        eventId={event?.id}
-        current={place ? { position: place.position, label: placeName(place, locations, lang, defaultLang) } : undefined}
-        onImageLoad={() => setShown(true)}
-      >
-        <MapSwitcher
-          maps={maps}
-          activeId={current.id}
-          label={uiText(ui, 'maps', lang, defaultLang)}
-          nameOf={nameOf}
-          onSelect={(id) => setParam('map', id)}
-        />
-      </MapView>
-      {showNotice && (
-        <Notice
-          message={uiText(ui, 'unknownEvent', lang, defaultLang)}
-          dismissLabel={uiText(ui, 'dismiss', lang, defaultLang)}
-          onDismiss={() => navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null })}
-        />
-      )}
-      {event && (
-        <EventPanel
-          event={event}
-          locationName={eventLocationName(event, locations, lang, defaultLang)}
-          date={formatDate(campaign, lang, event)}
-          textHtml={text.html}
-          notTranslated={text.fallback ? uiText(ui, 'notTranslated', lang, defaultLang) : null}
-          label={uiText(ui, 'event', lang, defaultLang)}
-          lang={lang}
-          defaultLang={defaultLang}
-          previous={previous}
-          next={next}
-          previousLabel={uiText(ui, 'previous', lang, defaultLang)}
-          nextLabel={uiText(ui, 'next', lang, defaultLang)}
-          onStep={step}
-        />
-      )}
+      <div className={styles.main}>
+        <MapView
+          map={current}
+          label={nameOf(current)}
+          routes={lines}
+          markers={dotsFor(visited, locations, lang, defaultLang)}
+          eventId={event?.id}
+          current={place ? { position: place.position, label: placeName(place, locations, lang, defaultLang) } : undefined}
+          onImageLoad={() => setShown(true)}
+        >
+          <MapSwitcher
+            maps={maps}
+            activeId={current.id}
+            label={uiText(ui, 'maps', lang, defaultLang)}
+            nameOf={nameOf}
+            onSelect={(id) => setParam('map', id)}
+          />
+        </MapView>
+        {showNotice && (
+          <Notice
+            message={uiText(ui, 'unknownEvent', lang, defaultLang)}
+            dismissLabel={uiText(ui, 'dismiss', lang, defaultLang)}
+            onDismiss={() => navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null })}
+          />
+        )}
+        {event && (
+          <EventPanel
+            event={event}
+            locationName={eventLocationName(event, locations, lang, defaultLang)}
+            date={formatDate(campaign, lang, event)}
+            textHtml={text.html}
+            notTranslated={text.fallback ? uiText(ui, 'notTranslated', lang, defaultLang) : null}
+            label={uiText(ui, 'event', lang, defaultLang)}
+            lang={lang}
+            defaultLang={defaultLang}
+            previous={previous}
+            next={next}
+            previousLabel={uiText(ui, 'previous', lang, defaultLang)}
+            nextLabel={uiText(ui, 'next', lang, defaultLang)}
+            onStep={step}
+          />
+        )}
+        {view && (
+          <JournalPanel
+            view={view}
+            groups={groupEntries(content.journal, lang, defaultLang)}
+            lang={lang}
+            defaultLang={defaultLang}
+            entryTo={(entry) => ({ pathname: location.pathname, search: withJournal(entry.id).toString() })}
+            onClose={closeJournal}
+            label={uiText(ui, 'journal', lang, defaultLang)}
+            closeLabel={uiText(ui, 'closeJournal', lang, defaultLang)}
+            typeLabels={{
+              pc: uiText(ui, 'typePc', lang, defaultLang),
+              npc: uiText(ui, 'typeNpc', lang, defaultLang),
+              item: uiText(ui, 'typeItem', lang, defaultLang),
+              location: uiText(ui, 'typeLocation', lang, defaultLang),
+              note: uiText(ui, 'typeNote', lang, defaultLang),
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

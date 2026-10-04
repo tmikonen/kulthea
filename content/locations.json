@@ -6,7 +6,7 @@
   { "id": "ton-bor",       "name": "Ton-Bor",
     "positions": { "bay-of-izar": [98.7, 13.6], "haestra": [66.5, 52.0] } },
   { "id": "bog-end",       "name": { "fi": "Suonperä", "en": "Bog End" },
-    "positions": { "bay-of-izar": [73.1, 38.7], "haestra": [58.2, 59.8], "bog-end": [73.5, 44.5] } },
+    "positions": { "bay-of-izar": [71.3, 38.8], "haestra": [57.7, 59.8], "bog-end": [73.5, 44.5] } },
   { "id": "ancient-jinteni-ruins", "name": { "fi": "Muinaiset jintenirauniot", "en": "Ancient Jinteni Ruins" },
     "positions": { "bay-of-izar": [64.3, 39.1], "haestra": [55.6, 59.9], "bog-end": [36.8, 36.0] } },
   { "id": "lean",          "name": "Lean",

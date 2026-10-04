@@ -418,3 +418,27 @@ test.describe('character excerpts (B-25)', () => {
     await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Tiedustelija');
   });
 });
+
+test.describe('journal-only passages (B-26)', () => {
+  const entry = (page: Page) => panel(page).locator('article');
+
+  test('FR-6 a passage is missing from the event text and present in the character\'s entry', async ({ page }) => {
+    await open(page);
+    const eventRegion = page.getByRole('region', { name: 'Tapahtuma' });
+    await expect(eventRegion).toContainText('saapui paikalle');
+    await expect(eventRegion).not.toContainText('Sankari epäili käskyä');
+    await open(page, '?journal=hero');
+    const group = entry(page).locator('section').first().locator('div').first();
+    await expect(group).toContainText('Sankari saapui paikalle');
+    await expect(group).toContainText('Sankari epäili käskyä jo tässä.');
+  });
+
+  test('FR-6 it is only in the entries it is for, and in the language of the section', async ({ page }) => {
+    await open(page, '?journal=scout');
+    await expect(entry(page)).not.toContainText('Sankari epäili käskyä');
+    await expect(entry(page)).toContainText('Tiedustelija kuuli kaiken ja vaikeni.');
+    await open(page, '?journal=hero&lang=en');
+    await expect(entry(page)).toContainText('The hero doubted the order already here.');
+    await expect(entry(page)).not.toContainText('Sankari epäili');
+  });
+});

@@ -406,7 +406,7 @@ describe('character excerpts (B-25)', () => {
       'Toinen K.A. 6050, Talven 1. päivä',
       'Yhdeksäs K.A. 6050, Talven 9. päivä',
     ]);
-    expect(groups(container)[0].querySelectorAll('p')).toHaveLength(1);
+    expect(groups(container)[0].querySelectorAll('p')).toHaveLength(2); // the paragraph, and the journal-only passage
     expect(groups(container)[0]).toHaveTextContent('Sankari saapui paikalle, ja mukana oli sormus.');
     // The paragraph that names someone else, and the one with no name, are not there.
     expect(section(container)).not.toHaveTextContent('Ensimmäisen tapahtuman teksti.');
@@ -458,5 +458,27 @@ describe('character excerpts (B-25)', () => {
       expect(section(container)).toBeNull();
       unmount();
     }
+  });
+});
+
+describe('journal-only passages (B-26)', () => {
+  it('FR-6 a passage is not in the event text, and is in the character\'s entry in the event\'s group', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    expect(container.querySelector('section')).not.toHaveTextContent('epäili');
+    fireEvent.click(screen.getByRole('link', { name: 'Sankari' }));
+    const group = container.querySelector('article section.campaign .excerpt')!;
+    expect(group.querySelectorAll('p')).toHaveLength(2);
+    expect(group.querySelectorAll('p')[1]).toHaveTextContent('Sankari epäili käskyä jo tässä.');
+  });
+
+  it('FR-6 the passage follows the language', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero&lang=en');
+    expect(container.querySelector('article section.campaign .excerpt')).toHaveTextContent('The hero doubted the order already here.');
+  });
+
+  it('FR-6 a passage is only in the entries it is for', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=scout');
+    expect(container.querySelector('article')).not.toHaveTextContent('Sankari epäili');
+    expect(container.querySelector('article')).toHaveTextContent('Tiedustelija kuuli kaiken ja vaikeni.');
   });
 });

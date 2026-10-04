@@ -54,7 +54,7 @@ describe('journal content (B-20)', () => {
     const noLinks = (dir: string) => {
       for (const name of ['6050-1-001-01-first.md', '6050-1-001-02-second.md', '6050-1-9-01-ninth.md']) {
         const file = path.join(dir, 'events', name);
-        fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/\[\[.*\]\].*\n?/g, 'Ei linkkejä.\n'));
+        fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/:::journal[\s\S]*?\n:::\n?/g, '').replace(/\[\[.*\]\].*\n?/g, 'Ei linkkejä.\n'));
       }
     };
     const missing = loadModified((dir) => { noLinks(dir); fs.rmSync(path.join(dir, 'journal'), { recursive: true }); });
@@ -316,7 +316,7 @@ describe('character excerpts in the build (B-25)', () => {
   it('FR-6 a player character has the paragraphs that link to it, grouped by event in date order', () => {
     const { bundle } = loadContent(FIXTURES);
     expect(short(excerpts(bundle!, 'hero').fi)).toEqual([
-      ['first', ['Sankari saapui paikalle, ja mukana oli sormus.']],
+      ['first', ['Sankari saapui paikalle, ja mukana oli sormus.', 'Sankari epäili käskyä jo tässä.']],
       ['second', ['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.']],
       ['ninth', ['Tiedustelija ja Sankari kulkivat yhdessä.']],
     ]);
@@ -325,7 +325,7 @@ describe('character excerpts in the build (B-25)', () => {
   it('FR-6 an NPC has its own paragraphs, and a paragraph that names two characters is in both', () => {
     const { bundle } = loadContent(FIXTURES);
     expect(short(excerpts(bundle!, 'scout').fi)).toEqual([
-      ['second', ['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.']],
+      ['second', ['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.', 'Tiedustelija kuuli kaiken ja vaikeni.']],
       ['ninth', ['Tiedustelija ja Sankari kulkivat yhdessä.']],
     ]);
   });
@@ -333,7 +333,7 @@ describe('character excerpts in the build (B-25)', () => {
   it('FR-9 the excerpts follow the language, and an event with no text in it gives the default language\'s', () => {
     const { bundle } = loadContent(FIXTURES);
     const en = short(excerpts(bundle!, 'hero').en);
-    expect(en[0]).toEqual(['first', ['Hero arrived, with a ring.']]);
+    expect(en[0]).toEqual(['first', ['Hero arrived, with a ring.', 'The hero doubted the order already here.']]);
     // The second and the ninth events have no English text.
     expect(en[1][0]).toBe('second');
     expect(en[1][1]).toEqual(['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.']);
@@ -357,5 +357,107 @@ describe('character excerpts in the build (B-25)', () => {
   it('FR-6 a character with no event that names it has none', () => {
     const { bundle } = loadModified((dir) => writeEntry(dir, 'lonely.md', 'type: npc\nname: Yksinäinen'));
     expect(excerpts(bundle!, 'lonely')).toEqual({ fi: [], en: [] });
+  });
+});
+
+describe('journal-only passages in the build (B-26)', () => {
+  const plain = (html: string[]) => html.map((h) => h.replace(/<[^>]+>/g, ''));
+  const forEntry = (bundle: NonNullable<ReturnType<typeof loadContent>['bundle']>, id: string, lang: string, slug: string) =>
+    bundle.journal.find((e) => e.id === id)!.excerpts[lang].find((x) => x.event.endsWith(slug));
+  const event = (bundle: NonNullable<ReturnType<typeof loadContent>['bundle']>, slug: string) => bundle.events.find((e) => e.id.endsWith(slug))!;
+
+  it('FR-6 a passage is not in the event\'s text, and the text around it is unchanged', () => {
+    const { bundle } = loadContent(FIXTURES);
+    const first = event(bundle!, '-first');
+    expect(first.text.fi).not.toContain('epäili');
+    expect(first.text.en).not.toContain('doubted');
+    expect(first.text.fi.endsWith('sormus</a>.</p>')).toBe(true);
+    expect(event(bundle!, '-second').text.fi).not.toContain('vaikeni');
+  });
+
+  it('FR-6 the passage is in the entry it is for, after the paragraphs before it, in the language of its section', () => {
+    const { bundle } = loadContent(FIXTURES);
+    expect(plain(forEntry(bundle!, 'hero', 'fi', '-first')!.html)).toEqual(['Sankari saapui paikalle, ja mukana oli sormus.', 'Sankari epäili käskyä jo tässä.']);
+    expect(plain(forEntry(bundle!, 'hero', 'en', '-first')!.html)).toEqual(['Hero arrived, with a ring.', 'The hero doubted the order already here.']);
+    // It is not in an entry it is not for.
+    expect(forEntry(bundle!, 'scout', 'fi', '-first')).toBeUndefined();
+  });
+
+  it('FR-6 paragraphs and passages are in the order of the text, and a passage for two characters is in both', () => {
+    const { bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-order.md', 'title: Järjestys\nlocation: main-only',
+        'A [[hero]].\n\n:::journal{for="hero, scout"}\nSecret.\n:::\n\nB [[hero]].\n\n:::journal{for="hero"}\nSecond secret.\n:::'));
+    expect(plain(forEntry(bundle!, 'hero', 'fi', '-order')!.html)).toEqual(['A Sankari.', 'Secret.', 'B Sankari.', 'Second secret.']);
+    expect(plain(forEntry(bundle!, 'scout', 'fi', '-order')!.html)).toEqual(['Secret.']);
+  });
+
+  it('FR-6 a passage may have several paragraphs, Markdown and links, which work in the entry', () => {
+    const { bundle, errors } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-rich.md', 'title: Rikas\nlocation: main-only', ':::journal{for="hero"}\nOne *two*.\n\nSee [[scout]].\n:::'));
+    expect(errors).toEqual([]);
+    const html = forEntry(bundle!, 'hero', 'fi', '-rich')!.html;
+    expect(html).toHaveLength(1);
+    expect(html[0]).toContain('<em>two</em>');
+    expect(html[0]).toContain('data-journal="scout">Tiedustelija</a>');
+  });
+
+  it('FR-6 an event with a passage for a character is in that character\'s list, even when its text does not name them', () => {
+    const { bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-secret.md', 'title: Salaisuus\nlocation: main-only', ':::journal{for="hero"}\nVain sinulle.\n:::'));
+    expect(bundle!.journal.find((e) => e.id === 'hero')!.events.fi.some((id) => id.endsWith('-secret'))).toBe(true);
+  });
+
+  it('FR-6 a link in a passage does not put the event in the list of the entry it links to', () => {
+    const { bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-link.md', 'title: Linkki\nlocation: main-only', ':::journal{for="hero"}\nSee [[lore]].\n:::'));
+    expect(bundle!.journal.find((e) => e.id === 'lore')!.events.fi).toEqual([]);
+  });
+
+  it('FR-9 the passages of a section are used only for its language; an event with no section in a language gives the default one', () => {
+    const { bundle } = loadModified((dir) => {
+      writeEvent(dir, '6050-1-001-03-two.md', 'title: Kaksi\nlocation: main-only',
+        '@fi\nTeksti.\n\n:::journal{for="hero"}\nSuomeksi.\n:::\n\n@en\nText.\n\n:::journal{for="scout"}\nIn English.\n:::');
+      writeEvent(dir, '6050-1-001-04-fionly.md', 'title: Vain suomi\nlocation: main-only', ':::journal{for="hero"}\nVain suomeksi.\n:::');
+    });
+    expect(plain(forEntry(bundle!, 'hero', 'fi', '-two')!.html)).toEqual(['Suomeksi.']);
+    expect(forEntry(bundle!, 'hero', 'en', '-two')).toBeUndefined();
+    expect(plain(forEntry(bundle!, 'scout', 'en', '-two')!.html)).toEqual(['In English.']);
+    expect(plain(forEntry(bundle!, 'hero', 'en', '-fionly')!.html)).toEqual(['Vain suomeksi.']);
+  });
+
+  describe('errors', () => {
+    const errorsOf = (body: string, extra?: (dir: string) => void) =>
+      loadModified((dir) => { writeEvent(dir, '6050-1-001-03-bad.md', 'title: X\nlocation: main-only', body); extra?.(dir); }).errors;
+
+    it('FR-6 an unknown id, an id of another type, and an empty for: with the file and the language', () => {
+      expect(errorsOf(':::journal{for="nobody"}\nx\n:::')).toEqual([
+        expect.stringMatching(/events\/6050-1-001-03-bad\.md: in the "fi" text, the passage is for "nobody", which is not a journal entry/),
+      ]);
+      expect(errorsOf(':::journal{for="ring"}\nx\n:::')).toEqual([expect.stringMatching(/"ring", which is not a player character or an NPC/)]);
+      expect(errorsOf(':::journal{for="both-places"}\nx\n:::')).toEqual([expect.stringMatching(/"both-places", which is not a player character or an NPC/)]);
+      expect(errorsOf(':::journal{for=""}\nx\n:::')).toEqual([expect.stringMatching(/empty id in "for"/)]);
+    });
+
+    it('FR-6 a passage that is not closed, nested, or another block, in any language section', () => {
+      expect(errorsOf(':::journal{for="hero"}\nx')).toEqual([expect.stringMatching(/is not closed/)]);
+      expect(errorsOf(':::journal{for="hero"}\n:::journal{for="scout"}\nx\n:::\n:::')[0]).toMatch(/cannot be nested/);
+      expect(errorsOf(':::foo\nx\n:::')[0]).toMatch(/the block ":::foo" is not a journal passage/);
+      expect(errorsOf('@fi\nOk.\n\n@en\n:::journal{for="hero"}\nx')).toEqual([expect.stringMatching(/in the "en" text, a journal passage is not closed/)]);
+    });
+
+    it('FR-6 a broken link in a passage fails the build', () => {
+      expect(errorsOf(':::journal{for="hero"}\nSee [[nobody]].\n:::')).toEqual([
+        expect.stringMatching(/in a journal passage in the "fi" text, the link \[\[nobody\]\] names no journal entry "nobody"/),
+      ]);
+    });
+
+    it('FR-6 a passage in an entry\'s text is an error', () => {
+      const errors = loadModified((dir) => writeEntry(dir, 'bad.md', 'type: note\nname: X', ':::journal{for="hero"}\nx\n:::')).errors;
+      expect(errors).toEqual([expect.stringMatching(/journal\/bad\.md: a journal passage \(a ":::" block\) can only be in an event, not in an entry/)]);
+    });
+
+    it('FR-6 a block in a fenced code block is not a passage', () => {
+      expect(errorsOf('Example:\n\n```\n:::journal{for="hero"}\nx\n:::\n```')).toEqual([]);
+    });
   });
 });

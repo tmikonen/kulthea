@@ -5,6 +5,7 @@ import { parse as parseYaml } from 'yaml';
 import { compareEvents, parseEventFileName } from '../src/content/eventName.ts';
 import { splitSections } from '../src/content/sections.ts';
 import { renderWithLinks, type RenderedText } from './links.ts';
+import { extractPassages } from './passages.ts';
 import { findRawHtml } from './markdown.ts';
 import { JOURNAL_TYPES } from '../src/content/types.ts';
 import type { Campaign, EventDef, Excerpt, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
@@ -94,6 +95,8 @@ export function loadContent(dir: string): LoadResult {
   const drafts = campaign && locations
     ? readJournal(path.join(dir, 'journal'), dir, rel, campaign, locations, errors, warnings)
     : null;
+  /** The type of an entry. When an entry has an error, its own error is enough, so any id is taken as a character then. */
+  const entryType = (id: string) => (drafts === null ? 'pc' : drafts.find((d) => d.id === id)?.type);
   const linkName: LinkName = (id, lang) => {
     // When an entry has an error, its own error is enough: do not report every link to the entries as broken too.
     if (drafts === null) return id;
@@ -102,7 +105,7 @@ export function loadContent(dir: string): LoadResult {
   };
   const linkLog: LinkLog = new Map();
   const events = campaign && maps && locations
-    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, linkLog, errors, warnings)
+    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, entryType, linkLog, errors, warnings)
     : null;
   const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, errors) : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
@@ -257,6 +260,8 @@ function renderText(
 /** What an event's text in one language gives to the journal: the entries it links to, and the pieces that may be excerpts. */
 interface TextLog {
   links: string[];
+  /** The ids that the journal-only passages of the text are for. */
+  passageIds: string[];
   /** Pieces of the text in document order. A piece is shown in the entries of the ids it names. */
   items: { html: string; ids: string[] }[];
 }
@@ -271,6 +276,7 @@ function validateEvents(
   maps: MapDef[],
   locations: LocationDef[],
   linkName: LinkName,
+  entryType: (id: string) => string | undefined,
   linkLog: LinkLog,
   errors: string[],
   warnings: string[],
@@ -338,13 +344,26 @@ function validateEvents(
       const html = findRawHtml(markdown);
       if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
       else {
-        text[lang] = renderText(markdown, lang, linkName, err, (rendered) => {
+        // The journal-only passages are taken out of the text that the event shows. They are kept, in the
+        // order of the text, with the paragraphs, as the pieces that the characters' entries can show.
+        const passages = extractPassages(markdown, entryType);
+        for (const problem of passages.errors) err(`in the "${lang}" text, ${problem}`);
+        const items: TextLog['items'] = [];
+        const passageIds: string[] = [];
+        for (const segment of passages.segments) {
+          const rendered = renderWithLinks(segment.markdown, (id) => linkName(id, lang));
+          if (segment.kind === 'text') {
+            items.push(...rendered.paragraphs.map((paragraph) => ({ html: paragraph.html, ids: paragraph.links })));
+          } else {
+            for (const problem of rendered.errors) err(`in a journal passage in the "${lang}" text, ${problem}`);
+            items.push({ html: rendered.html, ids: segment.ids });
+            passageIds.push(...segment.ids);
+          }
+        }
+        text[lang] = renderText(passages.text, lang, linkName, err, (rendered) => {
           const id = fileName.replace(/\.md$/, '');
           const logged = linkLog.get(id) ?? {};
-          logged[lang] = {
-            links: rendered.links,
-            items: rendered.paragraphs.map((paragraph) => ({ html: paragraph.html, ids: paragraph.links })),
-          };
+          logged[lang] = { links: rendered.links, passageIds, items };
           linkLog.set(id, logged);
         });
       }
@@ -592,6 +611,10 @@ function readJournal(
     for (const [lang, markdown] of Object.entries(sections)) {
       const html = findRawHtml(markdown);
       if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
+      const passages = extractPassages(markdown, () => 'pc');
+      if (passages.segments.some((segment) => segment.kind === 'passage') || passages.errors.length > 0) {
+        err(`a journal passage (a ":::" block) can only be in an event, not in an entry (found in the "${lang}" text)`);
+      }
     }
 
     if (errors.length === entryErrors && type) entries.push({ id, type, name, motto, image, file, sections });
@@ -639,7 +662,8 @@ function eventLists(
       .filter((event) => {
         if (entry.type === 'location') return event.location === entry.id || event.showOn?.location === entry.id;
         const logged = linkLog.get(event.id);
-        return (logged?.[lang] ?? logged?.[campaign.defaultLanguage])?.links.includes(entry.id) ?? false;
+        const shown = logged?.[lang] ?? logged?.[campaign.defaultLanguage];
+        return (shown?.links.includes(entry.id) || shown?.passageIds.includes(entry.id)) ?? false;
       })
       .map((event) => event.id);
   }

@@ -821,7 +821,7 @@ Automated tests: unit tests for the paragraph extraction (one and several links,
 
 ## B-26 Journal-only passages
 
-Status: defined
+Status: done
 
 Related: FR-6, "Character event lists", "File formats" (event).
 
@@ -838,10 +838,10 @@ How to check by hand:
 4. Remove the closing `:::` or name an unknown id. The build fails with the file and the problem.
 
 Acceptance criteria:
-- [ ] A `:::journal{for="..."}` block is removed from the event's HTML, and its content is added to the excerpts of each named entry, in the event's group and in document order.
-- [ ] Each `for` id must name a player character or an NPC. Errors, naming the file: an unknown id, an id of another type, an empty `for`, a block that is not closed, a block inside a block, another block name (`:::foo`), and a `:::journal` block in an entry's text (they are for events only).
-- [ ] The passage and the language rules: it is per section, and a section's passages are used only for that language (the default's, with the note, when the event has no section in it).
-- [ ] The event is in the events list of every character it has a passage for.
+- [x] A `:::journal{for="..."}` block is removed from the event's HTML, and its content is added to the excerpts of each named entry, in the event's group and in document order.
+- [x] Each `for` id must name a player character or an NPC. Errors, naming the file: an unknown id, an id of another type, an empty `for`, a block that is not closed, a block inside a block, another block name (`:::foo`), and a `:::journal` block in an entry's text (they are for events only).
+- [x] The passage and the language rules: it is per section, and a section's passages are used only for that language (the default's, with the note, when the event has no section in it).
+- [x] The event is in the events list of every character it has a passage for.
 
 Automated tests: unit tests for the scanner (one and several ids, document order with paragraphs, every error, a colon in ordinary text, language sections, the events list); a Playwright test that checks that the passage is not in the event and is in the entry.
 

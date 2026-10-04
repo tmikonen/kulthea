@@ -12,7 +12,15 @@ Keksitty esimerkkitapahtuma. Seurue jatkaa Suonperästä muinaisille raunioille,
 
 [[demo-kaarlo]] tutkii [[ancient-jinteni-ruins|raunioita]] ja löytää [[demo-rengas]].
 
+:::journal{for="demo-kaarlo"}
+Kaarlo tunnisti sormuksen kaiverruksen heti, mutta ei kertonut siitä muille.
+:::
+
 @en
 An invented example event. The party goes on from Bog End to the ancient ruins, and the Bog End map shows the way there.
 
 [[demo-kaarlo]] explores the [[ancient-jinteni-ruins|ruins]] and finds [[demo-rengas]].
+
+:::journal{for="demo-kaarlo"}
+Kaarlo recognised the engraving on the ring at once, but told no one.
+:::

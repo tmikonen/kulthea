@@ -1,0 +1,29 @@
+.switch {
+  display: flex;
+}
+
+.button {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #888;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.button:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: 0;
+}
+
+.button[aria-pressed='true'] {
+  background: #2b4a6f;
+  border-color: #2b4a6f;
+  color: #fff;
+  cursor: default;
+}

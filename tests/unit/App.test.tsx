@@ -70,3 +70,41 @@ describe('map switcher (B-5)', () => {
     expect(screen.getByTestId('search')).toHaveTextContent('?lang=en&map=second-map');
   });
 });
+
+describe('language switch (B-6)', () => {
+  it('FR-9 opens in the default language, with FI marked', () => {
+    renderApp();
+    expect(screen.getByRole('group', { name: 'Kieli' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'FI' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'EN' })).toHaveAttribute('aria-pressed', 'false');
+    expect(document.documentElement.lang).toBe('fi');
+  });
+
+  it('FR-9 the switch changes texts, names and the lang attribute, and keeps the map', () => {
+    renderApp('/?map=second-map');
+    fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+    expect(screen.getByTestId('search')).toHaveTextContent('?map=second-map&lang=en');
+    expect(screen.getByRole('heading', { level: 1, name: 'Test Campaign' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Language' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Map' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Main Map' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Second Map' })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+  });
+
+  it('FR-9 the lang parameter opens the page in English, and an unknown one in Finnish', () => {
+    const { unmount } = renderApp('/?lang=en');
+    expect(screen.getByRole('heading', { level: 1, name: 'Test Campaign' })).toBeInTheDocument();
+    unmount();
+    renderApp('/?lang=xx');
+    expect(screen.getByRole('heading', { level: 1, name: 'Testikampanja' })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('fi');
+  });
+
+  it('FR-9 choosing a map keeps the language', () => {
+    renderApp('/?lang=en');
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(screen.getByTestId('search')).toHaveTextContent('?lang=en&map=second-map');
+    expect(screen.getByRole('heading', { level: 1, name: 'Test Campaign' })).toBeInTheDocument();
+  });
+});

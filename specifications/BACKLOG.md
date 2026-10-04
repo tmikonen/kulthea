@@ -122,7 +122,7 @@ Automated tests: unit tests for the converter (corners, centre, and that the y a
 
 ## B-5 Switch between maps
 
-Status: done
+Status: accepted
 
 Related: FR-1, "Data flow" (map loading), DD-4, "Interface texts" (`ui.json`).
 
@@ -150,7 +150,7 @@ Automated tests: unit tests for reading and validating the `map` parameter; unit
 
 ## B-6 Interface languages
 
-Status: defined
+Status: done
 
 Related: FR-9, DD-5, "Languages", `ui.json`.
 
@@ -165,12 +165,12 @@ How to check by hand:
 4. Remove a Finnish text from `content/ui.json`. The terminal shows an error (already in place from B-5).
 
 Acceptance criteria:
-- [ ] `ui.json` has the texts this item needs (for example the switch label), each with Finnish and English.
-- [ ] A text resolver returns a value for the chosen language and falls back to the default language; a plain value means the default language only.
-- [ ] The `lang` query parameter selects the language (missing or unknown means the default), together with `map`.
-- [ ] The language switch changes only the `lang` parameter and keeps the other parameters.
-- [ ] The page's `lang` attribute follows the language.
-- [ ] A text in `ui.json` that is missing in a non-default language falls back to the default language without an error.
+- [x] `ui.json` has the texts this item needs (for example the switch label), each with Finnish and English.
+- [x] A text resolver returns a value for the chosen language and falls back to the default language; a plain value means the default language only.
+- [x] The `lang` query parameter selects the language (missing or unknown means the default), together with `map`.
+- [x] The language switch changes only the `lang` parameter and keeps the other parameters.
+- [x] The page's `lang` attribute follows the language.
+- [x] A text in `ui.json` that is missing in a non-default language falls back to the default language without an error.
 
 Automated tests: unit tests for the resolver (plain value, language map, fallback, missing) and the `ui.json` fallback; a component test for the switch; Playwright tests that the switch changes text and keeps the map.
 

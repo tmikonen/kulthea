@@ -19,6 +19,7 @@ Several independent map images of different scales: a main campaign map (Bay of 
 - AC: 50 markers stay responsive.
 - AC: the map shows the current event's marker prominently, small dots for the places of earlier events that have a place on that map (standalone events included), and nothing for places the story has not reached.
 - AC: the user can switch maps manually from a map switcher.
+- AC: a map can be set to show an event in a focused view: when the displayed map has a focus zoom and the event has a place on it, the view is centred on the marker, zoomed in by that many zoom steps from the whole map. A map with no focus zoom shows the whole map.
 - AC: stepping to an event whose displayed map differs from the current one switches maps automatically.
 - AC: switching maps does not change the current event.
 - AC: stepping to another event always shows that event on its own map, even after a manual map switch.

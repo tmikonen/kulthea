@@ -35,12 +35,12 @@ Finnish and English are supported, with Finnish as the default (see FR-9). The r
 Maps (`maps.json`): exactly one map has `main: true`; width and height are the image's pixel size. `bay-of-izar` is the main campaign map, `bog-end` is the finer-scale map and `haestra` is the largest-scale map, used for character backgrounds. Ids are the file names, and names are the title-cased display names.
 ```json
 [
-  { "id": "bay-of-izar", "name": "Bay of Izar", "image": "maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true },
+  { "id": "bay-of-izar", "name": "Bay of Izar", "image": "maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true, "focusZoom": 2 },
   { "id": "bog-end",     "name": "Bog End",     "image": "maps/bog-end.jpg",     "width": 4042, "height": 2611 },
   { "id": "haestra",     "name": "Haestra",     "image": "maps/haestra.jpg",     "width": 4503, "height": 3147 }
 ]
 ```
-Names are short text fields (see "Languages"): a plain value is the default language, which other languages fall back to, and `"name": { "fi": "Izarinlahti", "en": "Bay of Izar" }` gives each language its own. The same applies to the names in `locations.json`.
+`focusZoom` is optional: the number of zoom-in steps (like pressing the + button) from the whole map at which an event is shown on that map, centred on its marker. Omitted or 0 means the whole map is shown. Names are short text fields (see "Languages"): a plain value is the default language, which other languages fall back to, and `"name": { "fi": "Izarinlahti", "en": "Bay of Izar" }` gives each language its own. The same applies to the names in `locations.json`.
 
 Locations (`locations.json`): a position is `[x, y]` in percent of the map image, from the top-left. A location appears only on maps it has a position for.
 ```json

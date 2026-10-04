@@ -404,7 +404,42 @@ Acceptance criteria:
 
 Automated tests: unit tests for the visited-places function (order, repeats, standalone, one-off positions, the current place, other maps); component and Playwright tests that replace the B-7 marker tests: dots and marker positions at each step of the fixtures, dots disappearing when stepping back, hover names. The B-7 acceptance stays as it was, since its marker positions are still tested.
 
-### Milestone 1: the map follows the story (after B-14)
+## B-33 Focused view per map
+
+Status: defined
+
+Related: FR-1, FR-2, DD-2, "Map markers", "File formats" (`maps.json`).
+
+Depends on: B-13 (the current marker and the view following it) and B-15 (the displayed map). It belongs to Milestone 1 and was added after the first test of B-15, B-13 and B-14.
+
+Scope note: a map can be set to show an event in a focused, zoomed-in view, so that stepping gives more focus and a sense of movement. The setting is `focusZoom` in `maps.json`: a number of zoom-in steps from the fitted view, like pressing the + button that many times. With the present step of half a zoom level, 2 steps double the size of the fitted view, and the value can be tuned. A map with no `focusZoom`, or with 0, shows the whole map as before. Bay of Izar gets 2, and Haestra and Bog End get none. The choices made with the product owner:
+- the view is focused on every step to an event, and also when the map is switched automatically or the event is opened from an address. The user's own zooming and panning last only until the next step, as a manual map choice does;
+- when the map is switched manually to a map that has a focus zoom, the view is focused if the current event has a place on it, and shows the whole map if it has not;
+- when the event stays on the same map, the view zooms and pans smoothly (about 0.6 s). When the map itself changes, the new map starts already focused, with no animation;
+- a window resize keeps the zoom, as it does when the user has zoomed in;
+- a map with no focus zoom keeps the behaviour from B-13: the view pans only when the marker is outside it.
+
+You will see: on Bay of Izar, stepping to an event zooms in around its marker, and stepping to the next event glides to the next place. On Bog End and Haestra the whole map stays in view.
+
+How to check by hand (with the demo content, then with `CONTENT_DIR=campaign`):
+1. Step through the events on Bay of Izar. Each one is zoomed in around its marker, and moving to the next place glides there. Step to the Bog End and Haestra events. The whole map is shown. Step back to Bay of Izar. It is zoomed in again.
+2. Zoom out or in by hand, then step. The next event is shown in the focused view again.
+3. Switch to Bay of Izar with the map switcher at an event that is placed there. The view is focused. Do it at an event that is not placed there. The whole map is shown.
+4. Make the window larger and smaller while zoomed in. The zoom stays.
+5. In `content/maps.json` change `focusZoom` to 4. The zoom is stronger. Remove it. The whole map is shown. Set it to -1 or to text. The build reports an error that names the file and the map.
+
+Acceptance criteria:
+- [ ] A map in `maps.json` may have `focusZoom`, a number of at least 0. The build rejects another value with an error that names the file and the map. An omitted value means 0.
+- [ ] When the displayed map has a focus zoom above 0 and the current event has a place on it, the view is centred on the marker, at the fitted zoom plus that many zoom steps, and not beyond the map's maximum zoom. This holds on every step, when the map is switched automatically or manually, and when an event is opened from an address or after a reload.
+- [ ] When the event stays on the same map, the view moves with a smooth animation of about 0.6 s. When the map changes, the new map starts focused, with no animation.
+- [ ] When the event has no place on the displayed map, the whole map is shown.
+- [ ] A map with no focus zoom behaves as in B-13. The user can still zoom out to the whole map, and a window resize keeps the zoom.
+- [ ] The tests for BUG-1 to BUG-4 (fitting and refitting) still pass.
+- [ ] `content/maps.json` and `campaign/maps.json` give Bay of Izar `focusZoom: 2`, and Haestra and Bog End none. In the fixtures the second map has a focus zoom and the main map has none, so the earlier tests stay valid.
+
+Automated tests: unit tests for the validation (valid, 0, negative, text, omitted) and for the zoom worked out from the fitted zoom, the steps and the maximum; Playwright tests, with the second fixture map, that stepping focuses and centres the marker, that stepping again returns to the focused view after the user has zoomed, that a map without a focus zoom is unchanged, that a manual switch focuses only when the event has a place there, that the first view after an address or a reload is focused, and that a window resize keeps the zoom.
+
+### Milestone 1: the map follows the story (after B-14 and B-33)
 
 A checkpoint for a longer manual test, with your feedback before the routes start. Stepping through the events, the map switches itself, the marker moves, the view follows it, and the trail of visited places grows.
 
@@ -412,7 +447,7 @@ What to try: step through all ten demo events and through the five real events (
 
 Feedback wanted:
 - the look and size of the marker and the dots;
-- whether the map moving to the marker feels right, or should be more or less eager;
+- whether the map moving to the marker feels right, or should be more or less eager, and how the focused view on Bay of Izar (B-33) feels;
 - whether the rule that an event only has places on its own maps is what you want. It means that a visited place does not appear on a map where the event was not placed, even if the place has a position there.
 
 ## B-16 Party route logic

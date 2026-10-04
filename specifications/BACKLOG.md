@@ -485,7 +485,7 @@ Automated tests: unit tests for the place function (each rule, the precedence, `
 
 ## B-16 Party route logic
 
-Status: in progress
+Status: done
 
 Related: FR-5, FR-8, DD-3, "Data flow" (routes), "Shared logic without UI".
 
@@ -513,10 +513,10 @@ Worked examples (A, B, C, D are party events on the main map, in date order). A 
 How to check by hand: read the worked examples and tell me if any is not how you want routes to behave. Run `npm test` to see them pass.
 
 Acceptance criteria:
-- [ ] A route function returns the segments per map for the party track, with each point tied to its event, following the worked examples above.
-- [ ] A second function clips the segments to the events up to a given event in date order, so stepping needs no recomputation. A third gives the lines to show on a map for the current event: all the clipped segments on a history map, and on a visit map for each track only the clipped segment that holds the track's latest event up to the current one, if that event has a place on the map.
-- [ ] Standalone events and named-group events are ignored, an event with no place on a map breaks the route there, and `newSegment` starts a new segment on every map.
-- [ ] Every worked example is a unit test, with the event order and places written out as in the example.
+- [x] A route function returns the segments per map for the party track, with each point tied to its event, following the worked examples above.
+- [x] A second function clips the segments to the events up to a given event in date order, so stepping needs no recomputation. A third gives the lines to show on a map for the current event: all the clipped segments on a history map, and on a visit map for each track only the clipped segment that holds the track's latest event up to the current one, if that event has a place on the map.
+- [x] Standalone events and named-group events are ignored, an event with no place on a map breaks the route there, and `newSegment` starts a new segment on every map.
+- [x] Every worked example is a unit test, with the event order and places written out as in the example.
 
 Automated tests: the unit tests of the worked examples, plus tests that a segment never holds an event twice, that the points are in date order, and that clipping at any event keeps exactly the earlier part.
 

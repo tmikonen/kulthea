@@ -6,6 +6,11 @@ export function findEvent(events: EventDef[], id: string | undefined): EventDef 
   return events.find((event) => event.id === id);
 }
 
+/** The id of the location to show in the event's details: the main-map location, or the one it is shown at on another map. */
+export function eventLocationId(event: EventDef): string | null {
+  return event.location ?? event.showOn?.location ?? null;
+}
+
 /**
  * The name of the place to show in the event's details: the main-map location, or when that is
  * n/a the location it is shown at on another map. A one-off position has no name.
@@ -16,7 +21,7 @@ export function eventLocationName(
   lang: string,
   defaultLang: string,
 ): string | null {
-  const id = event.location ?? event.showOn?.location ?? null;
+  const id = eventLocationId(event);
   const location = locations.find((candidate) => candidate.id === id);
   return location ? resolveText(location.name, lang, defaultLang) : null;
 }

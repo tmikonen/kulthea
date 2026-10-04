@@ -4,7 +4,7 @@ import content from 'virtual:content';
 import { activeLanguage } from './content/language';
 import { resolveText, uiText } from './content/text';
 import { formatDate } from './content/dates';
-import { eventLocationName, eventPath, eventText, neighbours } from './content/events';
+import { eventLocationId, eventLocationName, eventPath, eventText, findEvent, neighbours } from './content/events';
 import type { EventDef } from './content/types';
 import { EventPanel } from './EventPanel';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -15,7 +15,7 @@ import { buildRoutes, visibleRoutes } from './map/routes';
 import { eventPlaceOn, placeName, visitedPlaces } from './map/places';
 import { MapView } from './map/MapView';
 import { groupEntries, journalView, INDEX_PARAM } from './journal/journal';
-import { JournalPanel } from './journal/JournalPanel';
+import { JournalPanel, type EventItem } from './journal/JournalPanel';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './MainView.module.css';
@@ -85,6 +85,23 @@ export function MainView({ event }: { event?: EventDef }) {
   const closeJournal = () => setParams(withJournal(null));
   /** A journal link in a text: it opens the entry over the same event, unless that entry is already open. */
   const entryLink = (id: string) => ({ pathname: location.pathname, search: withJournal(id).toString() });
+  /** The events listed on the open entry, each linking to its event (a language choice is kept, the rest is dropped). */
+  const eventItems: EventItem[] = view?.kind === 'entry'
+    ? (view.entry.events[lang] ?? []).flatMap((id) => {
+        const listed = findEvent(content.events, id);
+        if (!listed) return [];
+        const search = new URLSearchParams();
+        if (params.has('lang')) search.set('lang', params.get('lang')!);
+        return [{
+          id,
+          title: resolveText(listed.title, lang, defaultLang),
+          date: formatDate(campaign, lang, listed),
+          to: { pathname: eventPath(id), search: search.toString() },
+        }];
+      })
+    : [];
+  const locationId = event ? eventLocationId(event) : null;
+  const hasLocationEntry = locationId !== null && content.journal.some((e) => e.type === 'location' && e.id === locationId);
   const openEntry = (id: string) => {
     if (params.get('journal') !== id) setParams(withJournal(id));
   };
@@ -154,6 +171,7 @@ export function MainView({ event }: { event?: EventDef }) {
           <EventPanel
             event={event}
             locationName={eventLocationName(event, locations, lang, defaultLang)}
+            locationTo={hasLocationEntry ? entryLink(locationId) : null}
             date={formatDate(campaign, lang, event)}
             textHtml={text.html}
             notTranslated={text.fallback ? uiText(ui, 'notTranslated', lang, defaultLang) : null}
@@ -183,6 +201,8 @@ export function MainView({ event }: { event?: EventDef }) {
             notTranslated={uiText(ui, 'notTranslated', lang, defaultLang)}
             linkTo={entryLink}
             onOpenEntry={openEntry}
+            eventItems={eventItems}
+            eventsLabel={uiText(ui, 'journalEvents', lang, defaultLang)}
             typeLabels={{
               pc: uiText(ui, 'typePc', lang, defaultLang),
               npc: uiText(ui, 'typeNpc', lang, defaultLang),

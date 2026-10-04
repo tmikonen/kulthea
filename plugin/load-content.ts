@@ -100,10 +100,11 @@ export function loadContent(dir: string): LoadResult {
     const draft = drafts?.find((d) => d.id === id);
     return draft && campaign ? resolveText(draft.name, lang, campaign.defaultLanguage) : undefined;
   };
+  const linkLog: LinkLog = new Map();
   const events = campaign && maps && locations
-    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, errors, warnings)
+    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, linkLog, errors, warnings)
     : null;
-  const journal = drafts ? renderJournal(drafts, linkName, errors) : null;
+  const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, errors) : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
 
   if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) return { bundle: null, errors, warnings };
@@ -240,11 +241,21 @@ function isNotApplicable(value: unknown): boolean {
 type LinkName = (id: string, lang: string) => string | undefined;
 
 /** Renders a language section to HTML, reporting the problems of its journal links. */
-function renderText(markdown: string, lang: string, linkName: LinkName, err: (problem: string) => void): string {
-  const { html, errors } = renderWithLinks(markdown, (id) => linkName(id, lang));
+function renderText(
+  markdown: string,
+  lang: string,
+  linkName: LinkName,
+  err: (problem: string) => void,
+  onLinks?: (links: string[]) => void,
+): string {
+  const { html, errors, links } = renderWithLinks(markdown, (id) => linkName(id, lang));
   for (const problem of errors) err(`in the "${lang}" text, ${problem}`);
+  onLinks?.(links);
   return html;
 }
+
+/** The entries that each event links to, in each language that has a text of its own. */
+type LinkLog = Map<string, Record<string, string[]>>;
 
 function validateEvents(
   eventsDir: string,
@@ -253,6 +264,7 @@ function validateEvents(
   maps: MapDef[],
   locations: LocationDef[],
   linkName: LinkName,
+  linkLog: LinkLog,
   errors: string[],
   warnings: string[],
 ): EventDef[] | null {
@@ -318,7 +330,13 @@ function validateEvents(
     for (const [lang, markdown] of Object.entries(sections)) {
       const html = findRawHtml(markdown);
       if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
-      else text[lang] = renderText(markdown, lang, linkName, err);
+      else {
+        text[lang] = renderText(markdown, lang, linkName, err, (links) => {
+          const logged = linkLog.get(fileName.replace(/\.md$/, '')) ?? {};
+          logged[lang] = links;
+          linkLog.set(fileName.replace(/\.md$/, ''), logged);
+        });
+      }
     }
     if (front.title === undefined) err('"title" is missing');
     else if (!hasText(front.title, defaultLang, defaultLang)) {
@@ -476,7 +494,7 @@ function readImage(
 }
 
 /** An entry as read from its file: everything but the rendered text. */
-interface JournalDraft extends Omit<JournalEntryDef, 'text'> {
+interface JournalDraft extends Omit<JournalEntryDef, 'text' | 'events'> {
   file: string;
   sections: Record<string, string>;
 }
@@ -574,6 +592,9 @@ function readJournal(
 /** Renders the texts of the entries, which needs the names of all the entries for the links. */
 function renderJournal(
   drafts: JournalDraft[],
+  campaign: Campaign,
+  events: EventDef[],
+  linkLog: LinkLog,
   linkName: LinkName,
   errors: string[],
 ): JournalEntryDef[] | null {
@@ -583,11 +604,35 @@ function renderJournal(
     for (const [lang, markdown] of Object.entries(sections)) {
       text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`));
     }
-    return { ...entry, text };
+    return { ...entry, text, events: eventLists(entry, campaign, events, linkLog) };
   });
   if (errors.length > before) return null;
   const order = (type: JournalType) => JOURNAL_TYPES.indexOf(type);
   return entries.sort((a, b) => order(a.type) - order(b.type) || a.id.localeCompare(b.id));
+}
+
+/**
+ * The events listed on an entry, for each language, in date order (`events` is in date order). A location
+ * entry lists the events held at the place. Another entry lists the events whose text shown in the language
+ * links to it: the event's own section, or the default language's when it has none.
+ */
+function eventLists(
+  entry: Omit<JournalEntryDef, 'text' | 'events'>,
+  campaign: Campaign,
+  events: EventDef[],
+  linkLog: LinkLog,
+): Record<string, string[]> {
+  const lists: Record<string, string[]> = {};
+  for (const lang of campaign.languages) {
+    lists[lang] = events
+      .filter((event) => {
+        if (entry.type === 'location') return event.location === entry.id || event.showOn?.location === entry.id;
+        const logged = linkLog.get(event.id);
+        return (logged?.[lang] ?? logged?.[campaign.defaultLanguage] ?? []).includes(entry.id);
+      })
+      .map((event) => event.id);
+  }
+  return lists;
 }
 
 function validateUi(

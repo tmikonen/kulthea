@@ -13,5 +13,6 @@
   "typeNpc": {"fi": "Henkilöt", "en": "NPCs"},
   "typeItem": {"fi": "Esineet", "en": "Items"},
   "typeLocation": {"fi": "Paikat", "en": "Locations"},
-  "typeNote": {"fi": "Muistiinpanot", "en": "Notes"}
+  "typeNote": {"fi": "Muistiinpanot", "en": "Notes"},
+  "journalEvents": {"fi": "Tapahtumat", "en": "Events"}
 }

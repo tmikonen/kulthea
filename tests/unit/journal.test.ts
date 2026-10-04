@@ -3,7 +3,7 @@ import type { JournalEntryDef } from '../../src/content/types';
 import { groupEntries, journalView } from '../../src/journal/journal';
 
 const entry = (id: string, type: JournalEntryDef['type'], name: JournalEntryDef['name']): JournalEntryDef => ({
-  id, type, name, motto: null, text: { fi: '<p>x</p>' }, image: null,
+  id, type, name, motto: null, text: { fi: '<p>x</p>' }, image: null, events: {},
 });
 
 const entries = [

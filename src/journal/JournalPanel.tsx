@@ -24,6 +24,17 @@ interface Props {
   /** The address and the action of a journal link in an entry's text. */
   linkTo: (id: string) => To;
   onOpenEntry: (id: string) => void;
+  /** The events listed on the open entry, with the address of each, and the heading of the list. */
+  eventItems: EventItem[];
+  eventsLabel: string;
+}
+
+/** An event in the list on an entry. */
+export interface EventItem {
+  id: string;
+  title: string;
+  date: string;
+  to: To;
 }
 
 /**
@@ -31,7 +42,7 @@ interface Props {
  * When it opens, focus moves into it, and when it closes, focus goes back to where it was, unless the
  * user has already moved it to something else.
  */
-export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose, label, closeLabel, typeLabels, indexTo, notTranslated, linkTo, onOpenEntry }: Props) {
+export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose, label, closeLabel, typeLabels, indexTo, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel }: Props) {
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const opener = document.activeElement;
@@ -81,6 +92,8 @@ export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose
             notTranslated={notTranslated}
             linkTo={linkTo}
             onOpenEntry={onOpenEntry}
+            eventItems={eventItems}
+            eventsLabel={eventsLabel}
           />
         )}
       </div>
@@ -97,10 +110,12 @@ interface EntryProps {
   notTranslated: string;
   linkTo: (id: string) => To;
   onOpenEntry: (id: string) => void;
+  eventItems: EventItem[];
+  eventsLabel: string;
 }
 
 /** One entry: a link back to the index, the lead image, the name, the motto and the text. */
-function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated, linkTo, onOpenEntry }: EntryProps) {
+function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel }: EntryProps) {
   const name = entryName(entry, lang, defaultLang);
   const text = entryText(entry, lang, defaultLang);
   const motto = entry.motto === null ? null : resolveText(entry.motto, lang, defaultLang);
@@ -116,6 +131,18 @@ function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated
       {motto && <p className={styles.motto}>{motto}</p>}
       {text.fallback && <p className={styles.note}>{notTranslated}</p>}
       <RichText className={styles.text} html={text.html} hrefFor={linkTo} onOpen={onOpenEntry} />
+      {eventItems.length > 0 && (
+        <section className={styles.events}>
+          <h4>{eventsLabel}</h4>
+          <ul>
+            {eventItems.map((item) => (
+              <li key={item.id}>
+                <Link to={item.to}>{item.title}</Link> <span className={styles.eventDate}>{item.date}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }

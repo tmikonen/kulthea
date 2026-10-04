@@ -329,3 +329,52 @@ test.describe('journal links in text (B-23)', () => {
     expect(style.color).not.toBe(style.body);
   });
 });
+
+test.describe('events listed on entries (B-24)', () => {
+  const entry = (page: Page) => panel(page).locator('article');
+  const list = (page: Page) => entry(page).locator('section').filter({ has: page.getByRole('heading', { level: 4 }) });
+  const title = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ }).getByRole('heading', { level: 2 });
+
+  test('FR-6 a character lists the events that name it, with dates, and selecting one goes to it and closes the panel', async ({ page }) => {
+    await open(page, '?journal=hero');
+    await expect(list(page).getByRole('heading', { level: 4 })).toHaveText('Tapahtumat');
+    await expect(list(page).locator('li')).toHaveText([/Ensimmäinen\s+K\.A\. 6050, Talven 1\. päivä/, /Toinen\s+K\.A\. 6050, Talven 1\. päivä/]);
+    await list(page).getByRole('link', { name: 'Toinen' }).click();
+    await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second$/);
+    await expect(panel(page)).toHaveCount(0);
+    await expect(title(page)).toHaveText('Toinen');
+  });
+
+  test('FR-9 the list is in the chosen language, and selecting an event keeps the language and drops the map', async ({ page }) => {
+    await open(page, '?journal=ring&lang=en&map=second-map');
+    await expect(list(page).locator('li')).toHaveText([/First\s+TE 6050, 1st of Winter/]);
+    await list(page).getByRole('link', { name: 'First' }).click();
+    await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}\\?lang=en$`));
+    await expect(title(page)).toHaveText('First');
+  });
+
+  test('FR-6 a location entry lists the events held there', async ({ page }) => {
+    await open(page, '?journal=both-places');
+    await expect(list(page).locator('li a')).toHaveText(['Toinen', 'Yksin']);
+  });
+
+  test('FR-6 an entry that no event names has no list', async ({ page }) => {
+    await open(page, '?journal=lore');
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Taustatarina');
+    await expect(entry(page).getByRole('heading', { level: 4 })).toHaveCount(0);
+  });
+
+  test('FR-6 the location in the event details is a link to its entry when it has one, and plain text when not', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second');
+    const location = page.getByRole('region', { name: 'Tapahtuma' }).locator('p[class*="location"]');
+    await expect(location.getByRole('link', { name: 'Molemmat paikat' })).toBeVisible();
+    await location.getByRole('link').click();
+    await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second\?journal=both-places$/);
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Molemmat paikat');
+    await expect(title(page)).toHaveText('Toinen');
+    await page.goto(`./#/event/${FIRST}`);
+    const plain = page.getByRole('region', { name: 'Tapahtuma' }).locator('p[class*="location"]');
+    await expect(plain).toHaveText('Main Only');
+    await expect(plain.getByRole('link')).toHaveCount(0);
+  });
+});

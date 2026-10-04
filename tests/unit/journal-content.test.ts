@@ -254,3 +254,55 @@ describe('journal links in the build (B-23)', () => {
     expect(errors).toEqual([expect.stringMatching(/journal\/hero\.md: "type" must be one of/)]);
   });
 });
+
+describe('events listed on entries in the build (B-24)', () => {
+  const lists = (bundle: NonNullable<ReturnType<typeof loadContent>['bundle']>, id: string) =>
+    bundle.journal.find((e) => e.id === id)!.events;
+  const short = (ids: string[]) => ids.map((id) => id.replace(/^6050-/, '').replace(/^\d+-\d+-\d+-/, ''));
+
+  it('FR-6 an entry lists the events whose text links to it, in date order, in each language', () => {
+    const { bundle } = loadContent(FIXTURES);
+    const hero = lists(bundle!, 'hero');
+    expect(Object.keys(hero)).toEqual(['fi', 'en']);
+    // The second event has only a Finnish text, so in English the default text is what is shown, and it links.
+    expect(short(hero.fi)).toEqual(['first', 'second']);
+    expect(short(hero.en)).toEqual(['first', 'second']);
+    expect(short(lists(bundle!, 'scout').fi)).toEqual(['second']);
+    expect(short(lists(bundle!, 'ring').en)).toEqual(['first']);
+    expect(lists(bundle!, 'lore')).toEqual({ fi: [], en: [] });
+  });
+
+  it('FR-6 an event links to an entry in a language by the text shown in that language', () => {
+    const { bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-mixed.md', 'title: Sekoitus\nlocation: main-only', '@fi\nTässä on [[lore]].\n\n@en\nHere is no link.'));
+    expect(short(lists(bundle!, 'lore').fi)).toEqual(['mixed']);
+    expect(lists(bundle!, 'lore').en).toEqual([]);
+  });
+
+  it('FR-6 a location entry lists the events held there, by location or showOn location, and not events that only mention it', () => {
+    const { bundle } = loadModified((dir) => {
+      writeEvent(dir, '6050-1-001-03-mention.md', 'title: Maininta\nlocation: main-only', 'Vain maininta: [[both-places]].');
+      writeEvent(dir, '6050-1-001-04-shown.md', 'title: Näytetty\nlocation: n/a\nshowOn:\n  map: second-map\n  location: both-places');
+    });
+    const place = lists(bundle!, 'both-places');
+    expect(short(place.fi)).toEqual(['second', 'shown', 'standalone']);
+    expect(place.en).toEqual(place.fi);
+  });
+
+  it('FR-6 the ids are real event ids, and the order is the date order of the events', () => {
+    const { bundle } = loadContent(FIXTURES);
+    const order = bundle!.events.map((e) => e.id);
+    for (const entry of bundle!.journal) {
+      for (const ids of Object.values(entry.events)) {
+        expect(ids.every((id) => order.includes(id))).toBe(true);
+        expect(ids).toEqual([...ids].sort((a, b) => order.indexOf(a) - order.indexOf(b)));
+      }
+    }
+  });
+
+  it('FR-6 a link in an entry\'s own text does not put an event on anything', () => {
+    const { bundle } = loadContent(FIXTURES);
+    // hero links to scout and ring in its own text, but no event does that, except as listed above.
+    expect(short(lists(bundle!, 'scout').fi)).toEqual(['second']);
+  });
+});

@@ -753,7 +753,7 @@ Automated tests: unit tests for the link parser (both forms, several in a paragr
 
 ## B-24 Events listed on entries
 
-Status: defined
+Status: done
 
 Related: FR-6, FR-3, "Location entries", "Character event lists".
 
@@ -771,11 +771,11 @@ How to check by hand:
 5. Switch to EN. The titles and dates follow the language.
 
 Acceptance criteria:
-- [ ] A non-location entry lists the events that link to it, a location entry the events held there, each with its date (in the chosen language's format) and title, in date order. An entry with no events shows no list.
-- [ ] Selecting an event goes to it, and closes the panel. `lang` is kept.
-- [ ] The location line in the event panel is a link to the location's entry when there is one, and plain text otherwise. The link opens the panel and changes nothing else.
-- [ ] The lists are built at build time and per language, by the rule in the scope note.
-- [ ] The headings are in `ui.json`.
+- [x] A non-location entry lists the events that link to it, a location entry the events held there, each with its date (in the chosen language's format) and title, in date order. An entry with no events shows no list.
+- [x] Selecting an event goes to it, and closes the panel. `lang` is kept.
+- [x] The location line in the event panel is a link to the location's entry when there is one, and plain text otherwise. The link opens the panel and changes nothing else.
+- [x] The lists are built at build time and per language, by the rule in the scope note.
+- [x] The headings are in `ui.json`.
 
 Automated tests: unit tests for the lists (links, location events, a mention that does not count, date order, a language whose section has no link, the default fallback); component tests for the list and the location link; a Playwright test that follows an event link from an entry, and a location link from an event.
 

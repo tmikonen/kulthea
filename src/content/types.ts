@@ -98,6 +98,12 @@ export interface JournalEntryDef {
   text: Record<string, string>;
   /** The lead image, if the entry has one. */
   image: ImageRef | null;
+  /**
+   * The ids of the events listed on the entry, in date order, for each configured language. For a location
+   * entry these are the events held at the place. For other entries they are the events whose text shown in
+   * that language links to the entry.
+   */
+  events: Record<string, string[]>;
 }
 
 /** What the content folder holds once it has been read and validated. */

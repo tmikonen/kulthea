@@ -182,7 +182,7 @@ describe('journal entry view (B-22)', () => {
     const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
     const article = entryPanel(container);
     const order = [...article.children].map((el) => el.tagName.toLowerCase() + (el.className ? '.' + el.className : ''));
-    expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text']);
+    expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text', 'section.events']);
     expect(article.querySelector('a.back')).toHaveTextContent('‹ Päiväkirja');
     const img = within(article).getByRole('img', { name: 'Sankari' });
     expect(img.getAttribute('src')).toMatch(/hero/);
@@ -317,5 +317,79 @@ describe('journal links in text (B-23)', () => {
     const { container } = renderApp('/event/6050-1-001-01-first');
     fireEvent.click(container.querySelector('section p')!);
     expect(search()).toBe('');
+  });
+});
+
+describe('events listed on entries (B-24)', () => {
+  const list = (container: HTMLElement) => container.querySelector('article section.events')!;
+  const items = (container: HTMLElement) => [...list(container).querySelectorAll('li')].map((li) => li.textContent);
+
+  it('FR-6 an entry lists the events that link to it, in date order, each with its date', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    expect(list(container).querySelector('h4')).toHaveTextContent('Tapahtumat');
+    expect(items(container)).toEqual(['Ensimmäinen K.A. 6050, Talven 1. päivä', 'Toinen K.A. 6050, Talven 1. päivä']);
+  });
+
+  it('FR-9 the list follows the language: titles and dates, and the link keeps the language', () => {
+    const { container } = renderApp('/event/6050-1-001-02-second?journal=hero&lang=en');
+    expect(list(container).querySelector('h4')).toHaveTextContent('Events');
+    expect(items(container)).toEqual(['First TE 6050, 1st of Winter', 'Toinen TE 6050, 1st of Winter']);
+    expect(within(list(container) as HTMLElement).getByRole('link', { name: 'First' }).getAttribute('href'))
+      .toBe('/event/6050-1-001-01-first?lang=en');
+  });
+
+  it('FR-6 selecting an event goes to it and closes the panel, keeping the language and dropping the map', () => {
+    const { container } = renderApp('/event/6050-1-001-02-second?journal=hero&lang=en&map=second-map');
+    fireEvent.click(within(list(container) as HTMLElement).getByRole('link', { name: 'First' }));
+    expect(pathname()).toBe('/event/6050-1-001-01-first');
+    expect(search()).toBe('?lang=en');
+    expect(panel()).toBeNull();
+  });
+
+  it('FR-6 selecting an event in the default language leaves no parameters', () => {
+    const { container } = renderApp('/event/6050-1-001-02-second?journal=scout');
+    fireEvent.click(within(list(container) as HTMLElement).getByRole('link', { name: 'Toinen' }));
+    expect(pathname()).toBe('/event/6050-1-001-02-second');
+    expect(search()).toBe('');
+  });
+
+  it('FR-6 a location entry lists the events held at the place, and an entry no event links to has no list', () => {
+    const place = renderApp('/event/6050-1-001-01-first?journal=both-places');
+    expect(items(place.container)).toEqual(['Toinen K.A. 6050, Talven 1. päivä', 'Yksin K.A. 6050, Kevään 70. päivä']);
+    place.unmount();
+    const lore = renderApp('/event/6050-1-001-01-first?journal=lore');
+    expect(lore.container.querySelector('section.events')).toBeNull();
+  });
+
+  it('FR-6 an NPC, an item and a note list their events too', () => {
+    const npc = renderApp('/event/6050-1-001-01-first?journal=scout');
+    expect(items(npc.container)).toEqual(['Toinen K.A. 6050, Talven 1. päivä']);
+    npc.unmount();
+    const item = renderApp('/event/6050-1-001-01-first?journal=ring&lang=en');
+    expect(items(item.container)).toEqual(['First TE 6050, 1st of Winter']);
+  });
+});
+
+describe('the location in an event as a link (B-24)', () => {
+  const locationLine = (container: HTMLElement) => container.querySelector('section .location')!;
+
+  it('FR-6 a location that has an entry is a link to it, and opens the panel without changing anything else', () => {
+    const { container } = renderApp('/event/6050-1-001-02-second?lang=en');
+    const link = within(locationLine(container) as HTMLElement).getByRole('link', { name: 'Both Places' });
+    expect(link.getAttribute('href')).toBe('/event/6050-1-001-02-second?lang=en&journal=both-places');
+    fireEvent.click(link);
+    expect(pathname()).toBe('/event/6050-1-001-02-second');
+    expect(search()).toBe('?lang=en&journal=both-places');
+    expect(within(panel()!).getByRole('heading', { level: 3 })).toHaveTextContent('Both Places');
+  });
+
+  it('FR-6 a location with no entry is plain text, also when it is the showOn location', () => {
+    const main = renderApp('/event/6050-1-001-01-first');
+    expect(locationLine(main.container)).toHaveTextContent('Main Only');
+    expect(locationLine(main.container).querySelector('a')).toBeNull();
+    main.unmount();
+    const other = renderApp('/event/6050-1-10-01-on-second-map');
+    expect(locationLine(other.container)).toHaveTextContent('Vain toinen');
+    expect(locationLine(other.container).querySelector('a')).toBeNull();
   });
 });

@@ -120,6 +120,7 @@
   color: #6b4f2a;
 }
 
+.campaign h4,
 .events h4 {
   margin: 1.25rem 0 0.25rem;
   font-size: 0.95rem;
@@ -145,6 +146,25 @@
   display: block;
   font-size: 0.85rem;
   color: #6b4f2a;
+}
+
+.excerpt {
+  margin: 0.6rem 0 0.9rem;
+  padding-left: 0.6rem;
+  border-left: 3px solid #c9b88f;
+}
+
+.excerpt h5 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.excerpt h5 a {
+  color: #5a2a1a;
+}
+
+.excerpt .text p {
+  margin: 0.3rem 0;
 }
 
 .text p {

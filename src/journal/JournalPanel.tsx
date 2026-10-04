@@ -27,6 +27,17 @@ interface Props {
   /** The events listed on the open entry, with the address of each, and the heading of the list. */
   eventItems: EventItem[];
   eventsLabel: string;
+  /** The excerpts of the open entry (player characters and NPCs), and the heading of the section. */
+  excerptItems: ExcerptItem[];
+  campaignLabel: string;
+}
+
+/** An event's pieces in the "In the campaign" section of a character: the event, and the paragraphs. */
+export interface ExcerptItem extends EventItem {
+  /** The paragraphs as HTML. */
+  html: string;
+  /** The event has no text in the chosen language, so the paragraphs are in the default language. */
+  fallback: boolean;
 }
 
 /** An event in the list on an entry. */
@@ -42,7 +53,7 @@ export interface EventItem {
  * When it opens, focus moves into it, and when it closes, focus goes back to where it was, unless the
  * user has already moved it to something else.
  */
-export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose, label, closeLabel, typeLabels, indexTo, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel }: Props) {
+export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose, label, closeLabel, typeLabels, indexTo, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel, excerptItems, campaignLabel }: Props) {
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const opener = document.activeElement;
@@ -94,6 +105,8 @@ export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose
             onOpenEntry={onOpenEntry}
             eventItems={eventItems}
             eventsLabel={eventsLabel}
+            excerptItems={excerptItems}
+            campaignLabel={campaignLabel}
           />
         )}
       </div>
@@ -112,10 +125,12 @@ interface EntryProps {
   onOpenEntry: (id: string) => void;
   eventItems: EventItem[];
   eventsLabel: string;
+  excerptItems: ExcerptItem[];
+  campaignLabel: string;
 }
 
 /** One entry: a link back to the index, the lead image, the name, the motto and the text. */
-function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel }: EntryProps) {
+function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel, excerptItems, campaignLabel }: EntryProps) {
   const name = entryName(entry, lang, defaultLang);
   const text = entryText(entry, lang, defaultLang);
   const motto = entry.motto === null ? null : resolveText(entry.motto, lang, defaultLang);
@@ -131,6 +146,20 @@ function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated
       {motto && <p className={styles.motto}>{motto}</p>}
       {text.fallback && <p className={styles.note}>{notTranslated}</p>}
       <RichText className={styles.text} html={text.html} hrefFor={linkTo} onOpen={onOpenEntry} />
+      {excerptItems.length > 0 && (
+        <section className={styles.campaign}>
+          <h4>{campaignLabel}</h4>
+          {excerptItems.map((item) => (
+            <div key={item.id} className={styles.excerpt}>
+              <h5>
+                <Link to={item.to}>{item.title}</Link> <span className={styles.eventDate}>{item.date}</span>
+              </h5>
+              {item.fallback && <p className={styles.note}>{notTranslated}</p>}
+              <RichText className={styles.text} html={item.html} hrefFor={linkTo} onOpen={onOpenEntry} />
+            </div>
+          ))}
+        </section>
+      )}
       {eventItems.length > 0 && (
         <section className={styles.events}>
           <h4>{eventsLabel}</h4>

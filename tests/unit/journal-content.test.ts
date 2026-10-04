@@ -52,7 +52,7 @@ describe('journal content (B-20)', () => {
   it('FR-6 a missing or empty journal folder is allowed', () => {
     /** The fixture events link to entries, so for a campaign with no entries they are replaced by events with no links. */
     const noLinks = (dir: string) => {
-      for (const name of ['6050-1-001-01-first.md', '6050-1-001-02-second.md']) {
+      for (const name of ['6050-1-001-01-first.md', '6050-1-001-02-second.md', '6050-1-9-01-ninth.md']) {
         const file = path.join(dir, 'events', name);
         fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/\[\[.*\]\].*\n?/g, 'Ei linkkejä.\n'));
       }
@@ -265,9 +265,9 @@ describe('events listed on entries in the build (B-24)', () => {
     const hero = lists(bundle!, 'hero');
     expect(Object.keys(hero)).toEqual(['fi', 'en']);
     // The second event has only a Finnish text, so in English the default text is what is shown, and it links.
-    expect(short(hero.fi)).toEqual(['first', 'second']);
-    expect(short(hero.en)).toEqual(['first', 'second']);
-    expect(short(lists(bundle!, 'scout').fi)).toEqual(['second']);
+    expect(short(hero.fi)).toEqual(['first', 'second', 'ninth']);
+    expect(short(hero.en)).toEqual(['first', 'second', 'ninth']);
+    expect(short(lists(bundle!, 'scout').fi)).toEqual(['second', 'ninth']);
     expect(short(lists(bundle!, 'ring').en)).toEqual(['first']);
     expect(lists(bundle!, 'lore')).toEqual({ fi: [], en: [] });
   });
@@ -303,6 +303,59 @@ describe('events listed on entries in the build (B-24)', () => {
   it('FR-6 a link in an entry\'s own text does not put an event on anything', () => {
     const { bundle } = loadContent(FIXTURES);
     // hero links to scout and ring in its own text, but no event does that, except as listed above.
-    expect(short(lists(bundle!, 'scout').fi)).toEqual(['second']);
+    expect(short(lists(bundle!, 'scout').fi)).toEqual(['second', 'ninth']);
+  });
+});
+
+describe('character excerpts in the build (B-25)', () => {
+  const excerpts = (bundle: NonNullable<ReturnType<typeof loadContent>['bundle']>, id: string) =>
+    bundle.journal.find((e) => e.id === id)!.excerpts;
+  const short = (list: { event: string; html: string[] }[]) =>
+    list.map((e) => [e.event.replace(/^6050-/, '').replace(/^\d+-\d+-\d+-/, ''), e.html.map((h) => h.replace(/<[^>]+>/g, ''))]);
+
+  it('FR-6 a player character has the paragraphs that link to it, grouped by event in date order', () => {
+    const { bundle } = loadContent(FIXTURES);
+    expect(short(excerpts(bundle!, 'hero').fi)).toEqual([
+      ['first', ['Sankari saapui paikalle, ja mukana oli sormus.']],
+      ['second', ['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.']],
+      ['ninth', ['Tiedustelija ja Sankari kulkivat yhdessä.']],
+    ]);
+  });
+
+  it('FR-6 an NPC has its own paragraphs, and a paragraph that names two characters is in both', () => {
+    const { bundle } = loadContent(FIXTURES);
+    expect(short(excerpts(bundle!, 'scout').fi)).toEqual([
+      ['second', ['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.']],
+      ['ninth', ['Tiedustelija ja Sankari kulkivat yhdessä.']],
+    ]);
+  });
+
+  it('FR-9 the excerpts follow the language, and an event with no text in it gives the default language\'s', () => {
+    const { bundle } = loadContent(FIXTURES);
+    const en = short(excerpts(bundle!, 'hero').en);
+    expect(en[0]).toEqual(['first', ['Hero arrived, with a ring.']]);
+    // The second and the ninth events have no English text.
+    expect(en[1][0]).toBe('second');
+    expect(en[1][1]).toEqual(['Sankari ja Tiedustelija puhuivat paikassa Molemmat paikat.']);
+    expect(en).toHaveLength(3);
+  });
+
+  it('FR-6 an event whose text in a language has no link for the character has no excerpt there', () => {
+    const { bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-mixed.md', 'title: S\nlocation: main-only', '@fi\nTässä on [[scout]].\n\n@en\nNo link here.'));
+    expect(short(excerpts(bundle!, 'scout').fi).map((e) => e[0])).toEqual(['second', 'mixed', 'ninth']);
+    expect(short(excerpts(bundle!, 'scout').en).map((e) => e[0])).toEqual(['second', 'ninth']);
+  });
+
+  it('FR-6 items, notes and locations have no excerpts, also when events link to them', () => {
+    const { bundle } = loadContent(FIXTURES);
+    for (const id of ['ring', 'lore', 'both-places']) {
+      expect(excerpts(bundle!, id)).toEqual({ fi: [], en: [] });
+    }
+  });
+
+  it('FR-6 a character with no event that names it has none', () => {
+    const { bundle } = loadModified((dir) => writeEntry(dir, 'lonely.md', 'type: npc\nname: Yksinäinen'));
+    expect(excerpts(bundle!, 'lonely')).toEqual({ fi: [], en: [] });
   });
 });

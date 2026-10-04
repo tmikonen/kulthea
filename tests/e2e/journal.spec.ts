@@ -252,11 +252,12 @@ test.describe('journal entry view (B-22)', () => {
     await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Hero');
     await expect(entry(page)).toContainText('Onward.');
     await expect(entry(page)).toContainText("The hero's background.");
-    await expect(entry(page)).not.toContainText('Not available in this language');
+    // Directly under the entry there is only the motto: no note, because the text is in English.
+    await expect(entry(page).locator(':scope > p')).toHaveCount(1);
     await panel(page).getByRole('link', { name: /Journal/ }).click();
     await panel(page).getByRole('link', { name: 'Tiedustelija' }).click();
     await expect(entry(page)).toContainText('Vain suomeksi kirjoitettu tausta.');
-    await expect(entry(page)).toContainText('Not available in this language');
+    await expect(entry(page).locator(':scope > p')).toHaveText('Not available in this language');
   });
 
   test('FR-6 the panel starts at the top when another entry is opened', async ({ page }) => {
@@ -290,12 +291,12 @@ test.describe('journal links in text (B-23)', () => {
 
   test('FR-6 a link inside an entry replaces the content, each followed link is a step back, and the panel stays open', async ({ page }) => {
     await open(page, '?journal=hero');
-    await entry(page).getByRole('link', { name: 'Tiedustelija' }).click();
+    await entry(page).locator(':scope > div').first().getByRole('link', { name: 'Tiedustelija' }).click();
     await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Tiedustelija');
     await expect(panel(page)).toBeVisible();
     await page.goBack();
     await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sankari');
-    await entry(page).getByRole('link', { name: 'sormus' }).click();
+    await entry(page).locator(':scope > div').first().getByRole('link', { name: 'sormus' }).click();
     await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sormus');
   });
 
@@ -332,13 +333,13 @@ test.describe('journal links in text (B-23)', () => {
 
 test.describe('events listed on entries (B-24)', () => {
   const entry = (page: Page) => panel(page).locator('article');
-  const list = (page: Page) => entry(page).locator('section').filter({ has: page.getByRole('heading', { level: 4 }) });
+  const list = (page: Page) => entry(page).locator('section').filter({ has: page.getByRole('heading', { level: 4, name: /^(Tapahtumat|Events)$/ }) });
   const title = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ }).getByRole('heading', { level: 2 });
 
   test('FR-6 a character lists the events that name it, with dates, and selecting one goes to it and closes the panel', async ({ page }) => {
     await open(page, '?journal=hero');
     await expect(list(page).getByRole('heading', { level: 4 })).toHaveText('Tapahtumat');
-    await expect(list(page).locator('li')).toHaveText([/Ensimmäinen\s+K\.A\. 6050, Talven 1\. päivä/, /Toinen\s+K\.A\. 6050, Talven 1\. päivä/]);
+    await expect(list(page).locator('li')).toHaveText([/Ensimmäinen\s+K\.A\. 6050, Talven 1\. päivä/, /Toinen\s+K\.A\. 6050, Talven 1\. päivä/, /Yhdeksäs\s+K\.A\. 6050, Talven 9\. päivä/]);
     await list(page).getByRole('link', { name: 'Toinen' }).click();
     await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second$/);
     await expect(panel(page)).toHaveCount(0);
@@ -376,5 +377,44 @@ test.describe('events listed on entries (B-24)', () => {
     const plain = page.getByRole('region', { name: 'Tapahtuma' }).locator('p[class*="location"]');
     await expect(plain).toHaveText('Main Only');
     await expect(plain.getByRole('link')).toHaveCount(0);
+  });
+});
+
+test.describe('character excerpts (B-25)', () => {
+  const entry = (page: Page) => panel(page).locator('article');
+  const campaign = (page: Page) => entry(page).locator('section').filter({ has: page.getByRole('heading', { level: 4, name: /^(Kampanjassa|In the campaign)$/ }) });
+
+  test('FR-6 a character shows the paragraphs of the events that name it, grouped by event, and the group title goes to the event', async ({ page }) => {
+    await open(page, '?journal=hero');
+    await expect(campaign(page).getByRole('heading', { level: 5 })).toHaveText([/Ensimmäinen/, /Toinen/, /Yhdeksäs/]);
+    await expect(campaign(page)).toContainText('Sankari saapui paikalle, ja mukana oli sormus.');
+    await expect(campaign(page)).not.toContainText('Ei mainintoja');
+    await campaign(page).getByRole('link', { name: 'Yhdeksäs' }).click();
+    await expect(page).toHaveURL(/#\/event\/6050-1-9-01-ninth$/);
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test('FR-6 an NPC has its own excerpts, and an item has none', async ({ page }) => {
+    await open(page, '?journal=scout');
+    await expect(campaign(page).getByRole('heading', { level: 5 })).toHaveText([/Toinen/, /Yhdeksäs/]);
+    await open(page, '?journal=ring');
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sormus');
+    await expect(entry(page).getByRole('heading', { level: 4, name: 'Kampanjassa' })).toHaveCount(0);
+  });
+
+  test('FR-9 in English the excerpts are in English, with the note for an event that has no English text', async ({ page }) => {
+    await open(page, '?journal=hero&lang=en');
+    await expect(campaign(page).getByRole('heading', { level: 4 })).toHaveText('In the campaign');
+    const groups = campaign(page).locator('div').filter({ has: page.getByRole('heading', { level: 5 }) });
+    await expect(groups.nth(0)).toContainText('Hero arrived, with a ring.');
+    await expect(groups.nth(0)).not.toContainText('Not available in this language');
+    await expect(groups.nth(1)).toContainText('Not available in this language');
+    await expect(groups.nth(1)).toContainText('Sankari ja Tiedustelija puhuivat');
+  });
+
+  test('FR-6 a link inside an excerpt opens that entry', async ({ page }) => {
+    await open(page, '?journal=hero');
+    await campaign(page).getByRole('link', { name: 'Tiedustelija' }).first().click();
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Tiedustelija');
   });
 });

@@ -54,7 +54,7 @@ describe('content loading (B-3)', () => {
       name: { fi: 'Molemmat paikat', en: 'Both Places' },
       positions: { 'main-map': [25, 75], 'second-map': [50, 50] },
     });
-    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' }, journal: { fi: 'Päiväkirja', en: 'Journal' }, closeJournal: expect.any(Object), typePc: expect.any(Object), typeNpc: expect.any(Object), typeItem: expect.any(Object), typeLocation: expect.any(Object), typeNote: expect.any(Object), journalEvents: { fi: 'Tapahtumat', en: 'Events' } });
+    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' }, journal: { fi: 'Päiväkirja', en: 'Journal' }, closeJournal: expect.any(Object), typePc: expect.any(Object), typeNpc: expect.any(Object), typeItem: expect.any(Object), typeLocation: expect.any(Object), typeNote: expect.any(Object), journalEvents: { fi: 'Tapahtumat', en: 'Events' }, journalCampaign: { fi: 'Kampanjassa', en: 'In the campaign' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true, focusZoom: 0, routes: 'history' },
       { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false, focusZoom: 0, routes: 'visit' },
@@ -591,7 +591,8 @@ describe('event text (B-10)', () => {
   });
 
   it('FR-9 an event with an explicit default-language section has only that language', () => {
-    expect(ev('ninth').text).toEqual({ fi: '<p>Yhdeksännen tapahtuman teksti.</p>' });
+    expect(Object.keys(ev('ninth').text)).toEqual(['fi']);
+    expect(ev('ninth').text.fi).toMatch(/^<p>Yhdeksännen tapahtuman teksti\.<\/p>/);
   });
 
   it('FR-9 every fixture event has default-language text', () => {

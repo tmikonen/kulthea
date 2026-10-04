@@ -182,7 +182,7 @@ describe('journal entry view (B-22)', () => {
     const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
     const article = entryPanel(container);
     const order = [...article.children].map((el) => el.tagName.toLowerCase() + (el.className ? '.' + el.className : ''));
-    expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text', 'section.events']);
+    expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text', 'section.campaign', 'section.events']);
     expect(article.querySelector('a.back')).toHaveTextContent('‹ Päiväkirja');
     const img = within(article).getByRole('img', { name: 'Sankari' });
     expect(img.getAttribute('src')).toMatch(/hero/);
@@ -191,7 +191,7 @@ describe('journal entry view (B-22)', () => {
     expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Sankari');
     expect(article.querySelector('.motto')).toHaveTextContent('Eteenpäin.');
     expect(article.querySelector('.text')).toHaveTextContent('Sankarin tausta.');
-    expect(article.querySelectorAll('.text p')).toHaveLength(3);
+    expect(article.querySelectorAll(':scope > .text p')).toHaveLength(3);
   });
 
   it('FR-9 the entry follows the language: name, motto and text', () => {
@@ -200,7 +200,7 @@ describe('journal entry view (B-22)', () => {
     expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Hero');
     expect(article.querySelector('.motto')).toHaveTextContent('Onward.');
     expect(article.querySelector('.text')).toHaveTextContent("The hero's background.");
-    expect(article.querySelector('.note')).toBeNull();
+    expect(article.querySelector(':scope > .note')).toBeNull();
     expect(within(article).getByRole('img', { name: 'Hero' })).toBeInTheDocument();
   });
 
@@ -282,7 +282,7 @@ describe('journal links in text (B-23)', () => {
 
   it('FR-6 a link in an entry replaces the panel content, and the address names the new entry', () => {
     renderApp('/event/6050-1-001-01-first?journal=hero');
-    const link = within(panel()!).getByRole('link', { name: 'Tiedustelija' });
+    const link = panel()!.querySelector('article > .text a[data-journal="scout"]')!;
     expect(link.getAttribute('href')).toBe('/event/6050-1-001-01-first?journal=scout');
     fireEvent.click(link);
     expect(search()).toBe('?journal=scout');
@@ -327,13 +327,13 @@ describe('events listed on entries (B-24)', () => {
   it('FR-6 an entry lists the events that link to it, in date order, each with its date', () => {
     const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
     expect(list(container).querySelector('h4')).toHaveTextContent('Tapahtumat');
-    expect(items(container)).toEqual(['Ensimmäinen K.A. 6050, Talven 1. päivä', 'Toinen K.A. 6050, Talven 1. päivä']);
+    expect(items(container)).toEqual(['Ensimmäinen K.A. 6050, Talven 1. päivä', 'Toinen K.A. 6050, Talven 1. päivä', 'Yhdeksäs K.A. 6050, Talven 9. päivä']);
   });
 
   it('FR-9 the list follows the language: titles and dates, and the link keeps the language', () => {
     const { container } = renderApp('/event/6050-1-001-02-second?journal=hero&lang=en');
     expect(list(container).querySelector('h4')).toHaveTextContent('Events');
-    expect(items(container)).toEqual(['First TE 6050, 1st of Winter', 'Toinen TE 6050, 1st of Winter']);
+    expect(items(container)).toEqual(['First TE 6050, 1st of Winter', 'Toinen TE 6050, 1st of Winter', 'Yhdeksäs TE 6050, 9th of Winter']);
     expect(within(list(container) as HTMLElement).getByRole('link', { name: 'First' }).getAttribute('href'))
       .toBe('/event/6050-1-001-01-first?lang=en');
   });
@@ -363,7 +363,7 @@ describe('events listed on entries (B-24)', () => {
 
   it('FR-6 an NPC, an item and a note list their events too', () => {
     const npc = renderApp('/event/6050-1-001-01-first?journal=scout');
-    expect(items(npc.container)).toEqual(['Toinen K.A. 6050, Talven 1. päivä']);
+    expect(items(npc.container)).toEqual(['Toinen K.A. 6050, Talven 1. päivä', 'Yhdeksäs K.A. 6050, Talven 9. päivä']);
     npc.unmount();
     const item = renderApp('/event/6050-1-001-01-first?journal=ring&lang=en');
     expect(items(item.container)).toEqual(['First TE 6050, 1st of Winter']);
@@ -391,5 +391,72 @@ describe('the location in an event as a link (B-24)', () => {
     const other = renderApp('/event/6050-1-10-01-on-second-map');
     expect(locationLine(other.container)).toHaveTextContent('Vain toinen');
     expect(locationLine(other.container).querySelector('a')).toBeNull();
+  });
+});
+
+describe('character excerpts (B-25)', () => {
+  const section = (container: HTMLElement) => container.querySelector('article section.campaign');
+  const groups = (container: HTMLElement) => [...section(container)!.querySelectorAll('.excerpt')];
+
+  it('FR-6 a player character has "In the campaign": a group for each event that names it, with those paragraphs', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    expect(section(container)!.querySelector('h4')).toHaveTextContent('Kampanjassa');
+    expect(groups(container).map((g) => g.querySelector('h5')!.textContent)).toEqual([
+      'Ensimmäinen K.A. 6050, Talven 1. päivä',
+      'Toinen K.A. 6050, Talven 1. päivä',
+      'Yhdeksäs K.A. 6050, Talven 9. päivä',
+    ]);
+    expect(groups(container)[0].querySelectorAll('p')).toHaveLength(1);
+    expect(groups(container)[0]).toHaveTextContent('Sankari saapui paikalle, ja mukana oli sormus.');
+    // The paragraph that names someone else, and the one with no name, are not there.
+    expect(section(container)).not.toHaveTextContent('Ensimmäisen tapahtuman teksti.');
+    expect(section(container)).not.toHaveTextContent('Ei mainintoja');
+  });
+
+  it('FR-6 the section comes before the list of events', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    const article = container.querySelector('article')!;
+    expect(section(container)!.compareDocumentPosition(article.querySelector('section.events')!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('FR-6 the title of a group goes to the event and closes the panel', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero&map=second-map');
+    fireEvent.click(within(groups(container)[1] as HTMLElement).getByRole('link', { name: 'Toinen' }));
+    expect(pathname()).toBe('/event/6050-1-001-02-second');
+    expect(search()).toBe('');
+    expect(panel()).toBeNull();
+  });
+
+  it('FR-6 the links in the paragraphs work, and a paragraph with two characters is in both entries', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    fireEvent.click(groups(container)[1].querySelector('a[data-journal="scout"]')!);
+    expect(search()).toBe('?journal=scout');
+    expect(within(panel()!).getByRole('heading', { level: 3 })).toHaveTextContent('Tiedustelija');
+    expect(groups(container).map((g) => g.querySelector('h5 a')!.textContent)).toEqual(['Toinen', 'Yhdeksäs']);
+    expect(groups(container)[0]).toHaveTextContent('Sankari ja Tiedustelija puhuivat');
+  });
+
+  it('FR-9 in English the paragraphs are in English, and an event with no English text shows the Finnish paragraph with the note', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero&lang=en');
+    expect(section(container)!.querySelector('h4')).toHaveTextContent('In the campaign');
+    const [first, second] = groups(container);
+    expect(first).toHaveTextContent('Hero arrived, with a ring.');
+    expect(first.querySelector('.note')).toBeNull();
+    expect(second).toHaveTextContent('Sankari ja Tiedustelija puhuivat');
+    expect(second.querySelector('.note')).toHaveTextContent('Not available in this language');
+    expect(second.querySelectorAll('.note')).toHaveLength(1);
+  });
+
+  it('FR-9 in the default language there is no note', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    expect(section(container)!.querySelector('.note')).toBeNull();
+  });
+
+  it('FR-6 items, notes and locations have no such section, and a character no event names has none', () => {
+    for (const id of ['ring', 'lore', 'both-places']) {
+      const { container, unmount } = renderApp(`/event/6050-1-001-01-first?journal=${id}`);
+      expect(section(container)).toBeNull();
+      unmount();
+    }
   });
 });

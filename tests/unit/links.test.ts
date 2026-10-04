@@ -78,4 +78,31 @@ describe('journal links (B-23)', () => {
     expect(html).toBe('<p>Plain <em>text</em>.</p>\n<p>Two paragraphs.</p>');
     expect(links).toEqual([]);
   });
+
+  describe('paragraphs', () => {
+    const paragraphs = (markdown: string) => render(markdown).paragraphs;
+
+    it('FR-6 every paragraph is rendered on its own, with the ids it links to', () => {
+      const result = paragraphs('First, no links.\n\n[[aldric]] met [[mira]] and [[aldric|him]].\n\nLast one [[mira]].');
+      expect(result).toEqual([
+        { html: '<p>First, no links.</p>', links: [] },
+        { html: `<p>${anchor('aldric', 'Aldric of Stroane')} met ${anchor('mira', 'Mira')} and ${anchor('aldric', 'him')}.</p>`, links: ['aldric', 'mira'] },
+        { html: `<p>Last one ${anchor('mira', 'Mira')}.</p>`, links: ['mira'] },
+      ]);
+    });
+
+    it('FR-6 a paragraph in a list item or a quote counts, and a heading or a code block does not', () => {
+      const result = paragraphs('# [[mira]] heading\n\n- item [[aldric]]\n\n> quote [[mira]]\n\n```\n[[x]]\n```');
+      expect(result.map((p) => p.links)).toEqual([['aldric'], ['mira']]);
+    });
+
+    it('FR-6 a paragraph with Markdown inside keeps it', () => {
+      expect(paragraphs('*[[mira]]* said **no**.')[0].html).toBe(`<p><em>${anchor('mira', 'Mira')}</em> said <strong>no</strong>.</p>`);
+    });
+
+    it('FR-6 text with no paragraphs gives none', () => {
+      expect(paragraphs('')).toEqual([]);
+      expect(paragraphs('# Only a heading')).toEqual([]);
+    });
+  });
 });

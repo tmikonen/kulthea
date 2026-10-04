@@ -87,6 +87,12 @@ export interface ImageRef {
   height: number;
 }
 
+/** The pieces of one event that are shown in a character's entry: HTML paragraphs, in the order of the event's text. */
+export interface Excerpt {
+  event: string;
+  html: string[];
+}
+
 /** A journal entry. The id is the file name without `.md`. A location entry's name is the location's. */
 export interface JournalEntryDef {
   id: string;
@@ -104,6 +110,8 @@ export interface JournalEntryDef {
    * that language links to the entry.
    */
   events: Record<string, string[]>;
+  /** For player characters and NPCs, the excerpts of the events, in date order, for each configured language. Empty for other entries. */
+  excerpts: Record<string, Excerpt[]>;
 }
 
 /** What the content folder holds once it has been read and validated. */

@@ -15,10 +15,18 @@ interface MdNode {
 const LINK = /\[\[([^[\]|\n]*)(?:\|([^[\]\n]*))?\]\]/g;
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+/** A paragraph of the text, rendered on its own, with the ids of the entries it links to. */
+export interface Paragraph {
+  html: string;
+  links: string[];
+}
+
 export interface RenderedText {
   html: string;
   /** The ids of the entries the text links to, once each, in the order they first appear. */
   links: string[];
+  /** Every paragraph of the text in document order, also those inside lists and quotes. */
+  paragraphs: Paragraph[];
   errors: string[];
 }
 
@@ -87,11 +95,31 @@ export function renderWithLinks(markdown: string, nameOf: (id: string) => string
     node.children = result;
   }
 
+  const paragraphs: Paragraph[] = [];
+  const linksIn = (node: MdNode, found: string[]) => {
+    const id = (node.data?.hProperties as Record<string, string> | undefined)?.['data-journal'];
+    if (id && !found.includes(id)) found.push(id);
+    for (const child of node.children ?? []) linksIn(child, found);
+    return found;
+  };
+  const toHtml = unified().use(remarkRehype).use(rehypeStringify);
+  const collect = (node: MdNode) => {
+    if (node.type === 'paragraph') {
+      const root = { type: 'root', children: [node] };
+      paragraphs.push({ html: String(toHtml.stringify(toHtml.runSync(root as never))), links: linksIn(node, []) });
+      return;
+    }
+    for (const child of node.children ?? []) collect(child);
+  };
+
   const processor = unified()
     .use(remarkParse)
-    .use(() => (tree: MdNode) => transform(tree, false))
+    .use(() => (tree: MdNode) => {
+      transform(tree, false);
+      collect(tree);
+    })
     .use(remarkRehype)
     .use(rehypeStringify);
   const html = String(processor.processSync(markdown));
-  return { html, links, errors };
+  return { html, links, paragraphs, errors };
 }

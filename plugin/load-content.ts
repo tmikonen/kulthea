@@ -4,10 +4,10 @@ import { imageSize } from 'image-size';
 import { parse as parseYaml } from 'yaml';
 import { compareEvents, parseEventFileName } from '../src/content/eventName.ts';
 import { splitSections } from '../src/content/sections.ts';
-import { renderWithLinks } from './links.ts';
+import { renderWithLinks, type RenderedText } from './links.ts';
 import { findRawHtml } from './markdown.ts';
 import { JOURNAL_TYPES } from '../src/content/types.ts';
-import type { Campaign, EventDef, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
+import type { Campaign, EventDef, Excerpt, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
 export interface LoadResult {
   bundle: LoadedContent | null;
@@ -246,16 +246,23 @@ function renderText(
   lang: string,
   linkName: LinkName,
   err: (problem: string) => void,
-  onLinks?: (links: string[]) => void,
+  onRendered?: (rendered: RenderedText) => void,
 ): string {
-  const { html, errors, links } = renderWithLinks(markdown, (id) => linkName(id, lang));
-  for (const problem of errors) err(`in the "${lang}" text, ${problem}`);
-  onLinks?.(links);
-  return html;
+  const rendered = renderWithLinks(markdown, (id) => linkName(id, lang));
+  for (const problem of rendered.errors) err(`in the "${lang}" text, ${problem}`);
+  onRendered?.(rendered);
+  return rendered.html;
 }
 
-/** The entries that each event links to, in each language that has a text of its own. */
-type LinkLog = Map<string, Record<string, string[]>>;
+/** What an event's text in one language gives to the journal: the entries it links to, and the pieces that may be excerpts. */
+interface TextLog {
+  links: string[];
+  /** Pieces of the text in document order. A piece is shown in the entries of the ids it names. */
+  items: { html: string; ids: string[] }[];
+}
+
+/** The journal data of each event, in each language that has a text of its own. */
+type LinkLog = Map<string, Record<string, TextLog>>;
 
 function validateEvents(
   eventsDir: string,
@@ -331,10 +338,14 @@ function validateEvents(
       const html = findRawHtml(markdown);
       if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
       else {
-        text[lang] = renderText(markdown, lang, linkName, err, (links) => {
-          const logged = linkLog.get(fileName.replace(/\.md$/, '')) ?? {};
-          logged[lang] = links;
-          linkLog.set(fileName.replace(/\.md$/, ''), logged);
+        text[lang] = renderText(markdown, lang, linkName, err, (rendered) => {
+          const id = fileName.replace(/\.md$/, '');
+          const logged = linkLog.get(id) ?? {};
+          logged[lang] = {
+            links: rendered.links,
+            items: rendered.paragraphs.map((paragraph) => ({ html: paragraph.html, ids: paragraph.links })),
+          };
+          linkLog.set(id, logged);
         });
       }
     }
@@ -494,7 +505,7 @@ function readImage(
 }
 
 /** An entry as read from its file: everything but the rendered text. */
-interface JournalDraft extends Omit<JournalEntryDef, 'text' | 'events'> {
+interface JournalDraft extends Omit<JournalEntryDef, 'text' | 'events' | 'excerpts'> {
   file: string;
   sections: Record<string, string>;
 }
@@ -604,7 +615,7 @@ function renderJournal(
     for (const [lang, markdown] of Object.entries(sections)) {
       text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`));
     }
-    return { ...entry, text, events: eventLists(entry, campaign, events, linkLog) };
+    return { ...entry, text, events: eventLists(entry, campaign, events, linkLog), excerpts: excerptLists(entry, campaign, events, linkLog) };
   });
   if (errors.length > before) return null;
   const order = (type: JournalType) => JOURNAL_TYPES.indexOf(type);
@@ -617,7 +628,7 @@ function renderJournal(
  * links to it: the event's own section, or the default language's when it has none.
  */
 function eventLists(
-  entry: Omit<JournalEntryDef, 'text' | 'events'>,
+  entry: Omit<JournalEntryDef, 'text' | 'events' | 'excerpts'>,
   campaign: Campaign,
   events: EventDef[],
   linkLog: LinkLog,
@@ -628,9 +639,34 @@ function eventLists(
       .filter((event) => {
         if (entry.type === 'location') return event.location === entry.id || event.showOn?.location === entry.id;
         const logged = linkLog.get(event.id);
-        return (logged?.[lang] ?? logged?.[campaign.defaultLanguage] ?? []).includes(entry.id);
+        return (logged?.[lang] ?? logged?.[campaign.defaultLanguage])?.links.includes(entry.id) ?? false;
       })
       .map((event) => event.id);
+  }
+  return lists;
+}
+
+/**
+ * The excerpts of a player character or an NPC, for each language: for each event in date order that has
+ * pieces for the entry, those pieces. The text shown in the language is used, as for the lists of events.
+ */
+function excerptLists(
+  entry: Omit<JournalEntryDef, 'text' | 'events' | 'excerpts'>,
+  campaign: Campaign,
+  events: EventDef[],
+  linkLog: LinkLog,
+): Record<string, Excerpt[]> {
+  const lists: Record<string, Excerpt[]> = {};
+  for (const lang of campaign.languages) {
+    lists[lang] = [];
+    if (entry.type !== 'pc' && entry.type !== 'npc') continue;
+    for (const event of events) {
+      const logged = linkLog.get(event.id);
+      const html = (logged?.[lang] ?? logged?.[campaign.defaultLanguage])?.items
+        .filter((item) => item.ids.includes(entry.id))
+        .map((item) => item.html) ?? [];
+      if (html.length > 0) lists[lang].push({ event: event.id, html });
+    }
   }
   return lists;
 }

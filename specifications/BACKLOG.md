@@ -793,7 +793,7 @@ Feedback wanted:
 
 ## B-25 Character excerpts
 
-Status: defined
+Status: done
 
 Related: FR-6, "Character event lists".
 
@@ -811,11 +811,11 @@ How to check by hand:
 5. Open an item. It has no "In the campaign".
 
 Acceptance criteria:
-- [ ] A player character or NPC entry shows "In the campaign" with a group for each event that has at least one paragraph linking to the character, in date order, with the event's title as a link, its date, and those paragraphs.
-- [ ] The paragraphs are in the language shown for the event, with the fallback and the note for events that have no section in the chosen language.
-- [ ] A paragraph appears once per character, even if it links to the character twice, and appears in every character it links to.
-- [ ] Items, notes and locations have no such section, and a character with no excerpts shows none.
-- [ ] The groups are built at build time and per language.
+- [x] A player character or NPC entry shows "In the campaign" with a group for each event that has at least one paragraph linking to the character, in date order, with the event's title as a link, its date, and those paragraphs.
+- [x] The paragraphs are in the language shown for the event, with the fallback and the note for events that have no section in the chosen language.
+- [x] A paragraph appears once per character, even if it links to the character twice, and appears in every character it links to.
+- [x] Items, notes and locations have no such section, and a character with no excerpts shows none.
+- [x] The groups are built at build time and per language.
 
 Automated tests: unit tests for the paragraph extraction (one and several links, two characters in one paragraph, a link in a list item, a paragraph with no link, order, language and fallback); a component test for the section; a Playwright test for a character in the fixtures.
 

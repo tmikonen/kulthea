@@ -15,7 +15,7 @@ import { buildRoutes, visibleRoutes } from './map/routes';
 import { eventPlaceOn, placeName, visitedPlaces } from './map/places';
 import { MapView } from './map/MapView';
 import { groupEntries, journalView, INDEX_PARAM } from './journal/journal';
-import { JournalPanel, type EventItem } from './journal/JournalPanel';
+import { JournalPanel, type EventItem, type ExcerptItem } from './journal/JournalPanel';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './MainView.module.css';
@@ -86,18 +86,27 @@ export function MainView({ event }: { event?: EventDef }) {
   /** A journal link in a text: it opens the entry over the same event, unless that entry is already open. */
   const entryLink = (id: string) => ({ pathname: location.pathname, search: withJournal(id).toString() });
   /** The events listed on the open entry, each linking to its event (a language choice is kept, the rest is dropped). */
+  const eventItem = (id: string): (EventItem & { event: EventDef }) | null => {
+    const listed = findEvent(content.events, id);
+    if (!listed) return null;
+    const search = new URLSearchParams();
+    if (params.has('lang')) search.set('lang', params.get('lang')!);
+    return {
+      id,
+      event: listed,
+      title: resolveText(listed.title, lang, defaultLang),
+      date: formatDate(campaign, lang, listed),
+      to: { pathname: eventPath(id), search: search.toString() },
+    };
+  };
   const eventItems: EventItem[] = view?.kind === 'entry'
-    ? (view.entry.events[lang] ?? []).flatMap((id) => {
-        const listed = findEvent(content.events, id);
-        if (!listed) return [];
-        const search = new URLSearchParams();
-        if (params.has('lang')) search.set('lang', params.get('lang')!);
-        return [{
-          id,
-          title: resolveText(listed.title, lang, defaultLang),
-          date: formatDate(campaign, lang, listed),
-          to: { pathname: eventPath(id), search: search.toString() },
-        }];
+    ? (view.entry.events[lang] ?? []).flatMap((id) => eventItem(id) ?? [])
+    : [];
+  /** The excerpts of the open character: the paragraphs of each event, in the language of the event's text (the default one, with a note, when it has none). */
+  const excerptItems: ExcerptItem[] = view?.kind === 'entry'
+    ? (view.entry.excerpts[lang] ?? []).flatMap((excerpt) => {
+        const item = eventItem(excerpt.event);
+        return item ? [{ ...item, html: excerpt.html.join(''), fallback: lang !== defaultLang && item.event.text[lang] === undefined }] : [];
       })
     : [];
   const locationId = event ? eventLocationId(event) : null;
@@ -203,6 +212,8 @@ export function MainView({ event }: { event?: EventDef }) {
             onOpenEntry={openEntry}
             eventItems={eventItems}
             eventsLabel={uiText(ui, 'journalEvents', lang, defaultLang)}
+            excerptItems={excerptItems}
+            campaignLabel={uiText(ui, 'journalCampaign', lang, defaultLang)}
             typeLabels={{
               pc: uiText(ui, 'typePc', lang, defaultLang),
               npc: uiText(ui, 'typeNpc', lang, defaultLang),

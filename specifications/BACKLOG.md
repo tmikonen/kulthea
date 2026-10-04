@@ -198,9 +198,11 @@ Automated tests: unit tests for the validation; a test that the markers are plac
 
 ## B-8 Events content
 
-Status: defined
+Status: done
 
 Related: "File formats" (events), "Data model", "Validation rules", FR-3.
+
+Scope note: only the front matter is read here. The event text (the body of the file) is processed in B-10, and the dates are shown in B-9. The demo events are invented and kept apart from the real campaign events: they all fall in the year TE 6000, their file names contain `demo-`, their titles start with "Demo:", and `content/README.md` says so. The real events are in `campaign/`, which the same reader validates.
 
 You will see: a temporary list under the map with every demo event's title in date order, taken from the files in `content/events/`.
 
@@ -210,11 +212,11 @@ How to check by hand:
 3. Rename a file so that the month is 6. An error is shown. Refer to a location that does not exist. An error is shown.
 
 Acceptance criteria:
-- [ ] The plugin reads the files in `content/events/`, reading the date and order from the file name (`year-month-day-order-slug.md`) and the front matter (`title`, `location`, `showOn`, `track`, `newSegment`).
-- [ ] About ten demo events exist, with a mix of events on the main map, an event shown on another map, an event with `n/a` on the main map, a split track and a standalone event. The text is Finnish, with English titles on some.
-- [ ] Events are sorted by year, month, day, then order number.
-- [ ] Errors: a file name that does not match the pattern, a month outside 1 to 5, a day outside 1 to 70, two events with the same date and order, a missing title, a location id that does not exist or has no position on the map it is used for, `n/a` on the main map with no `showOn`.
-- [ ] The title is resolved with the language resolver.
+- [x] The plugin reads the files in `content/events/`, reading the date and order from the file name (`year-month-day-order-slug.md`) and the front matter (`title`, `location`, `showOn`, `track`, `newSegment`).
+- [x] Ten demo events exist (their dates already include the days that B-9 needs), with a mix of events on the main map, an event shown on another map, an event with `n/a` on the main map, a split track and a standalone event. The text is Finnish, with English titles on some.
+- [x] Events are sorted by year, month, day, then order number.
+- [x] Errors: a file name that does not match the pattern, a month outside 1 to 5, a day outside 1 to 70, two events with the same date and order, a missing title, a location id that does not exist or has no position on the map it is used for, `n/a` on the main map with no `showOn`.
+- [x] The title is resolved with the language resolver.
 
 Automated tests: unit tests for the file name parser, the sort order and each validation rule; a Playwright test that the list shows the fixture events in the expected order.
 
@@ -235,7 +237,7 @@ Acceptance criteria:
 - [ ] A date formatter builds a date from the campaign settings: `{era}`, `{year}`, `{month}` (the in-date form), `{day}` and the English `{ordinal}`, which is empty in Finnish.
 - [ ] The Finnish month forms are Talven, Kevään, Kesän, Ruskan and Martaan, and the English ones are Winter, Spring, Summer, Autumn and Fall.
 - [ ] The dates in the event list use the formatter and follow the chosen language.
-- [ ] The demo events include dates on days 1, 2, 3, 11, 12, 13, 21 and 70, so the English endings can be checked by hand (events are added or adjusted for this).
+- [ ] The demo events include dates on days 1, 2, 3, 11, 12, 13, 21 and 70, so the English endings can be checked by hand (the B-8 demo events already have them, so only adjust if needed).
 
 Automated tests: unit tests for the formatter in both languages for all five months, days 1 to 70 and the ordinal edge cases; a Playwright test for the two formats.
 

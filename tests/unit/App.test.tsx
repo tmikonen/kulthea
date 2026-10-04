@@ -126,3 +126,23 @@ describe('location markers (B-7)', () => {
     expect(markerCount(container)).toBe(2);
   });
 });
+
+describe('event list (B-8)', () => {
+  const titles = () => screen.getAllByRole('listitem').map((item) => item.textContent);
+
+  it('FR-2 lists the events in date order under the map, with the titles in the default language', () => {
+    renderApp();
+    expect(screen.getByRole('navigation', { name: 'Tapahtumat' })).toBeInTheDocument();
+    expect(titles()).toEqual([
+      'Ensimmäinen', 'Toinen', 'Yhdeksäs', 'Toisella kartalla', 'Eroon', 'Yksin', 'Hyppy',
+    ]);
+  });
+
+  it('FR-9 shows English titles where they exist, and the default language where they do not', () => {
+    renderApp('/?lang=en');
+    expect(screen.getByRole('navigation', { name: 'Events' })).toBeInTheDocument();
+    expect(titles()).toEqual([
+      'First', 'Toinen', 'Yhdeksäs', 'On the second map', 'Split', 'Yksin', 'Hyppy',
+    ]);
+  });
+});

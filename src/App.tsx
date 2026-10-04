@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 import content from 'virtual:content';
 import { activeLanguage } from './content/language';
 import { resolveText, uiText } from './content/text';
+import { EventList } from './EventList';
 import { LanguageSwitch } from './LanguageSwitch';
 import { activeMap } from './map/mapParam';
 import { MapSwitcher } from './map/MapSwitcher';
@@ -12,7 +13,7 @@ import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './App.module.css';
 
 export function App() {
-  const { campaign, maps, locations, ui } = content;
+  const { campaign, maps, locations, events, ui } = content;
   const defaultLang = campaign.defaultLanguage;
   const [params, setParams] = useSearchParams();
   const lang = activeLanguage(campaign.languages, defaultLang, params.get('lang'));
@@ -55,6 +56,12 @@ export function App() {
           onSelect={(id) => setParam('map', id)}
         />
       </MapView>
+      <EventList
+        events={events}
+        label={uiText(ui, 'events', lang, defaultLang)}
+        lang={lang}
+        defaultLang={defaultLang}
+      />
     </div>
   );
 }

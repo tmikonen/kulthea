@@ -26,3 +26,8 @@ export function editJson(dir: string, name: string, edit: (data: any) => void) {
   edit(data);
   fs.writeFileSync(file, JSON.stringify(data));
 }
+
+/** A new event file in the temp content folder, from its front matter (without the dashes) and a body. */
+export function writeEvent(dir: string, fileName: string, frontMatter: string, body = 'Teksti.') {
+  fs.writeFileSync(path.join(dir, 'events', fileName), `---\n${frontMatter}\n---\n${body}\n`);
+}

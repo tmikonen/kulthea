@@ -206,6 +206,7 @@ Errors (stop the build):
 - Files and dates: an event file name doesn't match `year-month-day-order-slug.md`, or the month is outside 1 to 5 or the day outside 1 to 70; two events share the same year, month, day and order number; a required field is missing (an event title, or a journal entry's type or, except for locations, its name); a `location` journal entry's id doesn't match any location in `locations.json`; a location entry has a `name` field.
 - Maps and locations: `maps.json` doesn't have exactly one `main` map, or a map's declared size doesn't match its image; a `location` or `showOn.location` id doesn't exist; a location has no position on the map it is used for, or a position is outside 0 to 100 percent; an event has `n/a` on the main map and no `showOn`.
 - Languages: `campaign.json` doesn't define a default language that is one of its languages; a configured language lacks an era name, an abbreviation, five month names and in-date forms, or a date format; a language map or `@` section uses a language that isn't configured; a text field or section is repeated for the same language; a field or body has no default-language text; unmarked text is combined with an explicit section for the default language; a text in `ui.json` has no default-language value.
+- Event fields: an event file has no front matter block; `location` and `position` are both given, or neither; a `position` is not `[x, y]` with both values from 0 to 100; `showOn` names a map that does not exist or the main map, has neither a `location` nor a `position`, or has `location: n/a`; `track` is not text; `newSegment` is not true or false. The month limit is the number of months in `campaign.json` and the day limit is its `daysPerMonth`. `n/a` is read in any letter case. An empty events folder is allowed, a missing one is an error, and every file in it must match the event file name pattern.
 - Links and references: a `[[id]]` link or a `:::journal{for="..."}` id doesn't match any journal entry (checked in every language section); an image or map file doesn't exist; raw HTML appears in the text.
 
 Warnings (the build continues):
@@ -288,7 +289,7 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 
 - App: React, TypeScript (strict), Vite and CSS Modules.
 - Map: Leaflet through react-leaflet. Routing: React Router with the hash router.
-- Content pipeline (the Vite plugin): unified and remark for Markdown, with a directive plugin for the `:::journal` blocks, a YAML front-matter parser and a small library that reads image dimensions. The exact packages are chosen when the backlog item that needs them is implemented.
+- Content pipeline (the Vite plugin): unified and remark for Markdown, with a directive plugin for the `:::journal` blocks, a YAML front-matter parser (the `yaml` package, with the front matter block split off by our own code) and a small library that reads image dimensions. The exact packages are chosen when the backlog item that needs them is implemented.
 - Quality: Vitest, React Testing Library, Playwright, and ESLint with TypeScript support.
 - No other runtime libraries are added without agreement with the product owner.
 

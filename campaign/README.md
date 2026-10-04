@@ -4,7 +4,7 @@ The real campaign content, drafted from the GM notes. It is a separate content f
 
 - `campaign.json`, `ui.json` and `locations.json` start as copies of the files in `content/`, so a change to one of them has to be made in both until B-32. `locations.json` also has the places that only the campaign uses (Sammal's Sheep Farm).
 - `maps.json` points to the map images in `content/maps/`, so the images are not duplicated.
-- Events are in `events/`, in the format described in `specifications/DESIGN.md`. The event reader is added in B-8, so the events are not validated until then.
+- Events are in `events/`, in the format described in `specifications/DESIGN.md`. The event reader (B-8) validates them with the same rules as the demo events.
 
 ## Dates
 

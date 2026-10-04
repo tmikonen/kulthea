@@ -32,6 +32,33 @@ export interface LocationDef {
   positions: Record<string, [number, number]>;
 }
 
+/** Where an event is shown on another map instead of the main one. */
+export interface EventShowOn {
+  map: string;
+  /** The location id, or null for a one-off position. */
+  location: string | null;
+  position: [number, number];
+}
+
+/** An event as the app sees it. The date is the one in the file name; months are numbered from 1. */
+export interface EventDef {
+  /** The file name without `.md`. */
+  id: string;
+  year: number;
+  month: number;
+  day: number;
+  order: number;
+  title: LocalizedText;
+  /** The main-map location id, or null for a one-off position or for no place (n/a). */
+  location: string | null;
+  /** The resolved main-map position, or null for n/a. */
+  position: [number, number] | null;
+  showOn: EventShowOn | null;
+  /** Omitted in the file means the party (null here), `none` a standalone event, any other text a split group. */
+  track: string | null;
+  newSegment: boolean;
+}
+
 /** Interface texts by key, each a plain value (default language only) or a language map. */
 export type UiTexts = Record<string, LocalizedText>;
 
@@ -45,6 +72,7 @@ export interface LoadedContent {
   campaign: Campaign;
   maps: MapDef[];
   locations: LocationDef[];
+  events: EventDef[];
   ui: UiTexts;
 }
 
@@ -53,5 +81,6 @@ export interface ContentBundle {
   campaign: Campaign;
   maps: ContentMap[];
   locations: LocationDef[];
+  events: EventDef[];
   ui: UiTexts;
 }

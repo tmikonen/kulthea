@@ -3,7 +3,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadContent } from '../../plugin/load-content';
-import { cleanupTempContent, editJson, FIXTURES, loadModified } from './content-helpers';
+import { cleanupTempContent, editJson, FIXTURES, loadModified, writeEvent } from './content-helpers';
 
 afterEach(cleanupTempContent);
 
@@ -54,7 +54,7 @@ describe('content loading (B-3)', () => {
       name: { fi: 'Molemmat paikat', en: 'Both Places' },
       positions: { 'main-map': [25, 75], 'second-map': [50, 50] },
     });
-    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' } });
+    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, events: { fi: 'Tapahtumat', en: 'Events' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true },
       { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false },
@@ -281,6 +281,236 @@ describe('content loading (B-3)', () => {
       expect(errors).toEqual([]);
       expect(bundle).not.toBeNull();
       expect(warnings).toEqual([expect.stringMatching(/image "maps\/second-map\.gif" is gif, not JPEG, PNG or WebP/)]);
+    });
+  });
+});
+
+describe('events (B-8)', () => {
+  const only = (result: { errors: string[] }) => result.errors;
+
+  it('FR-7 loads the fixture events in date order, with the day numbers compared as numbers', () => {
+    const { bundle, errors, warnings } = loadContent(FIXTURES);
+    expect(errors).toEqual([]);
+    expect(warnings).toEqual([]);
+    expect(bundle?.events.map((e) => e.id)).toEqual([
+      '6050-1-001-01-first',
+      '6050-1-001-02-second',
+      '6050-1-9-01-ninth',
+      '6050-1-10-01-on-second-map',
+      '6050-2-003-01-split',
+      '6050-2-070-01-standalone',
+      '6050-3-001-01-jump',
+    ]);
+  });
+
+  it('FR-3 resolves the date, title, places, track and new-segment flag of each kind of event', () => {
+    const events = Object.fromEntries(loadContent(FIXTURES).bundle!.events.map((e) => [e.id.replace(/^\d+-\d+-\d+-\d+-/, ''), e]));
+    expect(events['first']).toEqual({
+      id: '6050-1-001-01-first', year: 6050, month: 1, day: 1, order: 1,
+      title: { fi: 'Ensimmäinen', en: 'First' },
+      location: 'main-only', position: [80, 20], showOn: null, track: null, newSegment: false,
+    });
+    expect(events['second'].title).toBe('Toinen');
+    expect(events['second'].position).toEqual([25, 75]);
+    // n/a on the main map, shown on another map at a named location
+    expect(events['on-second-map']).toMatchObject({
+      day: 10, location: null, position: null,
+      showOn: { map: 'second-map', location: 'second-only', position: [10, 90] },
+    });
+    // a split group with its own track, shown on another map at a one-off position
+    expect(events['split']).toMatchObject({
+      track: 'scout', location: 'main-only', showOn: { map: 'second-map', location: null, position: [30, 30] },
+    });
+    // a standalone event
+    expect(events['standalone']).toMatchObject({ track: 'none', location: 'both-places' });
+    // a one-off position on the main map, and a new segment
+    expect(events['jump']).toMatchObject({ location: null, position: [10, 10], newSegment: true });
+  });
+
+  it('FR-7 sorts by year, month, day and order number, whatever the file names sort like', () => {
+    const { bundle, errors } = loadModified((dir) => {
+      writeEvent(dir, '5999-5-070-99-early.md', 'title: Aikainen\nlocation: main-only');
+      writeEvent(dir, '6050-1-001-00-before-first.md', 'title: Ennen\nlocation: main-only');
+    });
+    expect(errors).toEqual([]);
+    const ids = bundle!.events.map((e) => e.id);
+    expect(ids[0]).toBe('5999-5-070-99-early');
+    expect(ids[1]).toBe('6050-1-001-00-before-first');
+    expect(ids[2]).toBe('6050-1-001-01-first');
+  });
+
+  it('FR-7 reads a file with Windows line endings', () => {
+    const { bundle, errors } = loadModified((dir) =>
+      fs.writeFileSync(path.join(dir, 'events/6050-4-001-01-crlf.md'),
+        '---\r\ntitle: Windows\r\nlocation: main-only\r\n---\r\nTeksti.\r\n'));
+    expect(errors).toEqual([]);
+    expect(bundle!.events.find((e) => e.id.endsWith('crlf'))?.title).toBe('Windows');
+  });
+
+  it('FR-3 accepts N/A in capital letters', () => {
+    const { errors } = loadModified((dir) =>
+      writeEvent(dir, '6050-4-001-01-na.md', 'title: Ei\nlocation: N/A\nshowOn:\n  map: second-map\n  location: second-only'));
+    expect(errors).toEqual([]);
+  });
+
+  it('FR-3 an empty events folder is allowed', () => {
+    const { bundle, errors } = loadModified((dir) => {
+      for (const f of fs.readdirSync(path.join(dir, 'events'))) fs.rmSync(path.join(dir, 'events', f));
+    });
+    expect(errors).toEqual([]);
+    expect(bundle?.events).toEqual([]);
+  });
+
+  describe('errors', () => {
+    it('FR-3 rejects a missing events folder', () => {
+      const result = loadModified((dir) => fs.rmSync(path.join(dir, 'events'), { recursive: true }));
+      expect(only(result)).toEqual([expect.stringMatching(/events: folder not found/)]);
+    });
+
+    it('FR-7 rejects a file name that does not match the pattern, and names the file', () => {
+      const result = loadModified((dir) => writeEvent(dir, 'ambush.md', 'title: X\nlocation: main-only'));
+      expect(result.bundle).toBeNull();
+      expect(only(result)).toEqual([expect.stringMatching(/events\/ambush\.md: the file name does not match year-month-day-order-slug\.md/)]);
+    });
+
+    it.each([0, 6, 12])('FR-7 rejects month %i', (month) => {
+      const result = loadModified((dir) => writeEvent(dir, `6050-${month}-001-05-x.md`, 'title: X\nlocation: main-only'));
+      expect(only(result)).toEqual([expect.stringMatching(new RegExp(`6050-${month}-001-05-x\\.md: the month ${month} in the file name must be from 1 to 5`))]);
+    });
+
+    it.each([0, 71, 999])('FR-7 rejects day %i', (day) => {
+      const result = loadModified((dir) => writeEvent(dir, `6050-1-${day}-05-x.md`, 'title: X\nlocation: main-only'));
+      expect(only(result)).toEqual([expect.stringMatching(new RegExp(`the day ${day} in the file name must be from 1 to 70`))]);
+    });
+
+    it('FR-7 accepts days 1 and 70 and months 1 and 5', () => {
+      const result = loadModified((dir) => {
+        writeEvent(dir, '6050-1-1-05-x.md', 'title: X\nlocation: main-only');
+        writeEvent(dir, '6050-5-70-05-y.md', 'title: Y\nlocation: main-only');
+      });
+      expect(only(result)).toEqual([]);
+    });
+
+    it('FR-7 rejects two events with the same date and order number, and names both files', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-1-001-01-other.md', 'title: X\nlocation: main-only'));
+      expect(only(result)).toEqual([expect.stringMatching(/6050-1-001-01-other\.md: has the same date and order number as .*6050-1-001-01-first\.md/)]);
+    });
+
+    it('FR-7 the same date with different order numbers is fine, and so is the same order on another day', () => {
+      const result = loadModified((dir) => {
+        writeEvent(dir, '6050-1-001-03-x.md', 'title: X\nlocation: main-only');
+        writeEvent(dir, '6050-1-002-01-y.md', 'title: Y\nlocation: main-only');
+      });
+      expect(only(result)).toEqual([]);
+    });
+
+    it('FR-3 rejects an event with no title', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'location: main-only'));
+      expect(only(result)).toEqual([expect.stringMatching(/6050-4-001-01-x\.md: "title" is missing/)]);
+    });
+
+    it('FR-9 rejects a title with no default-language text', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title:\n  en: Only English\nlocation: main-only'));
+      expect(only(result)).toEqual([expect.stringMatching(/"title" has no text in the default language "fi"/)]);
+    });
+
+    it('FR-3 rejects a location id that does not exist', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: nowhere'));
+      expect(only(result)).toEqual([expect.stringMatching(/the event location "nowhere" does not exist in locations\.json/)]);
+    });
+
+    it('FR-3 rejects a location with no position on the main map', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: second-only'));
+      expect(only(result)).toEqual([expect.stringMatching(/the event location "second-only" has no position on the main map "main-map"/)]);
+    });
+
+    it('FR-3 rejects a showOn location with no position on the showOn map', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: second-map\n  location: main-only'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" location "main-only" has no position on the map "second-map"/)]);
+    });
+
+    it('FR-3 rejects a showOn location that does not exist', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: second-map\n  location: nowhere'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" location "nowhere" does not exist/)]);
+    });
+
+    it('FR-3 rejects n/a on the main map with no showOn', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: n/a'));
+      expect(only(result)).toEqual([expect.stringMatching(/"location" is n\/a on the main map, so the event needs "showOn"/)]);
+    });
+
+    it('FR-3 rejects an event with neither a location nor a position', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X'));
+      expect(only(result)).toEqual([expect.stringMatching(/the event needs a "location" \(a location id or n\/a\) or a "position"/)]);
+    });
+
+    it('FR-3 rejects an event with both a location and a position', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: main-only\nposition: [10, 10]'));
+      expect(only(result)).toEqual([expect.stringMatching(/has both "location" and "position"/)]);
+    });
+
+    it.each([
+      ['x above 100', '[120, 10]'],
+      ['a negative y', '[10, -5]'],
+      ['one number', '[10]'],
+      ['text', 'middle'],
+    ])('FR-1 rejects a one-off position that is not [x, y] from 0 to 100 (%s)', (_, position) => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', `title: X\nposition: ${position}`));
+      expect(only(result)).toEqual([expect.stringMatching(/"position" must be \[x, y\] with both values from 0 to 100/)]);
+    });
+
+    it('FR-3 rejects a showOn position outside 0 to 100', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: second-map\n  position: [10, 101]'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" "position" must be \[x, y\]/)]);
+    });
+
+    it('FR-3 rejects a showOn map that does not exist', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: nowhere\n  position: [10, 10]'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" map "nowhere" is not a map in maps\.json/)]);
+    });
+
+    it('FR-3 rejects a showOn on the main map', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: main-map\n  position: [10, 10]'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" must name a map other than the main map/)]);
+    });
+
+    it('FR-3 rejects n/a inside showOn', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: second-map\n  location: n/a'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" "location" cannot be n\/a/)]);
+    });
+
+    it('FR-3 rejects a showOn with no place', () => {
+      const result = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md',
+        'title: X\nlocation: main-only\nshowOn:\n  map: second-map'));
+      expect(only(result)).toEqual([expect.stringMatching(/"showOn" needs a "location" or a "position"/)]);
+    });
+
+    it('FR-5 rejects a track that is not text, and a newSegment that is not true or false', () => {
+      const track = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: main-only\ntrack: 5'));
+      expect(only(track)).toEqual([expect.stringMatching(/"track" must be text/)]);
+      const segment = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: X\nlocation: main-only\nnewSegment: yes'));
+      expect(only(segment)).toEqual([expect.stringMatching(/"newSegment" must be true or false/)]);
+    });
+
+    it('FR-3 rejects a file with no front matter, and one with invalid front matter', () => {
+      const none = loadModified((dir) => fs.writeFileSync(path.join(dir, 'events/6050-4-001-01-x.md'), 'Vain teksti.\n'));
+      expect(only(none)).toEqual([expect.stringMatching(/6050-4-001-01-x\.md: the file must start with a front matter block/)]);
+      const bad = loadModified((dir) => writeEvent(dir, '6050-4-001-01-x.md', 'title: [unclosed\nlocation: main-only'));
+      expect(only(bad)).toEqual([expect.stringMatching(/6050-4-001-01-x\.md: invalid front matter/)]);
+    });
+
+    it('FR-3 reports every problem in every event, not only the first', () => {
+      const result = loadModified((dir) => {
+        writeEvent(dir, '6050-4-001-01-a.md', 'location: nowhere');
+        writeEvent(dir, '6050-4-001-02-b.md', 'title: B\nlocation: n/a');
+      });
+      expect(only(result)).toHaveLength(3);
     });
   });
 });

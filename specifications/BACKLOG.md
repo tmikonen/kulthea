@@ -793,7 +793,7 @@ Feedback wanted:
 
 ## B-25 Character excerpts
 
-Status: done
+Status: accepted
 
 Related: FR-6, "Character event lists".
 
@@ -821,7 +821,7 @@ Automated tests: unit tests for the paragraph extraction (one and several links,
 
 ## B-26 Journal-only passages
 
-Status: done
+Status: accepted
 
 Related: FR-6, "Character event lists", "File formats" (event).
 
@@ -847,7 +847,7 @@ Automated tests: unit tests for the scanner (one and several ids, document order
 
 ## B-27 Images in text
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-4, FR-6, FR-9, "Images" (data model), "Validation rules".
 

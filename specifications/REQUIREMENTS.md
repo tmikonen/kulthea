@@ -68,7 +68,7 @@ An event may carry an optional "new segment" flag. It means no line is drawn fro
 Journal entries (player characters, major NPCs, items, locations and free-form notes) are mostly images plus text, written in Markdown. They open in a panel that slides in over the main view from the side, so the map and the current event stay in place underneath. The journal is visually distinct from the main view.
 - AC: an entry opens from a link in event text or from a journal index, opened with a button at the top right of the main view. The same button closes the panel when it is open.
 - AC: the journal index groups entries by type (player characters, NPCs, items, locations, notes).
-- AC: a location entry shows the location's name, an image, descriptive text and the list of events held at that location, in date order, each linking to its event.
+- AC: a location entry shows the location's name, its image if it has one, descriptive text and the list of events held at that location, in date order, each linking to its event.
 - AC: where a location has a journal entry, the location shown in an event's details links to that entry.
 - AC: a web address that names a journal entry that does not exist is ignored and the event is shown.
 - AC: the build rejects event or journal text that links to a journal entry that does not exist.
@@ -80,7 +80,7 @@ Journal entries (player characters, major NPCs, items, locations and free-form n
 - AC: each entry other than a location lists the events that link to it, and selecting one of them goes to that event and closes the panel. Which events link to an entry is decided from the text shown in the chosen language.
 - AC: for player characters and NPCs, every paragraph of an event that links to the character is also shown in the character's journal entry, with the event's title and date and a link back to the event.
 - AC: an event can carry a passage that is attached to a player character or an NPC and shown only in that character's journal, not in the event.
-- AC: a player character entry shows a name, picture, background and motto; an NPC entry shows the same except the motto.
+- AC: a player character entry shows a name, picture (if it has one), background and motto; an NPC entry shows the same except the motto.
 - AC: each entry shows its images and text without horizontal scrolling on a phone.
 - AC: an entry may have a lead image (the image is optional) and can contain any number of further images in its text, and clicking an image opens it at full size as in events.
 
@@ -126,6 +126,7 @@ The site can be shown in Finnish or English. Finnish is the default language, th
 
 ## 5. Open items
 
-None.
+- The design says that a language map in a short text field (such as `title: { fi: ..., de: ... }`) with a language that is not configured is a build error, as it is for an `@` section in a body. The build does not check this yet, and such a text is silently ignored. To be decided: add the check, or drop the rule.
+- Fields in the front matter that the design does not list (for example a mistyped `mottto`) are ignored without a message. To be decided: leave it, or make an unknown field a warning.
 
 Future ideas such as route waypoints along roads are not in scope.

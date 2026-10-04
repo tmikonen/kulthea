@@ -658,7 +658,7 @@ Automated tests: unit tests for every error and warning above, for the language 
 
 Status: accepted
 
-Related: FR-6, FR-9, "URLs", "Components" (JournalButton, JournalPanel), "Bad links".
+Related: FR-6, FR-9, "URLs", "Components" (the journal button, JournalPanel), "Bad links".
 
 Depends on: B-20 and B-12 (stepping).
 

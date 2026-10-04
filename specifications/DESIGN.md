@@ -6,14 +6,14 @@ Status: all topics have been discussed and agreed. Requirement ids (FR-1 to FR-9
 
 - Locations: named places in a shared locations file, each with a coordinate per map. Events refer to a location by id, so many events can share a place. An event may instead use a one-off coordinate when it is not at a named place.
 - Event files: one Markdown file per event. The date lives only in the file name, in the form `6050-1-037-02-ambush.md`: year, month number, day, then an order number within that day, then a free-text slug. Months are numbered 1 to 5 in the data (1 Winter, 2 Spring, 3 Summer, 4 Autumn, 5 Fall) and always shown spelled out in the UI in the chosen language, for example "TE 6050, 37th of Winter" (see the calendar settings in "File formats"). The build rejects two events with the same date and order number.
-- Journal links: wiki-style, `[[aldric]]` or `[[aldric|the knight]]`, read in running text only (not in code). The build checks that every id exists and turns each link into an anchor whose text is the given text or the entry's name in the language of that text; the app handles a click on it by opening the entry (see "URLs").
+- Journal links: wiki-style, `[[aldric]]` or `[[aldric|the knight]]`, read in running text only (not in code). The build checks that every id exists and turns each link into an anchor (`<a class="journal-link" data-journal="aldric">`) whose text is the given text or the entry's name in the language of that text. The app gives the anchor a real address and handles a plain click on it by opening the entry (see "URLs"); a click with Ctrl, Shift, Alt or Meta, or with another button, is left to the browser.
 - Tracks: a `track` field in the event front matter. Omitted means the party, a free-text name means a split group, and `none` means a standalone event. An optional `newSegment: true` suppresses the route line into that event.
 - Event fields: a required title, plus the date from the file name, the location(s), and the Markdown body. No summary, session or characters-present fields; the characters and items an event involves come from the journal links in its text.
 - Images: one shared images folder, referenced with plain Markdown image syntax in the text: the alt text goes in the brackets and the optional title string is shown as a visible caption when the image stands alone in its paragraph (the normal way to write it; an image in the middle of a line has no caption), for example `![Dusk over a wide, shallow river](images/ford.jpg "The ford at Stroane")`. The build checks that each file exists, is inside the content folder, has a path of only letters, digits, `.`, `_`, `-` and `/`, and respects the size limits. Each image is served from a hashed file, as the maps are (the HTML holds a mark that the plugin turns into the imported address), has its width and height set, loads lazily, is scaled down to the width of the panel but never enlarged, and opens in the viewer when clicked or when Enter or Space is pressed on it. The viewer shows it as large as the window allows (never larger than the picture), with its caption, and closes with Escape (which then leaves the journal panel open), the close button or a click outside the picture; focus goes back to the picture.
-- Journal entries: a type (player character, NPC, item, location or note), a display name, an optional image, and body text. For player characters and NPCs the body is the background; player characters also have a motto (the build rejects a motto on any other type). The id is lowercase letters, digits and hyphens, and `index` is reserved. The list of campaign events is generated automatically. The id is the file name. Location entries are the exception: they have no name field, because their name comes from `locations.json`.
+- Journal entries: a type (player character, NPC, item, location or note), a display name, an optional image, and body text. For player characters and NPCs the body is the background; player characters also have a motto (the build rejects a motto on any other type). The id is the file name without `.md`: lowercase letters, digits and hyphens, and `index` is reserved. The lists of events and the excerpts of an entry are generated automatically. Location entries are the exception: they have no name field, because their name comes from `locations.json`.
 - Location entries: `journal/<location-id>.md` of type `location`, where the file name equals the id of a location in `locations.json`. Positions stay in `locations.json`; the entry adds an image and descriptive text. Where an entry exists, the location shown in an event's details becomes a link to it, `[[location-id]]` works in text, and the entry lists the events held at that location (those whose `location` or `showOn.location` is this place, not events that merely mention it), in date order with a link to each. A location without an entry still appears on the map, and its name is simply not a link.
-- Character event lists: automatic and per language: an event links to an entry in a language when the text shown in that language (its own section, or the default section when it has none) links to it, so the lists and excerpts can differ between languages. A character with a journal-only passage from an event also has that event in its list. Every paragraph of an event that contains a journal link such as `[[aldric]]` is also shown in that entry's "In the campaign" section (for player characters and NPCs), together with the event's title and date and a link back to the event. The unit is the paragraph: for a single sentence, put it in its own paragraph. Events may also carry journal-only passages, attached to a character, that appear only in that character's journal and not in the event, written with the `:::journal{for="..."}` block (see "File formats").
-- NPCs have the same fields as player characters except the motto. Items and notes have a name, an image and a description. All entry types except locations get the automatic list of events that link to them; location entries list the events held at that place instead.
+- Character event lists: automatic and per language: an event links to an entry in a language when the text shown in that language (its own section, or the default section when it has none) links to it, so the lists and excerpts can differ between languages. A character with a journal-only passage from an event also has that event in its list. Every paragraph of an event that contains a journal link such as `[[aldric]]` (also a paragraph inside a list or a quote, but not a heading) is also shown in that entry's "In the campaign" section (for player characters and NPCs), together with the event's title and date and a link back to the event. A paragraph that links to several characters is in all of their entries. The unit is the paragraph: for a single sentence, put it in its own paragraph. The passages of an event for the character are in the same group, in the order of the text, among the paragraphs. Events may also carry journal-only passages, attached to a character, that appear only in that character's journal and not in the event, written with the `:::journal{for="..."}` block (see "File formats").
+- NPCs have the same fields as player characters except the motto. Items and notes have a name, an optional image and a description. All entry types except locations get the automatic list of events that link to them; location entries list the events held at that place instead.
 - Positions: every position on a map is written as `[x, y]` in percent of the image width and height, measured from the top-left corner. Percent survives resizing or re-exporting an image. The app converts it once to Leaflet's coordinates. The maps file still declares each image's pixel size so the build can check the image and Leaflet can use its aspect ratio.
 
 ## Languages
@@ -32,15 +32,15 @@ Finnish and English are supported, with Finnish as the default (see FR-9). The r
 
 ## File formats (agreed examples)
 
-Maps (`maps.json`): exactly one map has `main: true`; width and height are the image's pixel size. `bay-of-izar` is the main campaign map, `bog-end` is the finer-scale map and `haestra` is the largest-scale map, used for character backgrounds. Ids are the file names, and names are the title-cased display names.
+Maps (`maps.json`): exactly one map has `main: true`; width and height are the image's pixel size. `bay-of-izar` is the main campaign map, `bog-end` is the finer-scale map and `haestra` is the largest-scale map, used for character backgrounds. Ids are the file names. `name` is a short text field, and `image` is a path from the content folder.
 ```json
 [
-  { "id": "bay-of-izar", "name": "Bay of Izar", "image": "maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true, "focusZoom": 2 },
-  { "id": "bog-end",     "name": "Bog End",     "image": "maps/bog-end.jpg",     "width": 4042, "height": 2611 },
-  { "id": "haestra",     "name": "Haestra",     "image": "maps/haestra.jpg",     "width": 4503, "height": 3147 }
+  { "id": "bay-of-izar", "name": { "fi": "Izarinlahti", "en": "Bay of Izar" }, "image": "maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true, "focusZoom": 2 },
+  { "id": "bog-end",     "name": { "fi": "Suonperä", "en": "Bog End" },        "image": "maps/bog-end.jpg",     "width": 4042, "height": 2611 },
+  { "id": "haestra",     "name": { "fi": "Haestra", "en": "Haestra" },           "image": "maps/haestra.jpg",     "width": 4503, "height": 3147, "routes": "overview" }
 ]
 ```
-`routes` is optional, `"history"`, `"visit"` or `"overview"`: whether the map keeps the whole route, only the current visit of each track, or the whole route with events at places that are not on the map skipped instead of breaking it (see "Route rules"). It is `history` for the main map and `visit` for the others when omitted, and Haestra, which covers the whole region, is `overview`. `focusZoom` is optional: the number of zoom-in steps (like pressing the + button) from the whole map at which an event is shown on that map, centred on its marker. Omitted or 0 means the whole map is shown. Names are short text fields (see "Languages"): a plain value is the default language, which other languages fall back to, and `"name": { "fi": "Izarinlahti", "en": "Bay of Izar" }` gives each language its own. The same applies to the names in `locations.json`.
+`routes` is optional, `"history"`, `"visit"` or `"overview"`: whether the map keeps the whole route, only the current visit of each track, or the whole route with events at places that are not on the map skipped instead of breaking it (see "Route rules"). It is `history` for the main map and `visit` for the others when omitted, and Haestra, which covers the whole region, is `overview`. `focusZoom` is optional: the number of zoom-in steps (like pressing the + button) from the whole map at which an event is shown on that map, centred on its marker. Omitted or 0 means the whole map is shown. A plain `name` is the default language, which other languages fall back to, and a language map gives each language its own (see "Languages"). The same applies to the names in `locations.json`.
 
 Locations (`locations.json`): a position is `[x, y]` in percent of the map image, from the top-left. A location appears only on maps it has a position for.
 ```json
@@ -86,6 +86,7 @@ The party reached the river at dusk. [[aldric]] went ahead alone.
 Aldric first doubted the order here, though he told no one.
 :::
 ```
+- Front matter fields of an event: `title` (required, a short text field), exactly one of `location` (a location id, or `n/a` in any letter case) and `position` (`[x, y]`), `showOn` (optional: `map` plus exactly one of `location` and `position`), `track` (optional text) and `newSegment` (optional true or false). Fields that are not listed are ignored. The body follows the front matter.
 - A `:::journal{for="..."}` block is hidden in the event and shown only in the named character's entry (`for="aldric,mira"` for several). Each id must name a player character or an NPC. The block is found by a line scanner of our own (a line `:::journal{for="..."}` up to a line `:::`), so a colon in ordinary text is never read as a directive. Blocks are for events only, cannot be nested, and links in a block do not make the event link to the entries they name.
 - Rules checked by the build: `location` exists and has a position on the main map unless it is `n/a`; `showOn.location` has a position on `showOn.map`; `n/a` requires `showOn`; every `for` and `[[...]]` id exists; the file name's date and order number are valid and unique.
 
@@ -128,17 +129,32 @@ Campaign settings (`campaign.json`): the calendar and site text live here, so no
 ```
 Dates: month number 1 to 5 in a file name selects the month in this list. In a date, `{era}` is the era abbreviation, `{month}` is the month's `inDate` form (Finnish inflects the name, so "Talven 37. päivä", while English keeps "Winter"), and `{ordinal}` is the English ordinal suffix ("st", "nd", "rd", "th"; 11, 12 and 13 take "th") and empty in Finnish and in any other language, because the suffix rule is English grammar and lives in the date formatter. The `name` form is used where a month is mentioned on its own. The result is "K.A. 6050, Talven 37. päivä" in Finnish and "TE 6050, 37th of Winter" in English. Every configured language must supply the era, the five months and a date format, because a date cannot fall back to another language without mixing them.
 
-Interface texts (`ui.json`): each text has a key and a value per language. The default language must have every text, and a missing text in another language falls back to the default language.
+Interface texts (`ui.json`): each text has a key and a value per language (a plain value is the default language only). The default language must have every text, and a missing text in another language falls back to the default language. The build does not require particular keys: the app asks for the keys below, and a key that is missing shows the key itself, so that the gap is visible.
 ```json
 {
+  "maps": { "fi": "Kartta", "en": "Map" },
+  "language": { "fi": "Kieli", "en": "Language" },
+  "event": { "fi": "Tapahtuma", "en": "Event" },
   "previous": { "fi": "Edellinen", "en": "Previous" },
   "next": { "fi": "Seuraava", "en": "Next" },
+  "notTranslated": { "fi": "Ei saatavilla tällä kielellä", "en": "Not available in this language" },
+  "unknownEvent": { "fi": "Tapahtumaa ei löytynyt, joten näytetään ensimmäinen tapahtuma.", "en": "That event was not found, so the first event is shown." },
+  "dismiss": { "fi": "Sulje", "en": "Close" },
   "journal": { "fi": "Päiväkirja", "en": "Journal" },
-  "notTranslated": { "fi": "Ei saatavilla tällä kielellä", "en": "Not available in this language" }
+  "closeJournal": { "fi": "Sulje päiväkirja", "en": "Close the journal" },
+  "typePc": { "fi": "Pelaajahahmot", "en": "Player characters" },
+  "typeNpc": { "fi": "Henkilöt", "en": "NPCs" },
+  "typeItem": { "fi": "Esineet", "en": "Items" },
+  "typeLocation": { "fi": "Paikat", "en": "Locations" },
+  "typeNote": { "fi": "Muistiinpanot", "en": "Notes" },
+  "journalEvents": { "fi": "Tapahtumat", "en": "Events" },
+  "journalCampaign": { "fi": "Kampanjassa", "en": "In the campaign" },
+  "closeImage": { "fi": "Sulje kuva", "en": "Close the picture" }
 }
 ```
+The keys: `maps` (label of the map switcher), `language` (label of the language switch), `event` (label of the event panel), `previous` and `next` (the stepping buttons), `notTranslated` (the fallback note), `unknownEvent` and `dismiss` (the notice for an unknown event), `journal` (the journal button, the panel's heading and the link back to the index), `closeJournal` and `closeImage` (the close buttons of the panel and the image viewer), `typePc` to `typeNote` (the headings of the index), `journalEvents` (the heading of the list of events on an entry) and `journalCampaign` (the heading of the excerpts).
 
-Journal entries (`journal/<id>.md`): the id is the file name, and every entry type may use `image` for its lead picture (the portrait for a character); it is optional, so entries can be written before their pictures exist. An entry can have any number of further images, placed in the text with ordinary Markdown image syntax, exactly as in events; their alt text and captions are written in each language section, and the build checks them like any other image. For player characters and NPCs the body text is the background, with no separate description field. The campaign events list is generated automatically (see "Character event lists"). The `name` and `motto` fields and the body follow the rules in "Languages": the examples below use a single language (written in English for readability), so their texts are plain values and unmarked bodies, and a translated entry would write `name: { fi: ..., en: ... }` and add an `@en` section.
+Journal entries (`journal/<id>.md`): the id is the file name, and every entry type may use `image` for its lead picture (the portrait for a character); it is optional, so entries can be written before their pictures exist. An entry can have any number of further images, placed in the text with ordinary Markdown image syntax, exactly as in events; their alt text and captions are written in each language section, and the build checks them like any other image. The front matter fields are `type` (`pc`, `npc`, `item`, `location` or `note`), `name` (a short text field; not allowed for a location), `image` (optional, a path from the content folder) and `motto` (optional, a short text field, player characters only); fields that are not listed are ignored. For player characters and NPCs the body text is the background, with no separate description field. The body is required, with a default-language text. The campaign events list is generated automatically (see "Character event lists"). The `name` and `motto` fields and the body follow the rules in "Languages": the examples below use a single language (written in English for readability), so their texts are plain values and unmarked bodies, and a translated entry would write `name: { fi: ..., en: ... }` and add an `@en` section.
 
 Player character (`journal/aldric.md`):
 ```markdown
@@ -194,75 +210,84 @@ Free-form lore, a faction summary, a session recap, ...
 ## Build and validation
 
 - Processing happens at build time in a Vite plugin. It parses and validates all content files, renders Markdown to HTML, resolves `[[links]]`, builds the journal excerpts, and outputs one compact data bundle. The browser does no parsing. In the dev server the plugin re-runs when a content file is saved, so edits and errors show up immediately.
-- Errors stop the build: broken links, invalid dates or ids, impossible locations, missing files. Warnings do not: images over the size limit, unused images or locations.
+- Errors stop the build: broken links, invalid dates or ids, impossible locations, missing files. Warnings do not: images over the size limit, images without alt text and the like (see "Validation rules").
 - Content is Markdown only: raw HTML is not allowed, so content cannot break the page layout or inject scripts.
-- Map images are imported by the plugin's generated module, so Vite serves them in the dev server and emits them with hashed file names in the build (inlining of small assets is switched off, so a map is never a data URI). Each map in the bundle carries the resulting `imageUrl`.
+- Images are imported by the plugin's generated module, so Vite serves them in the dev server and emits them with hashed file names in the build (inlining of small assets is switched off, so an image is never a data URI). Each map in the bundle carries the resulting `imageUrl`, a journal entry's lead image the resulting `src`, and the images in the texts are marked in the HTML (`@@image:path@@`) where the plugin puts the imported address.
 - The output is one data bundle loaded at start, which keeps stepping and opening the journal instant. Images load lazily.
 - Validation runs in the dev server while editing and in the GitHub publishing workflow before deployment, so a broken commit never replaces the live site. There is no separate standalone validate command.
 
 ### Validation rules
 
 Errors (stop the build):
-- Journal entries: an unknown or missing `type`, a `motto` on a type other than player character, the id `index`, an image that is not in the content folder (a missing file, a path outside the folder or a web address).
+- Journal entries: a file name that is not an id followed by `.md` (the id is lowercase letters, digits and hyphens), the id `index`; no front matter block; an unknown or missing `type`; a `motto` on a type other than player character, or with no default-language text; a lead image that is not in the content folder (a missing file, a path outside the folder or a web address) or is not a readable image.
 - Files and dates: an event file name doesn't match `year-month-day-order-slug.md`, or the month is outside 1 to 5 or the day outside 1 to 70; two events share the same year, month, day and order number; a required field is missing (an event title, or a journal entry's type or, except for locations, its name); a `location` journal entry's id doesn't match any location in `locations.json`; a location entry has a `name` field.
 - Maps and locations: `maps.json` doesn't have exactly one `main` map, or a map's declared size doesn't match its image; a `location` or `showOn.location` id doesn't exist; a location has no position on the map it is used for, or a position is outside 0 to 100 percent; an event has `n/a` on the main map and no `showOn`.
-- Languages: `campaign.json` doesn't define a default language that is one of its languages; a configured language lacks an era name, an abbreviation, five month names and in-date forms, or a date format; a language map or `@` section uses a language that isn't configured; a text field or section is repeated for the same language; a field or body has no default-language text; unmarked text is combined with an explicit section for the default language; a text in `ui.json` has no default-language value.
+- Languages: `campaign.json` doesn't define a default language that is one of its languages; a configured language lacks an era name, an abbreviation, five month names and in-date forms, or a date format; an `@` section uses a language that isn't configured (a language map with an unconfigured language is not yet checked: see "Open items" in `REQUIREMENTS.md`); a text field or section is repeated for the same language; a field or body has no default-language text; unmarked text is combined with an explicit section for the default language; a text in `ui.json` has no default-language value.
 - Event fields: an event file has no front matter block; `location` and `position` are both given, or neither; a `position` is not `[x, y]` with both values from 0 to 100; `showOn` names a map that does not exist or the main map, has neither a `location` nor a `position`, or has `location: n/a`; `track` is not text; `newSegment` is not true or false. The month limit is the number of months in `campaign.json` and the day limit is its `daysPerMonth`. `n/a` is read in any letter case. An empty events folder is allowed, a missing one is an error, and every file in it must match the event file name pattern.
-- Links and references: a `[[id]]` link doesn't match any journal entry, a `:::journal{for="..."}` id doesn't match a player character or an NPC, or a `[[` link is malformed, a `:::journal` block is unclosed, nested, empty, of another name, or in a journal entry (all checked in every language section); an image or map file doesn't exist, lies outside the content folder, or has an unusable path; raw HTML appears in the text.
+- Links and references (all checked in every language section, in events, entries and passages): a `[[id]]` link doesn't match any journal entry; a link is malformed (an empty id, an empty text after `|`, an unclosed `[[` or a stray `]]`, or a link inside an ordinary Markdown link); a `:::journal{for="..."}` id doesn't match a player character or an NPC, or `for` has an empty id; a `:::journal` block is not closed, is nested, has another name (`:::foo`) or a malformed opening, a `:::` line closes nothing, or a `:::journal` block is in a journal entry; an image in a text doesn't exist, lies outside the content folder, has a path with other characters than letters, digits, `.`, `_`, `-` and `/`, or is not a readable image; raw HTML appears in the text.
 
-Warnings (the build continues):
-- An ordinary image is over about 1 MB or 1600 px wide, or isn't JPEG, PNG or WebP.
+Warnings (the build continues). Those marked "planned" are not yet checked and come with B-28:
+- An ordinary image (a lead image or an image in a text) is over about 1 MB or 1600 px wide, or isn't JPEG, PNG or WebP.
 - A map image is over about 10 MB or 5000 px wide, or isn't JPEG, PNG or WebP. Maps have their own, higher limit than ordinary images.
-- An image, location or journal entry is never used.
+- An image, location or journal entry is never used (planned).
 - An event is `n/a` on the main map but its `showOn` location has a position on the main map, which is probably a location that was meant to be the event's main location.
-- An image has empty alt text.
-- A split `track` has no later event returning to the party.
-- Missing translations are reported as one summary line per language, for example "English: 12 of 40 events have no text", not as a warning per item.
+- An image in a text has empty alt text (the lead image of an entry gets the entry's name as its alt text).
+- A split `track` has no later event returning to the party (planned).
+- Missing translations are reported as one summary line per language, for example "English: 12 of 40 events have no text", not as a warning per item (planned).
 
-A `track` value is free text and is not checked against the journal, so a mistyped name creates a new track. The "never returns to the party" warning is the only safeguard.
+A `track` value is free text and is not checked against the journal, so a mistyped name creates a new track. The "never returns to the party" warning (planned) is the only safeguard.
 
 ## Application architecture
 
 - State: the URL is the single source of truth for the current event, the active map, the open journal entry and the language, read through React Router's hash router. The back button, a reload and later shareable links work without a second copy of the state. Map pan and zoom stay as local component state.
-- Layout on desktop: the map fills the upper area, with the stepper and the event details (title, date, text, images and previous/next controls) in a lower panel, like Wheel of Timelines. The event panel has a fixed height. The previous and next buttons have a row of their own at its top, so they stay in one place, and the rest of the panel scrolls below them, so the map keeps its size from event to event, and the map refits whenever its area changes size. The journal panel slides in from the right over the main view. On a phone the journal panel covers the screen.
+- Layout on desktop: the map fills the upper area, with the stepper and the event details (title, date, text, images and previous/next controls) in a lower panel, like Wheel of Timelines. The event panel has a fixed height. The previous and next buttons have a row of their own at its top, so they stay in one place, and the rest of the panel scrolls below them, so the map keeps its size from event to event, and the map refits whenever its area changes size. The journal panel slides in from the right over the area of the map and the event panel, below the header: it is as wide as 26 rem at most, or 90% of a narrow window, and the area clips it while it slides, so it never widens the page. On a phone the journal panel is to cover the screen (planned, B-29).
 - Styling: plain CSS with CSS Modules, so styles are scoped per component and a custom fantasy look is easy to build.
 - Map switching: a manual map switch lasts only until the next step. Stepping always shows the new event on its own map. An open journal panel is closed by a step in the same way.
 
 URLs (hash router):
 - `/#/event/<event-id>`: the main view at that event; the id is the file name without `.md`.
-- `/#/event/<event-id>?map=haestra`: the same, with a manual map switch applied.
+- `/#/event/<event-id>?map=haestra`: the same, with a manual map switch applied. A `map` value that names no map is ignored.
 - `/#/event/<event-id>?journal=aldric`: the journal panel open over that event.
 - `/#/event/<event-id>?lang=en`: the same event in English. `lang` can be combined with `map` and `journal`, and a missing or unknown value means the default language.
 - `/#/event/<event-id>?journal=index`: the journal index open, over that event. `index` is reserved and cannot be an entry id. A `journal` value that is neither `index` nor an entry id is ignored, and the address is left as it is. There is no address without an event.
 - Opening the panel, and going from one entry to another, adds a history entry. Closing it (Escape or the close button) adds an entry without `journal`, so the back button reopens it, and back after opening closes it. Stepping to another event drops `journal` as it drops `map`; a language switch keeps it.
-- `/#/` redirects to the first event.
+- Any address that is not `/event/<event-id>` (such as `/#/`) redirects to the first event and keeps the query parameters (`map`, `journal`, `lang`). An unknown event id is replaced by the first event's, also keeping the parameters.
 
-Components:
-- App and router: reads the URL and provides the content bundle to everything below.
-- MainView: the map area plus the lower panel.
-  - MapView: the Leaflet map for the active map, with a MapSwitcher, location markers, route lines and the current event's marker.
-  - StepperPanel: previous/next controls, plus EventDetails (title, date, the location as a link when it has a journal entry, rendered text, images).
-- LanguageSwitch: the FI | EN control, which changes only the `lang` parameter in the URL. It sits at the top right of the main view, next to the JournalButton.
-- JournalButton: top right of the main view, opening the journal index from the same side the panel slides in from. It may later be styled as a book.
-- JournalPanel: the sliding panel, showing either the JournalIndex (grouped by type, and by name within a type in the chosen language) or a JournalEntry (a link back to the index, image, name, motto, text, "In the campaign" excerpts, linked events). Escape closes it and focus moves into it on opening and back to the opener on closing.
-- ImageViewer: full-size view when an image is clicked.
-- Shared logic without UI: a route builder (the per-map, per-track route rules), a date formatter (per language), a text resolver (the chosen language, falling back to the default) and a coordinate converter (percent to Leaflet).
+Components (the files are in `src/`, the build side in `plugin/`):
+- `App` (the router: an event route and a redirect to the first event) provides the content bundle, `virtual:content`, to everything below.
+- `MainView`: the header (the title, the journal button and the language switch), the map area, the notice and the lower panel. It reads the URL and keeps no copy of that state; its only state is whether the first map has been shown, which starts the background loading of the other maps.
+  - `MapView` (`map/`): the Leaflet map for the active map, with a `MapSwitcher`, route lines, the dots of visited places and the current event's marker. The focused view, the fit to the window and the route drawing are in it.
+  - `EventPanel`: the previous and next buttons, and the event's details (title, date, the location as a link when it has a journal entry, the rendered text and its images).
+  - `Notice`: the dismissible notice for an unknown event.
+- `LanguageSwitch`: the FI | EN control, which changes only the `lang` parameter in the URL. It sits at the top right of the main view, next to the journal button.
+- The journal button: top right of the main view, next to the language switch. It opens the journal index from the same side the panel slides in from, and closes the panel when it is open. It may later be styled as a book.
+- `JournalPanel` (`journal/`): the sliding panel, showing either the index (grouped by type, and by name within a type in the chosen language) or an entry: a link back to the index, the lead image, the name, the motto, the text, the "In the campaign" excerpts and the list of events. Escape closes it, focus moves into it on opening and back to the opener on closing.
+- `RichText`: the text of an event or an entry from the build. It gives the journal links their addresses and handles clicks on links and images.
+- `ImageViewer`: the full-size view of an image, opened by a click on an image in a text or on an entry's lead image.
+- Shared logic without UI: the route builder (`map/routes.ts`: the per-map, per-track route rules), places and markers (`map/places.ts`, `map/markers.ts`), a date formatter, a text resolver (the chosen language, falling back to the default), the section splitter, a coordinate converter (`map/coords.ts`: percent to Leaflet) and the journal helpers (`journal/journal.ts`: the view named by the address, the grouping and sorting of the index).
+- The build side (`plugin/`): the Vite plugin, the content loader and validator, the Markdown and link renderer (`links.ts`) and the passage scanner (`passages.ts`).
 
 Map markers: the map shows the current event's marker prominently, plus small dots for the places visited so far on that map. Places the story hasn't reached yet are not shown. An event's place on a map is: on the main map its main place (its `location` or `position`, none for `n/a`), on the `showOn` map its `showOn` place, and on any other map the first of its named locations (`location`, then `showOn.location`) that has a position on that map, or none. An explicit place wins over a position taken from a location, and a one-off position gives a place only on its own map. So a place visited anywhere is shown on every map where its location has a position. The dots are the places of the earlier events, in date order, that have a place on the displayed map (standalone events included), one dot per place and none at the current marker. Clicking a marker to select its events is a future improvement, not part of the first version.
 
 ## Data flow
 
-At build time the Vite plugin turns the content files into one bundle containing:
-- the campaign settings, the interface texts, the maps and the locations;
-- all events in date order, each with its date, title and rendered HTML text in every language it has, image references, and resolved main-map position and optional `showOn` position;
-- all journal entries, each with its rendered text in every language it has, its image, its "In the campaign" excerpts (the paragraphs and journal-only passages from events) and the ids of the events that link to it (for location entries, the events held at that location).
+At build time the Vite plugin turns the content files into one bundle, the module `virtual:content`, with these parts (the types are in `src/content/types.ts`):
+- `campaign`, `ui`, `locations`: as in the files. `maps`: as in `maps.json`, with `routes` and `focusZoom` filled in (`routes` is `history` for the main map and `visit` for the others when omitted, `focusZoom` is 0 when omitted) and the served address of the image as `imageUrl`.
+- `events`, in date order. Each has `id` (the file name without `.md`), `year`, `month`, `day`, `order` (from the file name), `title` (a short text field), `text` (the rendered HTML for each language that has a section, always the default language), `location` (a location id, or null for a one-off position or for no place), `position` (the resolved main-map position, null for `n/a`), `showOn` (null, or `{ map, location, position }` with the resolved position on that map), `track` (null for the party, `none` for a standalone event, or the group's name) and `newSegment`. The images, links and passages of the text are already in the HTML or taken out of it (see below).
+- `journal`: every entry, by type in the order pc, npc, item, location, note and then by id. Each has `id`, `type`, `name` (a location's is the location's), `motto` (null unless a player character has one), `text` (the rendered HTML for each language that has a section), `image` (null, or `{ src, width, height }` with the served address), `events` (for each configured language the ids of the events listed on the entry, in date order) and `excerpts` (for each configured language a list of `{ event, html }`, in date order of the events, where `html` is the list of the event's paragraphs and passages for the character; empty for entries that are not player characters or NPCs).
+
+What the HTML of a text holds, from the build:
+- A journal link is `<a class="journal-link" data-journal="id" href="#">text</a>`. The app replaces the address.
+- An image is `<img src=… alt=… width=… height=… loading="lazy" decoding="async" data-image tabindex="0" role="button">`, and one that stands alone in its paragraph is inside `<figure class="text-figure">` with the caption in a `<figcaption>`.
+- A `:::journal` block is not in the event's HTML. Its content, and the paragraphs that link to a character, are in that character's `excerpts`.
+- There is no raw HTML, because it is not allowed in the files.
 
 At runtime:
 1. The app loads the bundle once at start.
 2. The router reads the URL: an event id, an optional `map`, an optional `journal` and an optional `lang`.
 3. The event id gives the current event's position in the ordered list. Previous and next move that position and update the URL.
 4. The language is the `lang` value, or the default language. Every text shown is taken in that language, falling back to the default language where it is missing (see "Languages"). The bundle holds all languages, so switching language needs no download.
-5. From the current event the app derives what is shown. The displayed map is the URL's `map` override if present, otherwise the event's `showOn` map, otherwise the main map. The markers and route lines for that map run up to and including the current event, by the rules under "Map markers" and "Route rules" (a visit map shows only the current visit of each track). The journal panel shows the entry or index named in the URL.
+5. From the current event the app derives what is shown. The displayed map is the URL's `map` override if present, otherwise the event's `showOn` map, otherwise the main map. The markers and route lines for that map run up to and including the current event, by the rules under "Map markers" and "Route rules" (a visit map shows only the current visit of each track). The journal panel shows the entry or index named in the URL: an entry's text, its excerpts and its list of events are taken in the chosen language from the bundle.
 
 Map loading: the main map loads first. Once it and the first event are shown, the app downloads the other maps in the background, so switching to them is quick later. Maps are used at full size, with no resizing or tiling.
 
@@ -286,9 +311,9 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 
 ## Testing approach
 
-- Logic and components: Vitest and React Testing Library. Vitest covers the pure logic (route rules, date handling, coordinate conversion, the content parser and validator, journal excerpts). React Testing Library covers component behaviour such as the stepper and the journal panel.
-- Browser tests: Playwright against the built site, for the key flows, because Leaflet and layout do not work properly in a simulated environment. These check the main acceptance criteria: stepping updates the map, the journal panel keeps the event and map position, the back button and Escape close the panel, and a phone-sized screen works.
-- Fixtures: a small handcrafted miniature campaign (a few events, two maps, a split track, a journal-only passage, an `n/a` event, an event translated into English and one that is not) is used by the tests instead of the real content. Test names include requirement ids such as FR-5, so it is visible which acceptance criteria are covered.
+- Logic and components: Vitest and React Testing Library. Vitest covers the pure logic (route rules, date handling, coordinate conversion, the content parser and validator, the link and passage scanners, journal lists and excerpts). React Testing Library covers component behaviour such as the stepper and the journal panel.
+- Browser tests: Playwright against the built site, for the key flows, because Leaflet and layout do not work properly in a simulated environment. These check the main acceptance criteria: stepping updates the map, the journal panel keeps the event and map position, the back button and Escape close the panel, the links, lists, excerpts and pictures of the journal work, and (planned, B-29) a phone-sized screen works.
+- Fixtures: a small handcrafted miniature campaign (seven events, two maps, a split track, a standalone event, an `n/a` event, events translated into English and ones that are not, five journal entries of every type with images, and event texts with links, journal-only passages and pictures) is used by the tests instead of the real content. Test names include requirement ids such as FR-5, so it is visible which acceptance criteria are covered.
 - Performance: the 200 ms stepping target is measured in Playwright. The 3 s first-load target depends on the real maps, so it is checked by hand against the deployed site.
 - The validator is tested too, with cases for each error and warning in the validation rules.
 - The tests run in the publishing workflow before the build is deployed.
@@ -297,8 +322,8 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 ## Technology stack
 
 - App: React, TypeScript (strict), Vite and CSS Modules.
-- Map: Leaflet through react-leaflet. Routing: React Router with the hash router.
-- Content pipeline (the Vite plugin): unified and remark for Markdown (`unified`, `remark-parse`, `remark-rehype` and `rehype-stringify`, which produce the HTML at build time), with a line scanner of our own for the `:::journal` blocks, a YAML front-matter parser (the `yaml` package, with the front matter block split off by our own code) and a small library that reads image dimensions. The exact packages are chosen when the backlog item that needs them is implemented.
+- Map: Leaflet through react-leaflet. Routing: React Router with the hash router (`react-router`).
+- Content pipeline (the Vite plugin): unified and remark for Markdown (`unified`, `remark-parse`, `remark-rehype` and `rehype-stringify`, which produce the HTML at build time), with a line scanner of our own for the `:::journal` blocks, a YAML front-matter parser (the `yaml` package, with the front matter block split off by our own code) and `image-size`, which reads image dimensions. These are all the runtime packages: `react`, `react-dom`, `react-router`, `leaflet`, `react-leaflet`, `unified`, `remark-parse`, `remark-rehype`, `rehype-stringify`, `yaml` and `image-size`.
 - Quality: Vitest, React Testing Library, Playwright, and ESLint with TypeScript support.
 - No other runtime libraries are added without agreement with the product owner.
 

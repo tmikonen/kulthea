@@ -114,21 +114,52 @@ describe('language switch (B-6)', () => {
   });
 });
 
-describe('location markers (B-7)', () => {
-  const markerCount = (container: HTMLElement) => container.querySelectorAll('path.location-marker').length;
+describe('visited places (B-14)', () => {
+  const dots = (container: HTMLElement) => container.querySelectorAll('path.visited-dot');
 
-  it('FR-1 shows a marker for each location that has a position on the displayed map', () => {
-    const { container, unmount } = renderApp();
-    expect(markerCount(container)).toBe(2); // both-places and main-only
-    unmount();
-    const second = renderApp('/?map=second-map');
-    expect(markerCount(second.container)).toBe(2); // both-places and second-only
+  it('FR-1 the first event has only the current marker, and no place the story has not reached is shown', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    expect(dots(container)).toHaveLength(0);
+    expect(container.querySelectorAll('path.current-marker')).toHaveLength(1);
+    expect(container.querySelectorAll('path.leaflet-interactive')).toHaveLength(1);
   });
 
-  it('FR-1 switching maps changes the markers', () => {
-    const { container } = renderApp();
-    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
-    expect(markerCount(container)).toBe(2);
+  it('FR-1 each step adds the places of the earlier events as dots, and stepping back takes them away', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    const counts = [];
+    for (let i = 0; i < 6; i++) {
+      counts.push(dots(container).length);
+      fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    }
+    counts.push(dots(container).length);
+    // first, second, ninth (the first place again), on-second-map, split, standalone, jump
+    expect(counts).toEqual([0, 1, 1, 0, 1, 1, 2]);
+    fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
+    expect(dots(container)).toHaveLength(1);
+  });
+
+  it('FR-1 the dots are the same however the event was reached', () => {
+    const direct = renderApp('/event/6050-1-10-01-on-second-map');
+    const directCount = dots(direct.container).length;
+    direct.unmount();
+    const stepped = renderApp('/event/6050-1-001-01-first');
+    for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    expect(dots(stepped.container)).toHaveLength(directCount);
+  });
+
+  it('FR-1 a manual map switch shows the dots of the earlier events that were on that map', () => {
+    const { container } = renderApp('/event/6050-2-003-01-split'); // on the second map, after on-second-map
+    expect(dots(container)).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Pääkartta' }));
+    // The earlier events on the main map were at two places, (80, 20) and (25, 75). The split event is also
+    // placed at (80, 20) on the main map, which is its current marker, so only (25, 75) is a dot.
+    expect(dots(container)).toHaveLength(1);
+    expect(container.querySelectorAll('path.current-marker')).toHaveLength(1);
+  });
+
+  it('FR-1 the markers of all locations are gone', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    expect(container.querySelectorAll('path.location-marker')).toHaveLength(0);
   });
 });
 

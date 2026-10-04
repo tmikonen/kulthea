@@ -59,21 +59,22 @@ test.describe('current event marker (B-13)', () => {
     await expect.poll(async () => Math.round((await markerPercent(page)).x)).toBe(30);
   });
 
-  test('FR-1 the marker is larger and a different colour than the location markers, and above them', async ({ page }) => {
-    await page.goto('./#/event/6050-1-001-01-first');
+  test('FR-1 the marker is larger and a different colour than the dots, and above them', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second'); // the first event's place is a dot
     await expect(current(page)).toHaveCount(1);
+    await expect(page.locator('path.visited-dot')).toHaveCount(1);
     const big = (await current(page).boundingBox())!;
-    const small = (await page.locator('path.location-marker').first().boundingBox())!;
+    const small = (await page.locator('path.visited-dot').boundingBox())!;
     expect(big.width).toBeGreaterThan(small.width * 1.5);
     const fills = await page.evaluate(() => [
       getComputedStyle(document.querySelector('path.current-marker')!).fill,
-      getComputedStyle(document.querySelector('path.location-marker')!).fill,
+      getComputedStyle(document.querySelector('path.visited-dot')!).fill,
     ]);
     expect(fills[0]).not.toBe(fills[1]);
-    // The marker is in a pane above the one with the other markers.
+    // The marker is in a pane above the one with the dots.
     const above = await page.evaluate(() => {
       const z = (selector: string) => Number(getComputedStyle(document.querySelector(selector)!.closest('.leaflet-pane')!).zIndex);
-      return z('path.current-marker') > z('path.location-marker');
+      return z('path.current-marker') > z('path.visited-dot');
     });
     expect(above).toBe(true);
   });

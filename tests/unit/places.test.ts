@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { EventDef, LocationDef } from '../../src/content/types';
-import { eventPlaceOn, placeName } from '../../src/map/places';
+import { dotsFor } from '../../src/map/markers';
+import { eventPlaceOn, placeName, visitedPlaces } from '../../src/map/places';
 import { isInView, VIEW_MARGIN } from '../../src/map/view';
 
 const event = (extra: Partial<EventDef> = {}): EventDef => ({
@@ -83,5 +84,84 @@ describe('whether the view has to move (B-13)', () => {
   it('FR-1 a margin of zero counts the whole container', () => {
     expect(isInView({ x: 0, y: 0 }, size, 0)).toBe(true);
     expect(isInView({ x: 1000, y: 500 }, size, 0)).toBe(true);
+  });
+});
+
+describe('visited places (B-14)', () => {
+  const at = (location: string | null, position: [number, number], extra: Partial<EventDef> = {}) =>
+    event({ id: `${location}${position}`, location, position, ...extra });
+  const other = (location: string | null, position: [number, number], extra: Partial<EventDef> = {}) =>
+    event({ id: `other${position}`, showOn: { map: 'other', location, position }, ...extra });
+
+  it('FR-1 the first event has no visited places', () => {
+    expect(visitedPlaces([at('a', [1, 1])], 0, 'main', 'main')).toEqual([]);
+  });
+
+  it('FR-1 lists the places of the earlier events in date order, and not the current or later ones', () => {
+    const events = [at('a', [1, 1]), at('b', [2, 2]), at('c', [3, 3]), at('d', [4, 4])];
+    expect(visitedPlaces(events, 2, 'main', 'main').map((p) => p.location)).toEqual(['a', 'b']);
+  });
+
+  it('FR-1 stepping back drops the places again: the result depends only on the current event', () => {
+    const events = [at('a', [1, 1]), at('b', [2, 2]), at('c', [3, 3])];
+    expect(visitedPlaces(events, 2, 'main', 'main')).toHaveLength(2);
+    expect(visitedPlaces(events, 1, 'main', 'main')).toHaveLength(1);
+    expect(visitedPlaces(events, 0, 'main', 'main')).toHaveLength(0);
+  });
+
+  it('FR-1 a place visited by several events is listed once', () => {
+    const events = [at('a', [1, 1]), at('b', [2, 2]), at('a', [1, 1]), at('c', [3, 3])];
+    expect(visitedPlaces(events, 3, 'main', 'main').map((p) => p.location)).toEqual(['a', 'b']);
+  });
+
+  it('FR-1 the place of the current event is not a dot, even when earlier events were there', () => {
+    const events = [at('a', [1, 1]), at('b', [2, 2]), at('a', [1, 1])];
+    expect(visitedPlaces(events, 2, 'main', 'main').map((p) => p.location)).toEqual(['b']);
+  });
+
+  it('FR-8 standalone events count, and one-off positions are places of their own', () => {
+    const events = [
+      at('a', [1, 1], { track: 'none' }),
+      at(null, [5, 5]),
+      at(null, [5, 5]),
+      at(null, [6, 6]),
+      at('z', [9, 9]),
+    ];
+    expect(visitedPlaces(events, 4, 'main', 'main').map((p) => p.position)).toEqual([[1, 1], [5, 5], [6, 6]]);
+  });
+
+  it('FR-3 an event with no place on the map adds nothing there', () => {
+    const events = [at('a', [1, 1]), other('x', [8, 8]), at('b', [2, 2])];
+    expect(visitedPlaces(events, 2, 'main', 'main').map((p) => p.location)).toEqual(['a']);
+    expect(visitedPlaces(events, 2, 'other', 'main').map((p) => p.location)).toEqual(['x']);
+  });
+
+  it('FR-1 on another map only the places that were on that map count', () => {
+    const events = [at('a', [1, 1]), other('x', [8, 8]), other('y', [9, 9]), at('b', [2, 2])];
+    expect(visitedPlaces(events, 3, 'other', 'main').map((p) => p.location)).toEqual(['x', 'y']);
+    expect(visitedPlaces(events, 3, 'third', 'main')).toEqual([]);
+  });
+
+  it('FR-1 a manually viewed map where the current event has no place still shows the earlier places', () => {
+    const events = [other('x', [8, 8]), at('a', [1, 1]), other('y', [9, 9]), at('b', [2, 2])];
+    expect(visitedPlaces(events, 3, 'other', 'main').map((p) => p.location)).toEqual(['x', 'y']);
+  });
+
+  it('FR-1 an index outside the events gives nothing, or only what is before it', () => {
+    const events = [at('a', [1, 1])];
+    expect(visitedPlaces(events, -1, 'main', 'main')).toEqual([]);
+    expect(visitedPlaces([], 0, 'main', 'main')).toEqual([]);
+  });
+});
+
+describe('dots for visited places (B-14)', () => {
+  const locations: LocationDef[] = [{ id: 'a', name: { fi: 'Aa', en: 'Ay' }, positions: {} }];
+
+  it('FR-9 a named place has its name in the chosen language, and a one-off position has none', () => {
+    const places = [{ position: [1, 1] as [number, number], location: 'a' }, { position: [2, 2] as [number, number], location: null }];
+    expect(dotsFor(places, locations, 'en', 'fi')).toEqual([
+      { id: '1,1', label: 'Ay', position: [1, 1] },
+      { id: '2,2', label: null, position: [2, 2] },
+    ]);
   });
 });

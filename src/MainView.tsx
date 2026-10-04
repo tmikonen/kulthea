@@ -10,8 +10,8 @@ import { EventPanel } from './EventPanel';
 import { LanguageSwitch } from './LanguageSwitch';
 import { displayedMap } from './map/mapParam';
 import { MapSwitcher } from './map/MapSwitcher';
-import { markersFor } from './map/markers';
-import { eventPlaceOn, placeName } from './map/places';
+import { dotsFor } from './map/markers';
+import { eventPlaceOn, placeName, visitedPlaces } from './map/places';
 import { MapView } from './map/MapView';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
@@ -49,6 +49,7 @@ export function MainView({ event }: { event?: EventDef }) {
 
   const mainMapId = maps.find((map) => map.main)!.id;
   const place = event ? eventPlaceOn(event, current.id, mainMapId) : null;
+  const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId) : [];
 
   const nameOf = (map: (typeof maps)[number]) => resolveText(map.name, lang, defaultLang);
   const setParam = (name: string, value: string) => {
@@ -71,7 +72,7 @@ export function MainView({ event }: { event?: EventDef }) {
       <MapView
         map={current}
         label={nameOf(current)}
-        markers={markersFor(locations, current.id, lang, defaultLang)}
+        markers={dotsFor(visited, locations, lang, defaultLang)}
         current={place ? { position: place.position, label: placeName(place, locations, lang, defaultLang) } : undefined}
         onImageLoad={() => setShown(true)}
       >

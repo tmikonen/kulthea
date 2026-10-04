@@ -33,3 +33,30 @@ export function placeName(
   const location = locations.find((candidate) => candidate.id === place.location);
   return location ? resolveText(location.name, lang, defaultLang) : null;
 }
+
+/** A place by its position, so that places at the same spot are one. */
+const placeKey = (place: Place) => place.position.join(',');
+
+/**
+ * The places of the events before the current one (by index in date order) that have a place on the
+ * map, in the order they were first reached. A place visited by several events is listed once, and
+ * the place of the current event is left out, because it has the current marker.
+ */
+export function visitedPlaces(
+  events: EventDef[],
+  currentIndex: number,
+  mapId: string,
+  mainMapId: string,
+): Place[] {
+  const current = events[currentIndex] ? eventPlaceOn(events[currentIndex], mapId, mainMapId) : null;
+  const seen = new Set<string>(current ? [placeKey(current)] : []);
+  const visited: Place[] = [];
+  for (const event of events.slice(0, Math.max(currentIndex, 0))) {
+    const place = eventPlaceOn(event, mapId, mainMapId);
+    if (place && !seen.has(placeKey(place))) {
+      seen.add(placeKey(place));
+      visited.push(place);
+    }
+  }
+  return visited;
+}

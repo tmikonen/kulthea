@@ -378,7 +378,7 @@ Automated tests: unit tests for the place function (main, `showOn`, `n/a`, one-o
 
 ## B-14 Places visited so far
 
-Status: defined
+Status: done
 
 Related: FR-1, FR-8, "Map markers".
 
@@ -396,11 +396,11 @@ How to check by hand (with the demo content, then with `CONTENT_DIR=campaign`):
 5. Hover over a dot. A named place shows its name.
 
 Acceptance criteria:
-- [ ] The dots on a map are computed from the events before the current one, so they are the same however you arrived at an event.
-- [ ] The B-7 markers for all locations are gone, and no place the story has not reached is shown.
-- [ ] A place visited by several events is one dot, a place at the current marker has no dot, and standalone events have dots.
-- [ ] Dots are small and clearly different from the current marker. A named place shows its name on hover, and a one-off position shows nothing.
-- [ ] A manual map switch shows the dots of the earlier events that have a place on that map.
+- [x] The dots on a map are computed from the events before the current one, so they are the same however you arrived at an event.
+- [x] The B-7 markers for all locations are gone, and no place the story has not reached is shown.
+- [x] A place visited by several events is one dot, a place at the current marker has no dot, and standalone events have dots.
+- [x] Dots are small and clearly different from the current marker. A named place shows its name on hover, and a one-off position shows nothing.
+- [x] A manual map switch shows the dots of the earlier events that have a place on that map.
 
 Automated tests: unit tests for the visited-places function (order, repeats, standalone, one-off positions, the current place, other maps); component and Playwright tests that replace the B-7 marker tests: dots and marker positions at each step of the fixtures, dots disappearing when stepping back, hover names. The B-7 acceptance stays as it was, since its marker positions are still tested.
 

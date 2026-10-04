@@ -86,7 +86,7 @@ interface MapViewProps {
   label: string;
   /** Called when the map image has loaded, that is, when the map is shown. */
   onImageLoad?: () => void;
-  /** Location markers to draw on this map. */
+  /** Small dots for the places visited so far on this map. */
   markers?: MapMarker[];
   /** The current event's marker, drawn above the others, or none when the event is not on this map. */
   current?: CurrentMarker;
@@ -117,11 +117,11 @@ export function MapView({ map: def, label, onImageLoad, markers = [], current, c
           <CircleMarker
             key={marker.id}
             center={toLeaflet(marker.position, def)}
-            radius={6}
-            className="location-marker"
-            pathOptions={{ color: '#7a1f1f', weight: 2, fillColor: '#d94a3d', fillOpacity: 0.9 }}
+            radius={5}
+            className="visited-dot"
+            pathOptions={{ color: '#ffffff', weight: 1, fillColor: '#8f2d24', fillOpacity: 0.9 }}
           >
-            <Tooltip>{marker.label}</Tooltip>
+            {marker.label && <Tooltip>{marker.label}</Tooltip>}
           </CircleMarker>
         ))}
         {current && (

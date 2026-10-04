@@ -218,3 +218,93 @@ describe('event view and routing (B-11)', () => {
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
   });
 });
+
+describe('stepping (B-12)', () => {
+  const path = () => screen.getByTestId('pathname').textContent;
+  const IDS = [
+    '6050-1-001-01-first', '6050-1-001-02-second', '6050-1-9-01-ninth', '6050-1-10-01-on-second-map',
+    '6050-2-003-01-split', '6050-2-070-01-standalone', '6050-3-001-01-jump',
+  ];
+
+  it('FR-2 Next and Previous step through all the events in date order', () => {
+    renderApp();
+    const visited = [path()];
+    for (let i = 1; i < IDS.length; i++) {
+      fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+      visited.push(path());
+    }
+    expect(visited).toEqual(IDS.map((id) => `/event/${id}`));
+    for (let i = IDS.length - 2; i >= 0; i--) {
+      fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
+      expect(path()).toBe(`/event/${IDS[i]}`);
+    }
+  });
+
+  it('FR-2 Previous is disabled at the first event, and Next at the last', () => {
+    const { unmount } = renderApp();
+    expect(screen.getByRole('button', { name: 'Edellinen' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Seuraava' })).toBeEnabled();
+    unmount();
+    renderApp(`/event/${IDS[IDS.length - 1]}`);
+    expect(screen.getByRole('button', { name: 'Edellinen' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Seuraava' })).toBeDisabled();
+  });
+
+  it('FR-2 the panel changes with the step', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Toinen' })).toBeInTheDocument();
+  });
+
+  it('FR-1 stepping drops a manual map choice and keeps the language', () => {
+    renderApp(`/event/${IDS[0]}?map=second-map&lang=en`);
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(path()).toBe(`/event/${IDS[1]}`);
+    expect(screen.getByTestId('search')).toHaveTextContent(/^\?lang=en$/);
+    expect(screen.getByRole('button', { name: 'Main Map' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('FR-2 stepping with no other parameter leaves an address with no query', () => {
+    renderApp(`/event/${IDS[0]}?map=second-map`);
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    expect(screen.getByTestId('search')).toHaveTextContent(/^$/);
+  });
+
+  it('FR-2 the button texts follow the language', () => {
+    renderApp(`/event/${IDS[1]}?lang=en`);
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+  });
+
+  it('FR-2 the right and left arrow keys step while focus is in the panel', () => {
+    renderApp(`/event/${IDS[1]}`);
+    const next = screen.getByRole('button', { name: 'Seuraava' });
+    fireEvent.keyDown(next, { key: 'ArrowRight' });
+    expect(path()).toBe(`/event/${IDS[2]}`);
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Edellinen' }), { key: 'ArrowLeft' });
+    expect(path()).toBe(`/event/${IDS[1]}`);
+  });
+
+  it('FR-2 an arrow key at an end does nothing', () => {
+    renderApp();
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Seuraava' }), { key: 'ArrowLeft' });
+    expect(path()).toBe(`/event/${IDS[0]}`);
+  });
+
+  it('FR-2 other keys and modified arrows do not step', () => {
+    renderApp(`/event/${IDS[1]}`);
+    const next = screen.getByRole('button', { name: 'Seuraava' });
+    fireEvent.keyDown(next, { key: 'ArrowUp' });
+    fireEvent.keyDown(next, { key: 'ArrowLeft', altKey: true });
+    fireEvent.keyDown(next, { key: 'ArrowRight', ctrlKey: true });
+    fireEvent.keyDown(next, { key: 'ArrowRight', shiftKey: true });
+    fireEvent.keyDown(next, { key: 'ArrowRight', metaKey: true });
+    expect(path()).toBe(`/event/${IDS[1]}`);
+  });
+
+  it('FR-1 the arrow keys on the map do not step, so they can pan the map', () => {
+    const { container } = renderApp(`/event/${IDS[1]}`);
+    fireEvent.keyDown(container.querySelector('.leaflet-container')!, { key: 'ArrowRight' });
+    expect(path()).toBe(`/event/${IDS[1]}`);
+  });
+});

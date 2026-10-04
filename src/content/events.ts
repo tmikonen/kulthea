@@ -20,3 +20,18 @@ export function eventLocationName(
   const location = locations.find((candidate) => candidate.id === id);
   return location ? resolveText(location.name, lang, defaultLang) : null;
 }
+
+/** The path of an event's page. */
+export function eventPath(id: string): string {
+  return `/event/${encodeURIComponent(id)}`;
+}
+
+/** The events before and after the given one in date order; null at the ends or for an unknown id. */
+export function neighbours(
+  events: EventDef[],
+  id: string | undefined,
+): { previous: EventDef | null; next: EventDef | null } {
+  const index = events.findIndex((event) => event.id === id);
+  if (index < 0) return { previous: null, next: null };
+  return { previous: events[index - 1] ?? null, next: events[index + 1] ?? null };
+}

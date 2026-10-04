@@ -53,7 +53,7 @@ test.describe('event view and routing (B-11)', () => {
     await page.getByRole('button', { name: 'Second Map' }).click();
     await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second\?map=second-map$/);
     await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
-    await page.getByRole('button', { name: 'EN' }).click();
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
     await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second\?map=second-map&lang=en$/);
 
     await page.reload();
@@ -74,5 +74,95 @@ test.describe('event view and routing (B-11)', () => {
     const map = (await page.locator('.leaflet-container').boundingBox())!;
     const panel = (await page.getByRole('region', { name: 'Tapahtuma' }).boundingBox())!;
     expect(map.y + map.height).toBeLessThanOrEqual(panel.y + 1);
+  });
+});
+
+test.describe('stepping (B-12)', () => {
+  const IDS = [
+    '6050-1-001-01-first', '6050-1-001-02-second', '6050-1-9-01-ninth', '6050-1-10-01-on-second-map',
+    '6050-2-003-01-split', '6050-2-070-01-standalone', '6050-3-001-01-jump',
+  ];
+  const TITLES = ['Ensimmäinen', 'Toinen', 'Yhdeksäs', 'Toisella kartalla', 'Eroon', 'Yksin', 'Hyppy'];
+  const next = (page: Page) => page.getByRole('button', { name: 'Seuraava' });
+  const previous = (page: Page) => page.getByRole('button', { name: 'Edellinen' });
+
+  test('FR-2 Next and Previous step through every event, and the address and title follow', async ({ page }) => {
+    await page.goto('./');
+    for (let i = 0; i < IDS.length; i++) {
+      await expect(page).toHaveURL(new RegExp(`#/event/${IDS[i]}$`));
+      await expect(title(page)).toHaveText(TITLES[i]);
+      if (i < IDS.length - 1) await next(page).click();
+    }
+    for (let i = IDS.length - 2; i >= 0; i--) {
+      await previous(page).click();
+      await expect(page).toHaveURL(new RegExp(`#/event/${IDS[i]}$`));
+      await expect(title(page)).toHaveText(TITLES[i]);
+    }
+  });
+
+  test('FR-2 the buttons are disabled at the two ends', async ({ page }) => {
+    await page.goto('./');
+    await expect(previous(page)).toBeDisabled();
+    await expect(next(page)).toBeEnabled();
+    await page.goto(`./#/event/${IDS[IDS.length - 1]}`);
+    await expect(next(page)).toBeDisabled();
+    await expect(previous(page)).toBeEnabled();
+  });
+
+  test('FR-2 the back button goes to the previous event', async ({ page }) => {
+    await page.goto('./');
+    await next(page).click();
+    await next(page).click();
+    await expect(title(page)).toHaveText('Yhdeksäs');
+    await page.goBack();
+    await expect(title(page)).toHaveText('Toinen');
+    await page.goBack();
+    await expect(title(page)).toHaveText('Ensimmäinen');
+  });
+
+  test('FR-1 stepping drops a manual map choice and keeps the language', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-01-first?map=second-map&lang=en');
+    await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second\?lang=en$/);
+    await expect.poll(() => imageSrc(page)).toMatch(/main-map/);
+    await expect(page.getByRole('button', { name: 'Previous' })).toBeVisible();
+  });
+
+  test('FR-2 the buttons work with the keyboard: Enter and Space', async ({ page }) => {
+    await page.goto('./');
+    await expect(title(page)).toHaveText('Ensimmäinen');
+    await next(page).focus();
+    await page.keyboard.press('Enter');
+    await expect(title(page)).toHaveText('Toinen');
+    await page.keyboard.press('Space');
+    await expect(title(page)).toHaveText('Yhdeksäs');
+  });
+
+  test('FR-2 Tab reaches the buttons, and the arrow keys step from the panel', async ({ page }) => {
+    await page.goto('./');
+    await expect(title(page)).toHaveText('Ensimmäinen');
+    await next(page).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(title(page)).toHaveText('Toinen');
+    await expect(next(page)).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(title(page)).toHaveText('Ensimmäinen');
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(next(page)).toBeFocused();
+  });
+
+  test('FR-1 the arrow keys on the map pan the map and do not change the event', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second');
+    await expect(title(page)).toHaveText('Toinen');
+    await page.locator('.leaflet-control-zoom-in').click();
+    await page.waitForTimeout(500);
+    const before = (await page.locator('img.leaflet-image-layer').boundingBox())!;
+    await page.locator('.leaflet-container').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(async () => (await page.locator('img.leaflet-image-layer').boundingBox())!.x).not.toBe(before.x);
+    await expect(title(page)).toHaveText('Toinen');
+    await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second$/);
   });
 });

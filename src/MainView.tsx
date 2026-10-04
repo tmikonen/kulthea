@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import content from 'virtual:content';
 import { activeLanguage } from './content/language';
 import { resolveText, uiText } from './content/text';
-import { eventLocationName } from './content/events';
+import { eventLocationName, eventPath, neighbours } from './content/events';
 import type { EventDef } from './content/types';
 import { EventPanel } from './EventPanel';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -35,6 +35,14 @@ export function MainView({ event }: { event?: EventDef }) {
   const current = activeMap(maps, params.get('map'));
   const [shown, setShown] = useState(false);
   usePreloadMaps(maps, shown);
+
+  const { previous, next } = neighbours(content.events, event?.id);
+  /** Steps to another event. A manual map choice lasts only until the next step, so `map` is dropped. */
+  const step = (target: EventDef) => {
+    const kept = new URLSearchParams(params);
+    kept.delete('map');
+    navigate({ pathname: eventPath(target.id), search: kept.toString() });
+  };
 
   const nameOf = (map: (typeof maps)[number]) => resolveText(map.name, lang, defaultLang);
   const setParam = (name: string, value: string) => {
@@ -82,6 +90,11 @@ export function MainView({ event }: { event?: EventDef }) {
           label={uiText(ui, 'event', lang, defaultLang)}
           lang={lang}
           defaultLang={defaultLang}
+          previous={previous}
+          next={next}
+          previousLabel={uiText(ui, 'previous', lang, defaultLang)}
+          nextLabel={uiText(ui, 'next', lang, defaultLang)}
+          onStep={step}
         />
       )}
     </div>

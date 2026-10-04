@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { eventLocationName, findEvent } from '../../src/content/events';
+import { eventLocationName, eventPath, findEvent, neighbours } from '../../src/content/events';
 import type { EventDef, LocationDef } from '../../src/content/types';
 
 const event = (id: string, extra: Partial<EventDef> = {}): EventDef => ({
@@ -58,5 +58,33 @@ describe('the location name of an event (B-11)', () => {
 
   it('FR-3 is null when the location id is unknown', () => {
     expect(eventLocationName(event('x', { location: 'zzz' }), locations, 'fi', 'fi')).toBeNull();
+  });
+});
+
+describe('stepping between events (B-12)', () => {
+  const events = [event('a'), event('b'), event('c')];
+
+  it('FR-2 gives the neighbours of an event in the middle', () => {
+    expect(neighbours(events, 'b')).toEqual({ previous: events[0], next: events[2] });
+  });
+
+  it('FR-2 has no previous event at the first one and no next event at the last one', () => {
+    expect(neighbours(events, 'a')).toEqual({ previous: null, next: events[1] });
+    expect(neighbours(events, 'c')).toEqual({ previous: events[1], next: null });
+  });
+
+  it('FR-2 a single event has no neighbours', () => {
+    expect(neighbours([event('only')], 'only')).toEqual({ previous: null, next: null });
+  });
+
+  it('FR-2 an unknown id, no id and an empty list have no neighbours', () => {
+    expect(neighbours(events, 'zzz')).toEqual({ previous: null, next: null });
+    expect(neighbours(events, undefined)).toEqual({ previous: null, next: null });
+    expect(neighbours([], 'a')).toEqual({ previous: null, next: null });
+  });
+
+  it('FR-2 the path of an event holds its id, encoded', () => {
+    expect(eventPath('6050-1-001-01-first')).toBe('/event/6050-1-001-01-first');
+    expect(eventPath('a b/c')).toBe('/event/a%20b%2Fc');
   });
 });

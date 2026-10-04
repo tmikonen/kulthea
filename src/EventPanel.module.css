@@ -14,3 +14,25 @@
   margin: 0.25rem 0 0;
   color: #555;
 }
+
+.stepper {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.stepper button {
+  padding: 0.25rem 0.9rem;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  color: #999;
+  border-color: #ccc;
+  cursor: default;
+}

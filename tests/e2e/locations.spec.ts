@@ -73,7 +73,7 @@ test.describe('locations (B-7)', () => {
     await expect(markers(page)).toHaveCount(2);
     expect(await hoverTexts(page)).toEqual(['Main Only', 'Molemmat paikat']);
 
-    await page.getByRole('button', { name: 'EN' }).click();
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
     expect(await hoverTexts(page)).toEqual(['Both Places', 'Main Only']);
 
     await page.getByRole('button', { name: 'Second Map' }).click();

@@ -248,7 +248,7 @@ Automated tests: unit tests for finding the current event from an id; component 
 
 ## B-12 Stepping through events
 
-Status: defined
+Status: done
 
 Related: FR-2, DD-4, "Data flow".
 
@@ -264,11 +264,11 @@ How to check by hand:
 5. Press the browser's back button after stepping. It goes to the previous event.
 
 Acceptance criteria:
-- [ ] Next and Previous move to the neighbouring event in date order and update the URL. Stepping adds a history entry, so back works.
-- [ ] Previous is disabled at the first event and Next at the last.
-- [ ] Stepping removes a manual `map` choice and keeps `lang`.
-- [ ] The buttons work with Tab, Enter and Space. The left and right arrow keys step while focus is in the event panel, but not on the map, so they do not clash with the map's own panning.
-- [ ] The button texts come from `ui.json`.
+- [x] Next and Previous move to the neighbouring event in date order and update the URL. Stepping adds a history entry, so back works.
+- [x] Previous is disabled at the first event and Next at the last.
+- [x] Stepping removes a manual `map` choice and keeps `lang`.
+- [x] The buttons work with Tab, Enter and Space. The left and right arrow keys step while focus is in the event panel, but not on the map, so they do not clash with the map's own panning.
+- [x] The button texts come from `ui.json`.
 
 Automated tests: unit tests for finding the previous and next ids (none at the ends); component tests for the disabled states and for stepping keeping `lang` and dropping `map`; Playwright tests for stepping through every fixture event with the URL and title following, the disabled ends, back, and keyboard operation.
 

@@ -2,6 +2,8 @@
   "maps": {"fi": "Kartta", "en": "Map"},
   "language": {"fi": "Kieli", "en": "Language"},
   "event": {"fi": "Tapahtuma", "en": "Event"},
+  "previous": {"fi": "Edellinen", "en": "Previous"},
+  "next": {"fi": "Seuraava", "en": "Next"},
   "unknownEvent": {"fi": "Tapahtumaa ei löytynyt, joten näytetään ensimmäinen tapahtuma.", "en": "That event was not found, so the first event is shown."},
   "dismiss": {"fi": "Sulje", "en": "Close"}
 }

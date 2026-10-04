@@ -1,11 +1,9 @@
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 import content from 'virtual:content';
-import { findEvent } from './content/events';
+import { eventPath, findEvent } from './content/events';
 import { MainView } from './MainView';
 
 const { events } = content;
-
-const eventPath = (id: string) => `/event/${encodeURIComponent(id)}`;
 
 /** `/event/<id>`: that event, or the first event with a notice when the id is unknown. */
 function EventRoute() {

@@ -222,19 +222,55 @@ Automated tests: unit tests for the file name parser, the sort order and each va
 
 ## B-11 Event view and routing
 
-Status: backlog
+Status: in progress
 
-Not yet defined: outlined only, to be refined with the product owner before it starts. It now comes before B-9 and B-10, so B-9 and B-10 add the date and the text to the event panel that this item creates.
+Related: FR-2, FR-3, DD-4, "URLs", "Bad links", "Application architecture" (layout).
 
-Hash route for an event (`/#/event/<id>`), redirect from `/#/` to the first event, a fallback with a dismissible notice for an unknown id, and the main layout with the map above and an event panel below replacing the temporary event list from B-8. You will see the first event's title and its location under the map. FR-2, FR-3, DD-4.
+Scope note: this item comes before B-9 and B-10, so the panel shows the title and the location now, and B-9 and B-10 add the date and the text to it. The B-7 location markers stay on the map until B-13 and B-14 replace them. An unknown event id is replaced in the address by the first event's id, and the notice is kept in the browser's history state, so it does not come back on every reload.
+
+You will see: opening the site goes to the first event, and the address becomes `/#/event/<id>`. Under the map is an event panel with the event's title and its location name. The temporary list is gone. The map and its markers behave as before.
+
+How to check by hand:
+1. Open the site. It goes to the first event, with its title and location under the map.
+2. Edit the address to another event's id. That event is shown. Edit it to a nonsense id. The first event is shown with a notice, and the notice can be dismissed.
+3. Switch the map and the language. The event stays. Reload and press back. The event stays.
+4. Open `/#/?map=haestra`. It redirects to the first event with that map.
+
+Acceptance criteria:
+- [ ] The current event comes only from the URL (`/event/<id>`), with no second copy of that state.
+- [ ] `/#/` and any other unknown path redirect to the first event, keeping `map` and `lang`.
+- [ ] An unknown event id redirects to the first event and shows a dismissible notice. The notice and the dismiss button texts come from `ui.json`.
+- [ ] The event panel shows the title in the chosen language and the location name, falling back to the `showOn` location when the main one is `n/a`. A one-off position shows no location line.
+- [ ] Switching map or language keeps the event. The temporary list from B-8 is removed. The layout is the map above and the panel below, and the map is still fitted.
+- [ ] With no events, the map and header still show and there is no panel.
+
+Automated tests: unit tests for finding the current event from an id; component tests for the panel in both languages and for the notice and its dismissal; Playwright tests for opening `./` (redirect), a direct link, an unknown id with the notice, map and language keeping the event, and reload and back. The existing map and location Playwright tests that use `#/?map=...` are updated to the new routes.
 
 ## B-12 Stepping through events
 
-Status: backlog
+Status: defined
 
-Not yet defined: outlined only, to be refined with the product owner before it starts.
+Related: FR-2, DD-4, "Data flow".
 
-Previous and next controls, a URL that follows the current event, controls disabled at the ends, keyboard operation. You will see the event change as you click and the address change with it. FR-2.
+Scope note: stepping drops a manual `map` choice, as the design says (a manual switch lasts only until the next step). Until B-15 the displayed map then falls back to the main map. Not included: a position indicator such as "3 / 10", and keeping focus when a button becomes disabled at an end (accessibility is B-30).
+
+You will see: Previous and Next buttons in the event panel. Each click moves one event in date order, the address follows, and the buttons are disabled at the two ends.
+
+How to check by hand:
+1. Click Next through all the events, then Previous back. The title and address change each time.
+2. Check that Previous is disabled on the first event and Next on the last.
+3. Switch the map manually, then click Next. The map returns to its default for the new event.
+4. Use Tab and Enter or Space on the buttons. Press the left and right arrow keys with focus in the panel.
+5. Press the browser's back button after stepping. It goes to the previous event.
+
+Acceptance criteria:
+- [ ] Next and Previous move to the neighbouring event in date order and update the URL. Stepping adds a history entry, so back works.
+- [ ] Previous is disabled at the first event and Next at the last.
+- [ ] Stepping removes a manual `map` choice and keeps `lang`.
+- [ ] The buttons work with Tab, Enter and Space. The left and right arrow keys step while focus is in the event panel, but not on the map, so they do not clash with the map's own panning.
+- [ ] The button texts come from `ui.json`.
+
+Automated tests: unit tests for finding the previous and next ids (none at the ends); component tests for the disabled states and for stepping keeping `lang` and dropping `map`; Playwright tests for stepping through every fixture event with the URL and title following, the disabled ends, back, and keyboard operation.
 
 ## B-9 Calendar and dates
 

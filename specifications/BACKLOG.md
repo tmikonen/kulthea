@@ -452,7 +452,7 @@ Feedback wanted:
 
 ## B-34 Places on every map
 
-Status: defined
+Status: in progress
 
 Related: FR-1, FR-3, FR-5, DD-3, "Map markers", "Validation rules".
 

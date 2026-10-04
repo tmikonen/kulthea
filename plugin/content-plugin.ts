@@ -31,7 +31,15 @@ export function contentPlugin(options: { dir: string }): Plugin {
       const maps = bundle!.maps.map(
         (map, i) => `{ ...${JSON.stringify(map)}, imageUrl: mapImage${i} }`,
       );
-      return `${imports.join('\n')}\nexport default { campaign: ${JSON.stringify(bundle!.campaign)}, locations: ${JSON.stringify(bundle!.locations)}, events: ${JSON.stringify(bundle!.events)}, ui: ${JSON.stringify(bundle!.ui)}, maps: [${maps.join(', ')}] };`;
+      const entryImports: string[] = [];
+      const journal = bundle!.journal.map((entry) => {
+        if (!entry.image) return JSON.stringify(entry);
+        const name = `entryImage${entryImports.length}`;
+        entryImports.push(`import ${name} from ${JSON.stringify(path.join(contentDir, entry.image.src).split(path.sep).join('/'))};`);
+        return `{ ...${JSON.stringify(entry)}, image: { ...${JSON.stringify(entry.image)}, src: ${name} } }`;
+      });
+      imports.push(...entryImports);
+      return `${imports.join('\n')}\nexport default { campaign: ${JSON.stringify(bundle!.campaign)}, locations: ${JSON.stringify(bundle!.locations)}, events: ${JSON.stringify(bundle!.events)}, journal: [${journal.join(', ')}], ui: ${JSON.stringify(bundle!.ui)}, maps: [${maps.join(', ')}] };`;
     },
     configureServer(server) {
       server.watcher.add(contentDir);

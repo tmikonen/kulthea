@@ -31,3 +31,9 @@ export function editJson(dir: string, name: string, edit: (data: any) => void) {
 export function writeEvent(dir: string, fileName: string, frontMatter: string, body = 'Teksti.') {
   fs.writeFileSync(path.join(dir, 'events', fileName), `---\n${frontMatter}\n---\n${body}\n`);
 }
+
+/** A new journal entry file in the temp content folder, from its front matter (without the dashes) and a body. */
+export function writeEntry(dir: string, fileName: string, frontMatter: string, body = 'Teksti.') {
+  fs.mkdirSync(path.join(dir, 'journal'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'journal', fileName), `---\n${frontMatter}\n---\n${body}\n`);
+}

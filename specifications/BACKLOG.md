@@ -628,7 +628,7 @@ Feedback wanted:
 
 ## B-20 Journal content
 
-Status: defined
+Status: done
 
 Related: FR-6, FR-9, "Journal entries" and "Location entries" (file formats), "Validation rules".
 
@@ -645,12 +645,12 @@ How to check by hand:
 4. Point an `image` at a file that does not exist. The build fails. Use a very large image. The build warns and does not fail.
 
 Acceptance criteria:
-- [ ] Every file in `journal/` is an entry. Its id is the file name without `.md`: lowercase letters, digits and hyphens. `index` is reserved (B-21 uses it in the address) and is an error as an id. An empty or missing `journal/` folder is allowed.
-- [ ] The front matter has `type` (`pc`, `npc`, `item`, `location` or `note`), `name` (a short text field, so a plain value or a language map), an optional `image` (a path from the content folder) and, for `pc` only, an optional `motto` (a short text field). Errors: a missing or unknown `type`; a missing `name`, except for `location`, which must not have one (its name is the location's); a `motto` on any other type; a `location` entry whose id is not in `locations.json`.
-- [ ] The body follows the same language rules as an event's: sections `@fi`, `@en`, a required default-language text, rendered to HTML at build time, raw HTML is an error.
-- [ ] A missing `image` file is an error. An image over about 1 MB or 1600 px wide, or not JPEG, PNG or WebP, is a warning. The image is served from a hashed URL in the build, like the maps, and its width and height are in the bundle.
-- [ ] The bundle has the entries, each with `id`, `type`, `name` (a location's from `locations.json`), `motto`, the HTML text per language, and the image URL, width and height. The index order is by type (player characters, NPCs, items, locations, notes) and then by name in the chosen language (at runtime, B-21).
-- [ ] The demo journal in `content/journal/` has 2 player characters, 2 NPCs, 1 item, 2 locations (places that exist on the maps, for example the ruins and Suonperä) and 1 note, with invented placeholder pictures in `content/images/`. Ids start with `demo-` and names with "Demo:", as for the demo events, except the location entries, whose ids and names are those of the real locations they describe (their text is invented). Some entries have English texts. `content/README.md` says so.
+- [x] Every file in `journal/` is an entry. Its id is the file name without `.md`: lowercase letters, digits and hyphens. `index` is reserved (B-21 uses it in the address) and is an error as an id. An empty or missing `journal/` folder is allowed.
+- [x] The front matter has `type` (`pc`, `npc`, `item`, `location` or `note`), `name` (a short text field, so a plain value or a language map), an optional `image` (a path from the content folder) and, for `pc` only, an optional `motto` (a short text field). Errors: a missing or unknown `type`; a missing `name`, except for `location`, which must not have one (its name is the location's); a `motto` on any other type; a `location` entry whose id is not in `locations.json`.
+- [x] The body follows the same language rules as an event's: sections `@fi`, `@en`, a required default-language text, rendered to HTML at build time, raw HTML is an error.
+- [x] A missing `image` file is an error. An image over about 1 MB or 1600 px wide, or not JPEG, PNG or WebP, is a warning. The image is served from a hashed URL in the build, like the maps, and its width and height are in the bundle.
+- [x] The bundle has the entries, each with `id`, `type`, `name` (a location's from `locations.json`), `motto`, the HTML text per language, and the image URL, width and height. The index order is by type (player characters, NPCs, items, locations, notes) and then by name in the chosen language (at runtime, B-21).
+- [x] The demo journal in `content/journal/` has 2 player characters, 2 NPCs, 1 item, 2 locations (places that exist on the maps, for example the ruins and Suonperä) and 1 note, with invented placeholder pictures in `content/images/`. Ids start with `demo-` and names with "Demo:", as for the demo events, except the location entries, whose ids and names are those of the real locations they describe (their text is invented). Some entries have English texts. `content/README.md` says so.
 
 Automated tests: unit tests for every error and warning above, for the language rules, the id rules and the bundle shape, using their own fixtures.
 

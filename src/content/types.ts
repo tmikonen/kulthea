@@ -76,12 +76,37 @@ export interface ContentMap extends MapDef {
   imageUrl: string;
 }
 
+/** The kinds of journal entry, in the order the index lists them. */
+export const JOURNAL_TYPES = ['pc', 'npc', 'item', 'location', 'note'] as const;
+export type JournalType = (typeof JOURNAL_TYPES)[number];
+
+/** An image of an entry. `src` is the path from the content folder when loaded, and the served URL in the app. */
+export interface ImageRef {
+  src: string;
+  width: number;
+  height: number;
+}
+
+/** A journal entry. The id is the file name without `.md`. A location entry's name is the location's. */
+export interface JournalEntryDef {
+  id: string;
+  type: JournalType;
+  name: LocalizedText;
+  /** Player characters only. */
+  motto: LocalizedText | null;
+  /** The text as HTML, in each language that has one. The default language always has it. */
+  text: Record<string, string>;
+  /** The lead image, if the entry has one. */
+  image: ImageRef | null;
+}
+
 /** What the content folder holds once it has been read and validated. */
 export interface LoadedContent {
   campaign: Campaign;
   maps: MapDef[];
   locations: LocationDef[];
   events: EventDef[];
+  journal: JournalEntryDef[];
   ui: UiTexts;
 }
 
@@ -91,5 +116,6 @@ export interface ContentBundle {
   maps: ContentMap[];
   locations: LocationDef[];
   events: EventDef[];
+  journal: JournalEntryDef[];
   ui: UiTexts;
 }

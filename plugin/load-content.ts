@@ -5,7 +5,8 @@ import { parse as parseYaml } from 'yaml';
 import { compareEvents, parseEventFileName } from '../src/content/eventName.ts';
 import { splitSections } from '../src/content/sections.ts';
 import { findRawHtml, renderMarkdown } from './markdown.ts';
-import type { Campaign, EventDef, EventShowOn, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
+import { JOURNAL_TYPES } from '../src/content/types.ts';
+import type { Campaign, EventDef, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
 export interface LoadResult {
   bundle: LoadedContent | null;
@@ -17,6 +18,9 @@ const MAP_MAX_BYTES = 10 * 1024 * 1024;
 const MAP_MAX_WIDTH = 5000;
 const IMAGE_TYPES = ['jpg', 'png', 'webp'];
 const MONTH_COUNT = 5;
+const IMAGE_MAX_BYTES = 1024 * 1024;
+const IMAGE_MAX_WIDTH = 1600;
+const JOURNAL_ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 type Json = Record<string, unknown>;
 
@@ -82,10 +86,13 @@ export function loadContent(dir: string): LoadResult {
   const events = campaign && maps && locations
     ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, errors, warnings)
     : null;
+  const journal = campaign && locations
+    ? validateJournal(path.join(dir, 'journal'), dir, rel, campaign, locations, errors, warnings)
+    : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
 
-  if (errors.length > 0 || !campaign || !maps || !locations || !events || !ui) return { bundle: null, errors, warnings };
-  return { bundle: { campaign, maps, locations, events, ui }, errors, warnings };
+  if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) return { bundle: null, errors, warnings };
+  return { bundle: { campaign, maps, locations, events, journal, ui }, errors, warnings };
 }
 
 function validateCampaign(raw: unknown, file: string, errors: string[]): Campaign | null {
@@ -395,6 +402,145 @@ function validateEvents(
 
   if (errors.length > before) return null;
   return events.sort(compareEvents);
+}
+
+/**
+ * Reads an ordinary image (not a map) of the content folder: the path must be inside the folder and
+ * the file must exist and be an image. An image that is large, or not JPEG, PNG or WebP, gives a warning.
+ */
+function readImage(
+  value: unknown,
+  dir: string,
+  file: string,
+  err: (problem: string) => void,
+  warnings: string[],
+): ImageRef | null {
+  if (!isNonEmptyString(value)) {
+    err('"image" must be a path to an image file');
+    return null;
+  }
+  const full = path.resolve(dir, value);
+  const inside = path.relative(dir, full);
+  if (/^[a-z]+:/i.test(value) || inside.startsWith('..') || path.isAbsolute(inside)) {
+    err(`image "${value}" is not in the content folder`);
+    return null;
+  }
+  if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+    err(`image file "${value}" not found`);
+    return null;
+  }
+  const buffer = fs.readFileSync(full);
+  let dims: { width: number; height: number; type?: string };
+  try {
+    dims = imageSize(buffer);
+  } catch {
+    err(`image file "${value}" is not a readable image`);
+    return null;
+  }
+  if (!dims.type || !IMAGE_TYPES.includes(dims.type)) {
+    warnings.push(`${file}: image "${value}" is ${dims.type ?? 'of unknown type'}, not JPEG, PNG or WebP`);
+  }
+  if (buffer.length > IMAGE_MAX_BYTES) {
+    warnings.push(`${file}: image "${value}" is over about 1 MB (${(buffer.length / 1024 / 1024).toFixed(1)} MB)`);
+  }
+  if (dims.width > IMAGE_MAX_WIDTH) {
+    warnings.push(`${file}: image "${value}" is over ${IMAGE_MAX_WIDTH} px wide (${dims.width} px)`);
+  }
+  return { src: inside.split(path.sep).join('/'), width: dims.width, height: dims.height };
+}
+
+function validateJournal(
+  journalDir: string,
+  contentDir: string,
+  rel: (file: string) => string,
+  campaign: Campaign,
+  locations: LocationDef[],
+  errors: string[],
+  warnings: string[],
+): JournalEntryDef[] | null {
+  if (!fs.existsSync(journalDir)) return [];
+  const before = errors.length;
+  const defaultLang = campaign.defaultLanguage;
+  const locationsById = new Map(locations.map((location) => [location.id, location]));
+  const entries: JournalEntryDef[] = [];
+
+  const files = fs.readdirSync(journalDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .sort();
+
+  for (const fileName of files) {
+    const file = rel(path.join(journalDir, fileName));
+    const err = (problem: string) => errors.push(`${file}: ${problem}`);
+    const id = fileName.replace(/\.md$/, '');
+    if (!fileName.endsWith('.md') || !JOURNAL_ID.test(id)) {
+      err('the file name must be an id (lowercase letters, digits and hyphens) followed by .md');
+      continue;
+    }
+    if (id === 'index') {
+      err('"index" is reserved and cannot be the id of an entry');
+      continue;
+    }
+
+    const fileText = fs.readFileSync(path.join(journalDir, fileName), 'utf8');
+    const match = FRONT_MATTER.exec(fileText);
+    if (!match) {
+      err('the file must start with a front matter block between two "---" lines');
+      continue;
+    }
+    let front: unknown;
+    try {
+      front = parseYaml(match[1]);
+    } catch (e) {
+      err(`invalid front matter (${(e as Error).message.split('\n')[0]})`);
+      continue;
+    }
+    if (!isRecord(front)) {
+      err('the front matter must be a list of fields');
+      continue;
+    }
+
+    const entryErrors = errors.length;
+    const type = JOURNAL_TYPES.find((t) => t === front.type);
+    if (!type) err(`"type" must be one of ${JOURNAL_TYPES.join(', ')}`);
+
+    let name: JournalEntryDef['name'] = '';
+    if (type === 'location') {
+      const location = locationsById.get(id);
+      if (!location) err(`a location entry must have the id of a location in locations.json, and "${id}" is not one`);
+      else name = location.name;
+      if (front.name !== undefined) err('a location entry has no "name": its name is the location\'s in locations.json');
+    } else if (type) {
+      if (front.name === undefined) err('"name" is missing');
+      else if (!hasText(front.name, defaultLang, defaultLang)) err(`"name" has no text in the default language "${defaultLang}"`);
+      else name = front.name as JournalEntryDef['name'];
+    }
+
+    let motto: JournalEntryDef['motto'] = null;
+    if (front.motto !== undefined) {
+      if (type && type !== 'pc') err('only a player character has a "motto"');
+      else if (!hasText(front.motto, defaultLang, defaultLang)) err(`"motto" has no text in the default language "${defaultLang}"`);
+      else motto = front.motto as JournalEntryDef['motto'];
+    }
+
+    const image = front.image === undefined ? null : readImage(front.image, contentDir, file, err, warnings);
+
+    const text: Record<string, string> = {};
+    const { sections, errors: sectionErrors } = splitSections(
+      eventBody(fileText, match[0].length), campaign.languages, defaultLang);
+    for (const problem of sectionErrors) err(problem);
+    for (const [lang, markdown] of Object.entries(sections)) {
+      const html = findRawHtml(markdown);
+      if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
+      else text[lang] = renderMarkdown(markdown);
+    }
+
+    if (errors.length === entryErrors && type) entries.push({ id, type, name, motto, text, image });
+  }
+
+  if (errors.length > before) return null;
+  const order = (type: JournalType) => JOURNAL_TYPES.indexOf(type);
+  return entries.sort((a, b) => order(a.type) - order(b.type) || a.id.localeCompare(b.id));
 }
 
 function validateUi(

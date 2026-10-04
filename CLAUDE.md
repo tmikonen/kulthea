@@ -43,7 +43,8 @@ If code and documents disagree, stop and sort it out with the product owner. Nev
 - The product owner uses Windows with Git Bash. Use forward slashes in commands, and avoid commands that only work on Linux or macOS.
 - Node.js current LTS and npm. Use `npm`, not pnpm or yarn.
 - Dev server: `npm run dev`, then `http://localhost:5173/kulthea/`. The base path is `/kulthea/`.
-- Commands (they exist once item B-1 is done): `npm test` (Vitest), `npm run test:e2e` (Playwright against the built site), `npm run typecheck`, `npm run lint`, `npm run build`.
+- Commands (they exist once item B-1 is done): `npm test` (Vitest), `npm run test:e2e` (Playwright against the built site), `npm run typecheck`, `npm run lint`, `npm run build`, and `npm run test:all`, which runs the tests, typecheck, lint and browser tests in turn.
+- The browser tests need Chromium, kept in `.playwright-browsers/` (git-ignored) through `PLAYWRIGHT_BROWSERS_PATH` in `.claude/settings.json`. If it is missing, install it with `npx playwright install chromium`.
 
 ## Conventions
 

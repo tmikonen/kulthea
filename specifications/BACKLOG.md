@@ -16,7 +16,7 @@ The work is split into small increments, in implementation order. Each increment
 
 An item is done only when all of these hold:
 1. Every acceptance criterion of the item is met.
-2. The automated tests for the item are written, and all new and existing tests pass (`npm test`, `npm run typecheck`, `npm run lint`, and `npm run test:e2e` where the item has browser behaviour).
+2. The automated tests for the item are written, and all new and existing tests pass (`npm test`, `npm run typecheck`, `npm run lint`, and `npm run test:e2e` where the item has browser behaviour; `npm run test:all` runs them all).
 3. The "how to check by hand" steps work as described.
 4. Any difference from `REQUIREMENTS.md` or `DESIGN.md` found while implementing has been written into those documents.
 5. The code is committed to `master` with the message `B-<n>: <title>`, and the item's status is updated in this file.
@@ -144,7 +144,7 @@ Acceptance criteria:
 - [x] Switching maps does not reload the page.
 - [x] `content/ui.json` exists with one text, the switcher label (`maps`: "Kartta" / "Map"), and `tests/fixtures/ui.json` likewise.
 - [x] The plugin reads `ui.json` into the data bundle. A text without a default-language value, or a missing or invalid `ui.json`, is a build error naming the file and the key.
-- [x] The switcher label is shown through the text resolver in the default language (language selection comes in B-6).
+- [x] The switcher label is shown through the text resolver. B-5 used only the default language, and B-6 added the language selection.
 
 Automated tests: unit tests for reading and validating the `map` parameter; unit tests for the `ui.json` validation (valid, missing file, missing default-language text); a component test for the switcher; Playwright tests for switching, reload and back.
 

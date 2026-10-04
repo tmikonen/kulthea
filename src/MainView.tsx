@@ -60,6 +60,7 @@ export function MainView({ event }: { event?: EventDef }) {
   const place = event ? eventPlaceOn(event, current.id, mainMapId, locations) : null;
   const lines = event
     ? visibleRoutes(routeSegments, content.events, content.events.indexOf(event), current.id, current.routes)
+        .filter((segment) => segment.track === null)
         .map((segment) => segment.points.map((point) => point.position))
     : [];
   const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId, locations) : [];

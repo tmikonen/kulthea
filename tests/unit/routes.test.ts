@@ -41,9 +41,9 @@ function ev(name: string, spec: Spec = {}): EventDef {
 const build = (events: EventDef[]) =>
   buildRoutes(events, [{ id: MAIN, routes: 'history' }, { id: BOG, routes: 'visit' }], MAIN, locations);
 
-/** The names of the events at the points of each segment on a map, as lists. */
+/** The names of the events at the points of each segment of the party on a map, as lists. */
 const lines = (segments: RouteSegment[], mapId: string) =>
-  segments.filter((s) => s.mapId === mapId).map((s) => s.points.map((p) => p.eventId));
+  segments.filter((s) => s.mapId === mapId && s.track === null).map((s) => s.points.map((p) => p.eventId));
 
 describe('party route logic: the worked examples (B-16)', () => {
   it('FR-5 1. A, B, C, D give one line A-B-C-D, and one event alone gives no line', () => {
@@ -185,9 +185,9 @@ describe('route logic: more cases (B-16)', () => {
     expect(buildRoutes([ev('A')], [{ id: 'elsewhere', routes: 'visit' }], MAIN, locations)).toEqual([]);
   });
 
-  it('FR-5 the events of a group do not give segments here, only the party\'s do', () => {
+  it('FR-5 the events of a group give no segments of the party', () => {
     const segments = build([ev('G1', { track: 'scout' }), ev('G2', { track: 'scout' })]);
-    expect(segments).toEqual([]);
+    expect(segments.filter((s) => s.track === null)).toEqual([]);
   });
 
   it('FR-5 a segment never holds an event twice, and its points are in date order', () => {
@@ -329,5 +329,120 @@ describe('an overview map (BUG-6)', () => {
   it('FR-5 the Haestra case: a place that is on the map, then three that are not, then two that are, is one line', () => {
     const events = [ev('Izar', { bog: [1, 1] }), ev('Lean'), ev('Tower'), ev('Camp'), ev('Bentara', { bog: [2, 2] }), ev('Izar2', { bog: [3, 3] })];
     expect(lines(buildOverview(events), BOG)).toEqual([['Izar', 'Bentara', 'Izar2']]);
+  });
+});
+
+describe('split-group route logic: the worked examples (B-18)', () => {
+  const G = (name: string, spec: Spec = {}) => ev(name, { ...spec, track: 'scout' });
+  /** The lines of one track on a map. */
+  const trackLines = (segments: RouteSegment[], mapId: string, track: string | null) =>
+    segments.filter((s) => s.mapId === mapId && s.track === track).map((s) => s.points.map((p) => p.eventId));
+
+  it('FR-5 1. P1, G1, G2, P2: the party is P1-P2 and the group P1-G1-G2-P2', () => {
+    const segments = build([ev('P1'), G('G1'), G('G2'), ev('P2')]);
+    expect(trackLines(segments, MAIN, null)).toEqual([['P1', 'P2']]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['P1', 'G1', 'G2', 'P2']]);
+  });
+
+  it('FR-5 2. P1, G1, P2, G2, P3: the party is P1-P2-P3 and the group P1-G1-G2-P3', () => {
+    const segments = build([ev('P1'), G('G1'), ev('P2'), G('G2'), ev('P3')]);
+    expect(trackLines(segments, MAIN, null)).toEqual([['P1', 'P2', 'P3']]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['P1', 'G1', 'G2', 'P3']]);
+  });
+
+  it('FR-5 3. two groups have their own lines, each with its own start and end', () => {
+    const events = [ev('P1'), { ...ev('M1'), track: 'mage' }, G('G1'), ev('P2'), { ...ev('M2'), track: 'mage' }, ev('P3')];
+    const segments = build(events);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['P1', 'G1', 'P2']]);
+    expect(trackLines(segments, MAIN, 'mage')).toEqual([['P1', 'M1', 'M2', 'P3']]);
+  });
+
+  it('FR-5 4. with no later party event the group ends at its last event', () => {
+    const segments = build([ev('P1'), G('G1'), G('G2')]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['P1', 'G1', 'G2']]);
+  });
+
+  it('FR-5 5. a group that is the first event of all has no start', () => {
+    const segments = build([G('G1'), ev('P1')]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['G1', 'P1']]);
+  });
+
+  it('FR-5 6. a group event only on Bog End has no line on the main map, and is alone on Bog End', () => {
+    const events = [ev('P1'), G('G1', { main: null, bog: [5, 5] }), ev('P2')];
+    const segments = build(events);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([]);
+    expect(trackLines(segments, BOG, 'scout')).toEqual([['G1']]);
+  });
+
+  it('FR-5 7. a new segment on the first group event means no line from the party into it', () => {
+    const segments = build([ev('P1'), G('G1', { newSegment: true }), G('G2'), ev('P2')]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['G1', 'G2', 'P2']]);
+  });
+
+  it('FR-5 8. a standalone event between group events is ignored', () => {
+    const segments = build([ev('P1'), G('G1'), ev('S', { track: 'none' }), G('G2'), ev('P2')]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['P1', 'G1', 'G2', 'P2']]);
+  });
+
+  it('FR-5 9. the start is the party\'s last event, which is on Bog End only: a line there, no start on the main map', () => {
+    const events = [ev('P1'), ev('P2', { main: null, bog: [3, 3] }), G('G1', { bog: [8, 8] }), ev('P3')];
+    const segments = build(events);
+    expect(trackLines(segments, BOG, 'scout')).toEqual([['P2', 'G1']]);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['G1', 'P3']]);
+  });
+
+  it('FR-5 10. clipping: at G1 the line is P1-G1, and the end appears from the rejoin event on', () => {
+    const events = [ev('P1'), G('G1'), G('G2'), ev('P2'), ev('P3')];
+    const segments = build(events);
+    const group = (upTo: number) => trackLines(clipSegments(segments, upTo), MAIN, 'scout');
+    expect(group(0)).toEqual([]);
+    expect(group(1)).toEqual([['P1', 'G1']]);
+    expect(group(2)).toEqual([['P1', 'G1', 'G2']]);
+    expect(group(3)).toEqual([['P1', 'G1', 'G2', 'P2']]);
+    expect(group(4)).toEqual([['P1', 'G1', 'G2', 'P2']]);
+  });
+
+  it('FR-5 a group split twice under one name is one line, unless the second has a new segment', () => {
+    const one = build([ev('P1'), G('G1'), ev('P2'), G('G2'), ev('P3')]);
+    expect(trackLines(one, MAIN, 'scout')).toEqual([['P1', 'G1', 'G2', 'P3']]);
+    const two = build([ev('P1'), G('G1'), ev('P2'), G('G2', { newSegment: true }), ev('P3')]);
+    expect(trackLines(two, MAIN, 'scout')).toEqual([['P1', 'G1'], ['G2', 'P3']]);
+  });
+
+  it('FR-5 a group event with no place on the map breaks its line there, and the end is then not drawn', () => {
+    const events = [ev('P1'), G('G1'), G('G2', { main: null, bog: [5, 5] }), ev('P2')];
+    const segments = build(events);
+    expect(trackLines(segments, MAIN, 'scout')).toEqual([['P1', 'G1']]);
+  });
+
+  it('FR-5 the party\'s segments are the same with and without groups', () => {
+    const party = [ev('P1'), ev('P2', { main: null, bog: [3, 3] }), ev('P3'), ev('P4', { newSegment: true })];
+    const withGroups = [party[0], G('G1'), party[1], { ...ev('M1'), track: 'mage' }, party[2], G('G2'), party[3]];
+    const plain = (segments: RouteSegment[]) =>
+      segments.filter((s) => s.track === null).map((s) => [s.mapId, s.points.map((p) => p.eventId), s.events.length]);
+    expect(plain(build(withGroups))).toEqual(plain(build(party)));
+  });
+
+  it('FR-5 clipping is consistent at every event: only a group\'s own events and its start show before the rejoin', () => {
+    const events = [ev('P1'), G('G1'), ev('P2'), G('G2'), ev('P3'), ev('P4')];
+    const segments = build(events);
+    events.forEach((_, upTo) => {
+      for (const segment of clipSegments(segments, upTo)) {
+        for (const point of segment.points) expect(point.index).toBeLessThanOrEqual(upTo);
+        if (segment.track === 'scout') {
+          expect(segment.events.length).toBeGreaterThan(0);
+          const rejoined = segment.points.some((p) => p.eventId === 'P3');
+          expect(rejoined).toBe(upTo >= 4);
+        }
+      }
+    });
+  });
+
+  it('FR-5 on a visit map a group shows only its current visit', () => {
+    const events = [ev('P1'), G('G1'), G('G2', { newSegment: true }), ev('P2')];
+    const segments = build(events);
+    const shown = (upTo: number) => trackLines(visibleRoutes(segments, events, upTo, MAIN, 'visit'), MAIN, 'scout');
+    expect(shown(1)).toEqual([['P1', 'G1']]);
+    expect(shown(2)).toEqual([['G2']]);
   });
 });

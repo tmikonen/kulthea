@@ -555,7 +555,7 @@ Automated tests: component tests that the right number of lines is drawn for a g
 
 ## B-18 Split-group route logic
 
-Status: defined
+Status: done
 
 Related: FR-5, FR-8.
 
@@ -580,10 +580,10 @@ Worked examples (P1, P2, P3 are party events, G1, G2 are events of the group `sc
 How to check by hand: read the rules and examples and tell me if any is not how you want split groups to behave. In particular, say if the line should not start from the party's last place or end at the rejoin.
 
 Acceptance criteria:
-- [ ] The route function returns the segments of each named group per map, following the rules and examples above, together with the party's from B-16.
-- [ ] Every worked example is a unit test.
-- [ ] Group events never change the party's segments and the party's events never end a group's split, apart from being its start and end.
-- [ ] Clipping at an event keeps the group's start, the events up to it, and the rejoin only from the rejoin event on.
+- [x] The route function returns the segments of each named group per map, following the rules and examples above, together with the party's from B-16.
+- [x] Every worked example is a unit test.
+- [x] Group events never change the party's segments and the party's events never end a group's split, apart from being its start and end.
+- [x] Clipping at an event keeps the group's start, the events up to it, and the rejoin only from the rejoin event on.
 
 Automated tests: the unit tests of the worked examples, plus tests that two groups do not affect each other, that the party's result is the same with and without groups, and that clipping is consistent at every event.
 

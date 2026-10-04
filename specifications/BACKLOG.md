@@ -891,7 +891,7 @@ Feedback wanted:
 These are outlined only. Each is refined into a defined item, with acceptance criteria, automated tests and a manual check, when its turn comes. Each will also state what you can expect to see and how to check it by hand.
 
 ## B-28 Build summary and warnings
-The summary per language of missing translations, and warnings for unused images, locations and entries, and tracks that never return to the party. (The warning for an event that is `n/a` on the main map although its `showOn` location has a main position is in B-34.) You will see the warnings and the per-language summary in the terminal when you build. "Validation rules".
+The summary per language of missing translations, and warnings for unused images, locations and entries, and tracks that never return to the party. Two more checks belong here, found in the review of the documents after B-27: a language map in a short text field (an event's `title`, an entry's `name` or `motto`, the names of locations and maps, `campaign.json` and `ui.json` texts) that names a language that is not configured is an error, as it is for an `@` section in a body, and a front-matter field that the design does not list for an event or an entry (for example a mistyped `mottto`) is a warning. (The warning for an event that is `n/a` on the main map although its `showOn` location has a main position is in B-34.) You will see the warnings and the per-language summary in the terminal when you build. "Validation rules".
 
 ## B-29 Phone layout
 A layout that works on a phone: the event panel, the map and a full-screen journal panel. You will see the site working in the browser's phone view and on your own phone. FR-6, "Devices".

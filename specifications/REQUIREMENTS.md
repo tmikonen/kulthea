@@ -126,7 +126,6 @@ The site can be shown in Finnish or English. Finnish is the default language, th
 
 ## 5. Open items
 
-- The design says that a language map in a short text field (such as `title: { fi: ..., de: ... }`) with a language that is not configured is a build error, as it is for an `@` section in a body. The build does not check this yet, and such a text is silently ignored. To be decided: add the check, or drop the rule.
-- Fields in the front matter that the design does not list (for example a mistyped `mottto`) are ignored without a message. To be decided: leave it, or make an unknown field a warning.
+None. (Two checks that the design asks for and the build does not do yet, for unconfigured languages in short text fields and for unknown front-matter fields, are planned in B-28 in `BACKLOG.md`.)
 
 Future ideas such as route waypoints along roads are not in scope.

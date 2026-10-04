@@ -688,7 +688,7 @@ Automated tests: component tests for the address handling (index, entry, unknown
 
 ## B-22 Journal entry view
 
-Status: defined
+Status: done
 
 Related: FR-6, FR-9.
 
@@ -704,11 +704,11 @@ How to check by hand:
 5. Open an address with `?journal=<id>` of an entry directly. It opens.
 
 Acceptance criteria:
-- [ ] An entry shows, in this order: a link back to the index, the lead image (if it has one), the name, the motto (player characters only, if it has one), and the text. The lead image has the entry's name as its alt text, and it fits the panel's width without horizontal scrolling.
-- [ ] The name, motto and text are in the chosen language, with silent fallback for the name and motto and the "not available" note when the text falls back.
-- [ ] A location entry's name is the location's name.
-- [ ] Going from the index to an entry, or from an entry back to the index through the link, adds a history entry. The panel scrolls to the top when the entry changes.
-- [ ] The texts for the link back and the type headings are in `ui.json`.
+- [x] An entry shows, in this order: a link back to the index, the lead image (if it has one), the name, the motto (player characters only, if it has one), and the text. The lead image has the entry's name as its alt text, and it fits the panel's width without horizontal scrolling.
+- [x] The name, motto and text are in the chosen language, with silent fallback for the name and motto and the "not available" note when the text falls back.
+- [x] A location entry's name is the location's name.
+- [x] Going from the index to an entry, or from an entry back to the index through the link, adds a history entry. The panel scrolls to the top when the entry changes.
+- [x] The texts for the link back and the type headings are in `ui.json`.
 
 Automated tests: component tests for each type, the language fallback and the missing image; a Playwright test that opens each type from the index and checks the fields.
 

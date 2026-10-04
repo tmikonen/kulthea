@@ -159,3 +159,82 @@ describe('journal button and panel (B-21)', () => {
     expect(panel()).not.toBeNull();
   });
 });
+
+describe('journal entry view (B-22)', () => {
+  const entryPanel = (container: HTMLElement) => container.querySelector('article')!;
+
+  it('FR-6 a player character shows a link back, the picture, the name, the motto and the text, in this order', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    const article = entryPanel(container);
+    const order = [...article.children].map((el) => el.tagName.toLowerCase() + (el.className ? '.' + el.className : ''));
+    expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text']);
+    expect(within(article).getByRole('link')).toHaveTextContent('‹ Päiväkirja');
+    const img = within(article).getByRole('img', { name: 'Sankari' });
+    expect(img.getAttribute('src')).toMatch(/hero/);
+    expect(img).toHaveAttribute('width', '60');
+    expect(img).toHaveAttribute('height', '40');
+    expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Sankari');
+    expect(article.querySelector('.motto')).toHaveTextContent('Eteenpäin.');
+    expect(article.querySelector('.text')).toHaveTextContent('Sankarin tausta.');
+    expect(article.querySelectorAll('.text p')).toHaveLength(2);
+  });
+
+  it('FR-9 the entry follows the language: name, motto and text', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero&lang=en');
+    const article = entryPanel(container);
+    expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Hero');
+    expect(article.querySelector('.motto')).toHaveTextContent('Onward.');
+    expect(article.querySelector('.text')).toHaveTextContent("The hero's background.");
+    expect(article.querySelector('.note')).toBeNull();
+    expect(within(article).getByRole('img', { name: 'Hero' })).toBeInTheDocument();
+  });
+
+  it('FR-9 an NPC has no motto and no picture when it has none, and in English falls back with the note', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=scout&lang=en');
+    const article = entryPanel(container);
+    expect(article.querySelector('.motto')).toBeNull();
+    expect(article.querySelector('img')).toBeNull();
+    expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Tiedustelija');
+    expect(article.querySelector('.text')).toHaveTextContent('Vain suomeksi kirjoitettu tausta.');
+    expect(article.querySelector('.note')).toHaveTextContent('Not available in this language');
+  });
+
+  it('FR-9 in the default language there is never a note', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=scout');
+    expect(entryPanel(container).querySelector('.note')).toBeNull();
+  });
+
+  it('FR-6 an item and a note have a name and text but no motto, and an item may have no picture', () => {
+    const item = renderApp('/event/6050-1-001-01-first?journal=ring');
+    expect(entryPanel(item.container).querySelector('.motto')).toBeNull();
+    expect(entryPanel(item.container).querySelector('img')).toBeNull();
+    expect(within(entryPanel(item.container)).getByRole('heading', { level: 3 })).toHaveTextContent('Sormus');
+    item.unmount();
+    const note = renderApp('/event/6050-1-001-01-first?journal=lore');
+    expect(within(entryPanel(note.container)).getByRole('heading', { level: 3 })).toHaveTextContent('Taustatarina');
+    expect(entryPanel(note.container).querySelector('.text')).toHaveTextContent('Muistiinpanon teksti.');
+  });
+
+  it('FR-6 a location entry shows the location\'s name and its picture', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=both-places&lang=en');
+    const article = entryPanel(container);
+    expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Both Places');
+    expect(within(article).getByRole('img')).toBeInTheDocument();
+    expect(article.querySelector('.text')).toHaveTextContent("The place's description.");
+  });
+
+  it('FR-6 the link back goes to the index, keeping the event and language', () => {
+    renderApp('/event/6050-1-001-01-first?journal=hero&lang=en');
+    fireEvent.click(screen.getByRole('link', { name: '‹ Journal' }));
+    expect(search()).toBe('?journal=index&lang=en');
+    expect(pathname()).toBe('/event/6050-1-001-01-first');
+    expect(document.querySelector('article')).toBeNull();
+  });
+
+  it('FR-6 changing the language while an entry is open keeps the entry', () => {
+    renderApp('/event/6050-1-001-01-first?journal=hero');
+    fireEvent.click(screen.getByRole('button', { name: 'EN', pressed: false }));
+    expect(search()).toBe('?journal=hero&lang=en');
+    expect(screen.getByRole('heading', { level: 3, name: 'Hero' })).toBeInTheDocument();
+  });
+});

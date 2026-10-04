@@ -35,3 +35,11 @@ export function groupEntries(entries: JournalEntryDef[], lang: string, defaultLa
       .sort((a, b) => collator.compare(entryName(a, lang, defaultLang), entryName(b, lang, defaultLang))),
   })).filter((group) => group.entries.length > 0);
 }
+
+/** The entry's text in the chosen language, or in the default language when it has none (`fallback`). */
+export function entryText(entry: JournalEntryDef, lang: string, defaultLang: string): { html: string; fallback: boolean } {
+  const own = entry.text[lang];
+  return own === undefined
+    ? { html: entry.text[defaultLang] ?? '', fallback: lang !== defaultLang }
+    : { html: own, fallback: false };
+}

@@ -7,7 +7,7 @@ const image = (page: Page) => page.locator('img.leaflet-image-layer');
 
 async function open(page: Page, query = '') {
   await page.goto(`./#/event/${FIRST}${query}`);
-  await expect(page.getByRole('region', { name: 'Tapahtuma' })).toBeVisible();
+  await expect(page.getByRole('region', { name: /^(Tapahtuma|Event)$/ })).toBeVisible();
   await expect(image(page)).toBeVisible();
 }
 
@@ -149,5 +149,69 @@ test.describe('journal button and panel (B-21)', () => {
     await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}\\?journal=index$`));
     await expect(panel(page)).toBeVisible();
     await expect(page.getByRole('status')).toContainText('Tapahtumaa ei löytynyt');
+  });
+});
+
+test.describe('journal entry view (B-22)', () => {
+  const entry = (page: Page) => panel(page).locator('article');
+
+  test('FR-6 every type opens from the index with its fields, and the link back and the back button return to the index', async ({ page }) => {
+    await open(page, '?journal=index');
+    for (const [link, heading, hasImage, hasMotto] of [
+      ['Sankari', 'Sankari', true, true],
+      ['Tiedustelija', 'Tiedustelija', false, false],
+      ['Sormus', 'Sormus', false, false],
+      ['Molemmat paikat', 'Molemmat paikat', true, false],
+      ['Taustatarina', 'Taustatarina', false, false],
+    ] as const) {
+      await panel(page).getByRole('link', { name: link, exact: true }).click();
+      await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText(heading);
+      await expect(entry(page).locator('img')).toHaveCount(hasImage ? 1 : 0);
+      await expect(entry(page).locator('p').filter({ hasText: 'Eteenpäin.' })).toHaveCount(hasMotto ? 1 : 0);
+      await page.goBack();
+      await expect(panel(page).getByRole('heading', { level: 3 })).toHaveCount(5);
+    }
+    await panel(page).getByRole('link', { name: 'Sankari' }).click();
+    await entry(page).getByRole('link', { name: /Päiväkirja/ }).click();
+    await expect(panel(page).getByRole('heading', { level: 3 })).toHaveCount(5);
+    await page.goBack();
+    await expect(entry(page)).toBeVisible();
+  });
+
+  test('FR-6 the picture is shown, loaded, and fits the panel without scrolling sideways', async ({ page }) => {
+    await open(page, '?journal=hero');
+    const img = entry(page).locator('img');
+    await expect(img).toBeVisible();
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(60);
+    const fits = await panel(page).evaluate((aside) => {
+      const body = aside.querySelector('article')!.parentElement!;
+      return body.scrollWidth <= body.clientWidth;
+    });
+    expect(fits).toBe(true);
+    await expect(img).toHaveAttribute('alt', 'Sankari');
+  });
+
+  test('FR-9 the entry follows the language, with the fallback note for a text with no translation', async ({ page }) => {
+    await open(page, '?journal=hero&lang=en');
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Hero');
+    await expect(entry(page)).toContainText('Onward.');
+    await expect(entry(page)).toContainText("The hero's background.");
+    await expect(entry(page)).not.toContainText('Not available in this language');
+    await panel(page).getByRole('link', { name: /Journal/ }).click();
+    await panel(page).getByRole('link', { name: 'Tiedustelija' }).click();
+    await expect(entry(page)).toContainText('Vain suomeksi kirjoitettu tausta.');
+    await expect(entry(page)).toContainText('Not available in this language');
+  });
+
+  test('FR-6 the panel starts at the top when another entry is opened', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 260 });
+    await open(page, '?journal=index');
+    const scroller = panel(page).locator('xpath=./div[2]');
+    await scroller.evaluate((el) => { el.scrollTop = 50; });
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await panel(page).getByRole('link', { name: 'Sankari' }).click();
+    await expect(entry(page)).toBeVisible();
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBe(0);
+    expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
   });
 });

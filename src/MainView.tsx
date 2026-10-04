@@ -172,6 +172,8 @@ export function MainView({ event }: { event?: EventDef }) {
             onClose={closeJournal}
             label={uiText(ui, 'journal', lang, defaultLang)}
             closeLabel={uiText(ui, 'closeJournal', lang, defaultLang)}
+            indexTo={{ pathname: location.pathname, search: withJournal(INDEX_PARAM).toString() }}
+            notTranslated={uiText(ui, 'notTranslated', lang, defaultLang)}
             typeLabels={{
               pc: uiText(ui, 'typePc', lang, defaultLang),
               npc: uiText(ui, 'typeNpc', lang, defaultLang),

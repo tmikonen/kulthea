@@ -14,5 +14,5 @@
   { "id": "ruined-tower",  "name": { "fi": "Rauniotorni", "en": "Ruined Tower" },
     "positions": { "bay-of-izar": [59.3, 56.6] } },
   { "id": "troll-cave",    "name": { "fi": "Peikkoluola", "en": "Troll Cave" },
-    "positions": { "bay-of-izar": [61.5, 52.6] } }
+    "positions": { "bay-of-izar": [60.7, 52.6] } }
 ]

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { settled } from './helpers';
 
 // These tests run on a site built from tests/fixtures-focus, where the main map (3000 x 1500) has a
 // focus zoom of 2 steps, that is, twice the size of the whole map, and the second map (120 x 80) has none.
@@ -69,7 +70,7 @@ async function expectWholeMap(page: Page, ratio: number) {
 const zoomOut = async (page: Page, clicks: number) => {
   for (let i = 0; i < clicks; i++) {
     await page.locator('.leaflet-control-zoom-out').click();
-    await page.waitForTimeout(450);
+    await settled(image(page));
   }
 };
 
@@ -129,7 +130,7 @@ test.describe('focused view (B-33)', () => {
     await page.goto(`./#/event/${CENTRE}`);
     await expectFocused(page, [50, 50]);
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(450);
+    await settled(image(page));
     const a = await area(page);
     expect((await image(page).boundingBox())!.width).toBeGreaterThan(2 * fittedWidth(a, 2) + 10);
     await next(page).click();
@@ -143,7 +144,7 @@ test.describe('focused view (B-33)', () => {
     await page.mouse.down();
     await page.mouse.move(400, 250, { steps: 5 });
     await page.mouse.up();
-    await page.waitForTimeout(300);
+    await settled(image(page));
     const moved = await markerCentre(page);
     const a = await area(page);
     expect(Math.abs(moved.x - (a.x + a.width / 2))).toBeGreaterThan(20);
@@ -217,10 +218,10 @@ test.describe('focused view (B-33)', () => {
     await expectFocused(page, [50, 50]);
     const before = (await image(page).boundingBox())!.width;
     await page.setViewportSize({ width: 1100, height: 760 });
-    await page.waitForTimeout(500);
+    await settled(image(page));
     expect(Math.abs((await image(page).boundingBox())!.width - before)).toBeLessThan(3);
     await page.setViewportSize({ width: 1280, height: 620 });
-    await page.waitForTimeout(500);
+    await settled(image(page));
     expect(Math.abs((await image(page).boundingBox())!.width - before)).toBeLessThan(3);
   });
 
@@ -230,8 +231,7 @@ test.describe('focused view (B-33)', () => {
     const before = (await image(page).boundingBox())!;
     await page.getByRole('button', { name: 'EN', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Event' })).toBeVisible();
-    await page.waitForTimeout(300);
-    const after = (await image(page).boundingBox())!;
+    const after = await settled(image(page));
     expect(Math.abs(after.x - before.x)).toBeLessThan(2);
     expect(Math.abs(after.width - before.width)).toBeLessThan(2);
   });

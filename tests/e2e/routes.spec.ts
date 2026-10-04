@@ -211,10 +211,8 @@ test.describe('the party route (B-17)', () => {
     await page.getByRole('button', { name: 'EN', exact: true }).click();
     await expectLines(page, [[P.p1, P.p2, P.p3, P.p4]]);
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(500);
     await expectLines(page, [[P.p1, P.p2, P.p3, P.p4]]);
     await page.setViewportSize({ width: 1000, height: 700 });
-    await page.waitForTimeout(600);
     await expectLines(page, [[P.p1, P.p2, P.p3, P.p4]]);
   });
 });

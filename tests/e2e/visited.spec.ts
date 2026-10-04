@@ -100,7 +100,6 @@ test.describe('visited places (B-14)', () => {
     await page.goto('./#/event/6050-2-070-01-standalone');
     await expect(dots(page)).toHaveCount(1);
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(500);
     await expect.poll(() => dotPercents(page)).toEqual([[80, 20]]);
   });
 
@@ -122,6 +121,7 @@ test.describe('visited places (B-14)', () => {
     await dots(page).first().hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Main Only');
     await page.goto('./#/event/6050-1-001-02-second?lang=en');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en'); // the page has changed language
     await dots(page).first().hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Main Only');
     await page.goto('./#/event/6050-2-003-01-split'); // on the second map: the dots are second-only (10, 90) and both-places (50, 50)

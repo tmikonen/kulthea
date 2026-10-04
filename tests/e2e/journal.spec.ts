@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { settled } from './helpers';
 
 const FIRST = '6050-1-001-01-first';
 const panel = (page: Page) => page.getByRole('complementary', { name: /^(Päiväkirja|Journal)$/ });
@@ -63,16 +64,17 @@ test.describe('journal button and panel (B-21)', () => {
   test('FR-6 opening and closing the panel changes neither the map nor its zoom or position, and does not reload the page', async ({ page }) => {
     await open(page);
     await page.evaluate(() => { (window as unknown as { marker: number }).marker = 42; });
+    // A click during the zoom animation of the one before is ignored, so wait for each to finish.
     await page.locator('.leaflet-control-zoom-in').click();
+    await settled(image(page));
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(800);
-    const before = await image(page).boundingBox();
+    const before = await settled(image(page));
     const area = await page.locator('.leaflet-container').boundingBox();
     expect(before!.width).toBeGreaterThan(area!.width); // zoomed in
 
     await button(page).click();
     await expect(panel(page)).toBeVisible();
-    await page.waitForTimeout(400);
+    await settled(panel(page)); // the slide has ended
     expect(await image(page).boundingBox()).toEqual(before);
     expect(await page.locator('.leaflet-container').boundingBox()).toEqual(area);
 
@@ -86,8 +88,7 @@ test.describe('journal button and panel (B-21)', () => {
     await open(page);
     await button(page).click();
     await expect(panel(page)).toBeVisible();
-    await page.waitForTimeout(400);
-    const box = (await panel(page).boundingBox())!;
+    const box = await settled(panel(page)); // the slide has ended
     const viewport = page.viewportSize()!;
     expect(box.x + box.width).toBeCloseTo(viewport.width, 0);
     expect(box.x).toBeGreaterThan(viewport.width / 2);
@@ -129,7 +130,7 @@ test.describe('journal button and panel (B-21)', () => {
     await page.waitForTimeout(100);
     await button(page).click();
     await expect(panel(page)).toBeVisible();
-    await page.waitForTimeout(600);
+    await settled(panel(page)); // the slide has ended
     const frames = await page.evaluate(() => {
       const w = window as unknown as { frames: unknown[]; stop: boolean };
       w.stop = true;
@@ -270,7 +271,7 @@ test.describe('journal entry view (B-22)', () => {
     expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
     await panel(page).getByRole('link', { name: 'Sankari' }).click();
     await expect(entry(page)).toBeVisible();
-    expect(await scroller.evaluate((el) => el.scrollTop)).toBe(0);
+    await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBe(0);
     expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
   });
 });
@@ -488,7 +489,9 @@ test.describe('images in text and the viewer (B-27)', () => {
     await eventRegion(page).locator('figure img').click();
     await expect(viewer(page)).toBeVisible();
     await expect(viewer(page)).toContainText('Sankarin kuva');
-    const shown = (await viewer(page).getByRole('img').boundingBox())!;
+    // The picture is measured once it is loaded and the layout has settled: before that its box is that of an empty image.
+    await expect.poll(() => viewer(page).getByRole('img').evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth)).toBe(60);
+    const shown = await settled(viewer(page).getByRole('img'));
     expect(shown.width).toBeCloseTo(60, 0); // the picture is 60 px wide: not enlarged
     expect(shown.height).toBeCloseTo(40, 0);
   });
@@ -497,7 +500,8 @@ test.describe('images in text and the viewer (B-27)', () => {
     await page.setViewportSize({ width: 700, height: 500 });
     await page.goto('./#/event/6050-1-001-02-second');
     await eventRegion(page).locator('figure img').click();
-    const shown = (await viewer(page).getByRole('img').boundingBox())!;
+    await expect.poll(() => viewer(page).getByRole('img').evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth)).toBe(1500);
+    const shown = await settled(viewer(page).getByRole('img'));
     expect(shown.width).toBeLessThanOrEqual(700);
     expect(shown.height).toBeLessThanOrEqual(500);
     expect(shown.width).toBeGreaterThan(300);
@@ -520,6 +524,7 @@ test.describe('images in text and the viewer (B-27)', () => {
     await expect(viewer(page)).toHaveCount(0);
 
     await img.click();
+    await expect(viewer(page)).toBeVisible();
     await page.mouse.click(5, 5);
     await expect(viewer(page)).toHaveCount(0);
     await img.click();

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { settled } from './helpers';
 
 const FIRST = '6050-1-001-01-first';
 const title = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ }).getByRole('heading', { level: 2 });
@@ -157,8 +158,7 @@ test.describe('stepping (B-12)', () => {
     await page.goto('./#/event/6050-1-001-02-second');
     await expect(title(page)).toHaveText('Toinen');
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(500);
-    const before = (await page.locator('img.leaflet-image-layer').boundingBox())!;
+    const before = await settled(page.locator('img.leaflet-image-layer'));
     await page.locator('.leaflet-container').focus();
     await page.keyboard.press('ArrowRight');
     await expect.poll(async () => (await page.locator('img.leaflet-image-layer').boundingBox())!.x).not.toBe(before.x);

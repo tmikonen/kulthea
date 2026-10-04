@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { settled } from './helpers';
 
 const current = (page: Page) => page.locator('path.current-marker');
 const image = (page: Page) => page.locator('img.leaflet-image-layer');
@@ -84,6 +85,7 @@ test.describe('current event marker (B-13)', () => {
     await current(page).hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Molemmat paikat');
     await page.goto('./#/event/6050-1-001-02-second?lang=en');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en'); // the page has changed language
     await current(page).hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Both Places');
   });
@@ -153,7 +155,7 @@ test.describe('the view follows the marker (B-13)', () => {
     // A click during the zoom animation of the one before is ignored, so wait for each to finish.
     for (let i = 0; i < clicks; i++) {
       await page.locator('.leaflet-control-zoom-in').click();
-      await page.waitForTimeout(450);
+      await settled(image(page));
     }
   };
   const imageWidth = async (page: Page) => (await image(page).boundingBox())!.width;
@@ -192,8 +194,8 @@ test.describe('the view follows the marker (B-13)', () => {
     expect(await inView(page, [25, 75])).toBe(true);
     const before = (await image(page).boundingBox())!;
     await next(page).click();
-    await page.waitForTimeout(700);
-    const after = (await image(page).boundingBox())!;
+    await expect(page).toHaveURL(/6050-1-001-02-second/);
+    const after = await settled(image(page));
     expect(after.x).toBeCloseTo(before.x, 0);
     expect(after.y).toBeCloseTo(before.y, 0);
     expect(after.width).toBeCloseTo(before.width, 0);
@@ -205,8 +207,8 @@ test.describe('the view follows the marker (B-13)', () => {
     const before = (await image(page).boundingBox())!;
     await next(page).click();
     await next(page).click();
-    await page.waitForTimeout(700);
-    const after = (await image(page).boundingBox())!;
+    await expect(page).toHaveURL(/6050-1-9-01-ninth/);
+    const after = await settled(image(page));
     expect(after).toEqual(before);
   });
 });

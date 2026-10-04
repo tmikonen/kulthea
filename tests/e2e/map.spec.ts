@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { settled } from './helpers';
 
 const imageWidth = (page: Page) =>
   page.locator('img.leaflet-image-layer').evaluate((img) => img.getBoundingClientRect().width);
@@ -59,20 +60,21 @@ test.describe('main map (B-4)', () => {
     const first = (await page.locator('.leaflet-container').boundingBox())!;
     await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
     await page.mouse.wheel(0, 600);
-    await page.waitForTimeout(500);
+    await settled(page.locator('img.leaflet-image-layer'));
     expect(Math.abs((await imageWidth(page)) - fitted)).toBeLessThan(2);
 
+    // A click during the zoom animation of the one before is ignored, so wait for each to finish.
     await page.locator('.leaflet-control-zoom-in').click();
+    await settled(page.locator('img.leaflet-image-layer'));
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(500);
+    await settled(page.locator('img.leaflet-image-layer'));
     const area = (await page.locator('.leaflet-container').boundingBox())!;
     const centre = { x: area.x + area.width / 2, y: area.y + area.height / 2 };
     await page.mouse.move(centre.x, centre.y);
     await page.mouse.down();
     await page.mouse.move(centre.x + area.width * 3, centre.y + area.height * 3, { steps: 10 });
     await page.mouse.up();
-    await page.waitForTimeout(500);
-    const box = (await page.locator('img.leaflet-image-layer').boundingBox())!;
+    const box = await settled(page.locator('img.leaflet-image-layer'));
     // Dragged as far right and down as possible: the image's top-left corner is at the area's, not beyond.
     expect(box.x).toBeLessThanOrEqual(area.x + 2);
     expect(box.y).toBeLessThanOrEqual(area.y + 2);
@@ -108,11 +110,12 @@ test.describe('main map (B-4)', () => {
     await page.goto('./');
     await expectFitted(page);
     await page.locator('.leaflet-control-zoom-in').click();
+    await settled(page.locator('img.leaflet-image-layer'));
     await page.locator('.leaflet-control-zoom-in').click();
-    await page.waitForTimeout(500);
+    await settled(page.locator('img.leaflet-image-layer'));
     const zoomed = await imageWidth(page);
     await page.setViewportSize({ width: 900, height: 600 });
-    await page.waitForTimeout(500);
+    await settled(page.locator('img.leaflet-image-layer'));
     expect(await imageWidth(page)).toBeGreaterThan(zoomed * 0.9);
   });
 

@@ -274,7 +274,7 @@ Automated tests: unit tests for finding the previous and next ids (none at the e
 
 ## B-9 Calendar and dates
 
-Status: done
+Status: accepted
 
 Related: FR-7, "File formats" (`campaign.json` dates), "Languages".
 
@@ -297,7 +297,7 @@ Automated tests: unit tests for the formatter in both languages for all five mon
 
 ## B-10 Event text and language sections
 
-Status: defined
+Status: in progress
 
 Related: FR-3, FR-9, DD-5, "Languages", "Validation rules" (languages, raw HTML).
 

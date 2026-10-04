@@ -365,7 +365,7 @@ describe('events (B-8)', () => {
     expect(events['first']).toEqual({
       id: '6050-1-001-01-first', year: 6050, month: 1, day: 1, order: 1,
       title: { fi: 'Ensimmäinen', en: 'First' },
-      text: { fi: '<p>Ensimmäisen tapahtuman teksti.</p>', en: '<p>The text of the first event.</p>' },
+      text: expect.objectContaining({ fi: expect.stringContaining('<p>Ensimmäisen tapahtuman teksti.</p>'), en: expect.stringContaining('<p>The text of the first event.</p>') }),
       location: 'main-only', position: [80, 20], showOn: null, track: null, newSegment: false,
     });
     expect(events['second'].title).toBe('Toinen');
@@ -577,15 +577,16 @@ describe('event text (B-10)', () => {
   const ev = (slug: string) => loadContent(FIXTURES).bundle!.events.find((e) => e.id.endsWith(slug))!;
 
   it('FR-9 splits the text of an event into its languages and renders it to HTML', () => {
+    const a = (id: string, text: string) => `<a href="#" class="journal-link" data-journal="${id}">${text}</a>`;
     expect(ev('first').text).toEqual({
-      fi: '<p>Ensimmäisen tapahtuman teksti.</p>',
-      en: '<p>The text of the first event.</p>',
+      fi: `<p>Ensimmäisen tapahtuman teksti.</p>\n<p>${a('hero', 'Sankari')} saapui paikalle, ja mukana oli ${a('ring', 'sormus')}.</p>`,
+      en: `<p>The text of the first event.</p>\n<p>${a('hero', 'Hero')} arrived, with ${a('ring', 'a ring')}.</p>`,
     });
   });
 
   it('FR-9 an event with no markers has its text in the default language only, with Markdown rendered', () => {
     expect(ev('second').text).toEqual({
-      fi: '<p>Toisen tapahtuman <em>korostettu</em> teksti.</p>\n<p>Toinen kappale.</p>',
+      fi: expect.stringMatching(/^<p>Toisen tapahtuman <em>korostettu<\/em> teksti\.<\/p>\n<p>Toinen kappale\.<\/p>\n<p>/),
     });
   });
 

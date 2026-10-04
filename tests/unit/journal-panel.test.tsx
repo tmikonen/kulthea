@@ -183,7 +183,7 @@ describe('journal entry view (B-22)', () => {
     const article = entryPanel(container);
     const order = [...article.children].map((el) => el.tagName.toLowerCase() + (el.className ? '.' + el.className : ''));
     expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text']);
-    expect(within(article).getByRole('link')).toHaveTextContent('‹ Päiväkirja');
+    expect(article.querySelector('a.back')).toHaveTextContent('‹ Päiväkirja');
     const img = within(article).getByRole('img', { name: 'Sankari' });
     expect(img.getAttribute('src')).toMatch(/hero/);
     expect(img).toHaveAttribute('width', '60');
@@ -191,7 +191,7 @@ describe('journal entry view (B-22)', () => {
     expect(within(article).getByRole('heading', { level: 3 })).toHaveTextContent('Sankari');
     expect(article.querySelector('.motto')).toHaveTextContent('Eteenpäin.');
     expect(article.querySelector('.text')).toHaveTextContent('Sankarin tausta.');
-    expect(article.querySelectorAll('.text p')).toHaveLength(2);
+    expect(article.querySelectorAll('.text p')).toHaveLength(3);
   });
 
   it('FR-9 the entry follows the language: name, motto and text', () => {
@@ -251,5 +251,71 @@ describe('journal entry view (B-22)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'EN', pressed: false }));
     expect(search()).toBe('?journal=hero&lang=en');
     expect(screen.getByRole('heading', { level: 3, name: 'Hero' })).toBeInTheDocument();
+  });
+});
+
+describe('journal links in text (B-23)', () => {
+  const eventLinks = (container: HTMLElement) => [...container.querySelectorAll<HTMLAnchorElement>('section a.journal-link')];
+
+  it('FR-6 the names in an event text are links with real addresses, with the text of the language', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    const links = eventLinks(container);
+    expect(links.map((a) => a.textContent)).toEqual(['Sankari', 'sormus']);
+    expect(links[0].getAttribute('href')).toBe('/event/6050-1-001-01-first?journal=hero');
+    expect(links[1].getAttribute('href')).toBe('/event/6050-1-001-01-first?journal=ring');
+  });
+
+  it('FR-9 the link text follows the language, and the address keeps the language and the map', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?lang=en&map=second-map');
+    const links = eventLinks(container);
+    expect(links.map((a) => a.textContent)).toEqual(['Hero', 'a ring']);
+    expect(links[0].getAttribute('href')).toBe('/event/6050-1-001-01-first?lang=en&map=second-map&journal=hero');
+  });
+
+  it('FR-6 following a link in an event opens the entry in the panel, over the same event', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?lang=en');
+    fireEvent.click(eventLinks(container)[0]);
+    expect(search()).toBe('?lang=en&journal=hero');
+    expect(pathname()).toBe('/event/6050-1-001-01-first');
+    expect(within(panel()!).getByRole('heading', { level: 3 })).toHaveTextContent('Hero');
+  });
+
+  it('FR-6 a link in an entry replaces the panel content, and the address names the new entry', () => {
+    renderApp('/event/6050-1-001-01-first?journal=hero');
+    const link = within(panel()!).getByRole('link', { name: 'Tiedustelija' });
+    expect(link.getAttribute('href')).toBe('/event/6050-1-001-01-first?journal=scout');
+    fireEvent.click(link);
+    expect(search()).toBe('?journal=scout');
+    expect(within(panel()!).getByRole('heading', { level: 3 })).toHaveTextContent('Tiedustelija');
+    expect(within(panel()!).getAllByRole('article')).toHaveLength(1);
+  });
+
+  it('FR-6 a link to the entry that is open does nothing', () => {
+    renderApp('/event/6050-1-001-01-first?journal=lore');
+    fireEvent.click(within(panel()!).getByRole('link', { name: 'Tämä muistiinpano' }));
+    expect(search()).toBe('?journal=lore');
+    expect(within(panel()!).getByRole('heading', { level: 3 })).toHaveTextContent('Taustatarina');
+  });
+
+  it('FR-6 a click with Ctrl, Shift, Alt, Meta or another button is left to the browser', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    const link = eventLinks(container)[0];
+    for (const modifier of [{ ctrlKey: true }, { shiftKey: true }, { altKey: true }, { metaKey: true }, { button: 1 }]) {
+      fireEvent.click(link, modifier);
+      expect(search()).toBe('');
+      expect(panel()).toBeNull();
+    }
+  });
+
+  it('FR-6 the addresses of the links follow the address: after stepping, they point at the new event', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    expect(eventLinks(container)[0].getAttribute('href')).toBe('/event/6050-1-001-02-second?journal=hero');
+  });
+
+  it('FR-6 a click on text that is not a link does nothing', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    fireEvent.click(container.querySelector('section p')!);
+    expect(search()).toBe('');
   });
 });

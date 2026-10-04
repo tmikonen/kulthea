@@ -7,3 +7,5 @@ motto: "Katso ensin, puhu sitten."
 Keksitty esimerkkihahmo, jolla on vain suomenkielinen teksti. Liisa lähtee usein edeltä katsomaan, mitä tien päässä odottaa.
 
 Hän on taitava jäljittäjä ja tuntee Suonperän ympäristön.
+
+Hän kulkee usein yhdessä [[demo-kaarlo|Kaarlon]] kanssa ja viihtyy [[bog-end|Suonperässä]].

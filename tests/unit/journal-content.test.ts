@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadContent } from '../../plugin/load-content';
-import { cleanupTempContent, FIXTURES, loadModified, writeEntry } from './content-helpers';
+import { cleanupTempContent, FIXTURES, loadModified, writeEntry, writeEvent } from './content-helpers';
 
 afterEach(cleanupTempContent);
 
@@ -50,10 +50,18 @@ describe('journal content (B-20)', () => {
   });
 
   it('FR-6 a missing or empty journal folder is allowed', () => {
-    const missing = loadModified((dir) => fs.rmSync(path.join(dir, 'journal'), { recursive: true }));
+    /** The fixture events link to entries, so for a campaign with no entries they are replaced by events with no links. */
+    const noLinks = (dir: string) => {
+      for (const name of ['6050-1-001-01-first.md', '6050-1-001-02-second.md']) {
+        const file = path.join(dir, 'events', name);
+        fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/\[\[.*\]\].*\n?/g, 'Ei linkkejä.\n'));
+      }
+    };
+    const missing = loadModified((dir) => { noLinks(dir); fs.rmSync(path.join(dir, 'journal'), { recursive: true }); });
     expect(missing.errors).toEqual([]);
     expect(missing.bundle?.journal).toEqual([]);
     const empty = loadModified((dir) => {
+      noLinks(dir);
       fs.rmSync(path.join(dir, 'journal'), { recursive: true });
       fs.mkdirSync(path.join(dir, 'journal'));
     });
@@ -189,5 +197,60 @@ describe('journal content (B-20)', () => {
   it('FR-6 the real campaign draft in campaign/ is still valid without entries', () => {
     const { errors } = loadContent(path.resolve(__dirname, '../../campaign'));
     expect(errors).toEqual([]);
+  });
+});
+
+describe('journal links in the build (B-23)', () => {
+  it('FR-6 a link to an entry that does not exist fails the build, naming the file, the language and the id', () => {
+    const { errors, bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-bad.md', 'title: Huono\nlocation: main-only', '@fi\nTeksti.\n\n@en\nSee [[nobody]].'));
+    expect(bundle).toBeNull();
+    expect(errors).toEqual([
+      expect.stringMatching(/events\/6050-1-001-03-bad\.md: in the "en" text, the link \[\[nobody\]\] names no journal entry "nobody"/),
+    ]);
+  });
+
+  it('FR-6 every language section is checked, in events and in entries', () => {
+    const { errors } = loadModified((dir) => {
+      writeEvent(dir, '6050-1-001-03-bad.md', 'title: Huono\nlocation: main-only', '@fi\nSee [[a1]].\n\n@en\nSee [[b2]].');
+      writeEntry(dir, 'bad-entry.md', 'type: note\nname: X', '@fi\nTeksti.\n\n@en\nSee [[c3]].');
+    });
+    expect(errors).toHaveLength(3);
+    expect(errors.join('\n')).toMatch(/bad\.md: in the "fi" text, the link \[\[a1\]\]/);
+    expect(errors.join('\n')).toMatch(/bad\.md: in the "en" text, the link \[\[b2\]\]/);
+    expect(errors.join('\n')).toMatch(/journal\/bad-entry\.md: in the "en" text, the link \[\[c3\]\]/);
+  });
+
+  it('FR-6 a malformed link is an error with the file', () => {
+    const { errors } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-bad.md', 'title: Huono\nlocation: main-only', 'See [[ and [[]].'));
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.every((e) => /bad\.md: in the "fi" text,/.test(e))).toBe(true);
+  });
+
+  it('FR-6 a link to an entry works in an entry text, to any type, and to a location by its id', () => {
+    const { errors, bundle } = loadModified((dir) =>
+      writeEntry(dir, 'other.md', 'type: note\nname: Muu', 'Katso [[hero]], [[ring]], [[scout]], [[both-places]] ja [[lore|tarina]].'));
+    expect(errors).toEqual([]);
+    const html = bundle!.journal.find((e) => e.id === 'other')!.text.fi;
+    expect(html.match(/data-journal="/g)).toHaveLength(5);
+    expect(html).toContain('data-journal="both-places">Molemmat paikat</a>');
+    expect(html).toContain('data-journal="lore">tarina</a>');
+  });
+
+  it('FR-9 the text of a link follows the language of its section, and falls back to the default name', () => {
+    const { bundle } = loadContent(FIXTURES);
+    const first = bundle!.events.find((e) => e.id.endsWith('-first'))!;
+    expect(first.text.fi).toContain('data-journal="hero">Sankari</a>');
+    expect(first.text.en).toContain('data-journal="hero">Hero</a>');
+    // A link with no text to an entry that has no English name: the Finnish name.
+    const { bundle: other } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-x.md', 'title: X\nlocation: main-only', '@fi\nTeksti [[scout]].\n\n@en\nText [[scout]].'));
+    expect(other!.events.find((e) => e.id.endsWith('-x'))!.text.en).toContain('data-journal="scout">Tiedustelija</a>');
+  });
+
+  it('FR-6 an entry with its own error does not make every link to it an error too', () => {
+    const { errors } = loadModified((dir) => writeEntry(dir, 'hero.md', 'type: monster\nname: X'));
+    expect(errors).toEqual([expect.stringMatching(/journal\/hero\.md: "type" must be one of/)]);
   });
 });

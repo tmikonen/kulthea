@@ -7,3 +7,5 @@ showOn:
   location: ancient-jinteni-ruins
 ---
 Keksitty esimerkkitapahtuma. Tiedustelijat eroavat seurueesta ja menevät muinaisille raunioille. Eronnut ryhmä näytetään Suonperän kartalla.
+
+[[demo-liisa]] johtaa tiedustelijoita, ja kohteena ovat [[ancient-jinteni-ruins|rauniot]].

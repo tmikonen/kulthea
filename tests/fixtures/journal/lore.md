@@ -5,7 +5,7 @@ name:
   en: Lore
 ---
 @fi
-Muistiinpanon teksti.
+Muistiinpanon teksti. [[lore|Tämä muistiinpano]] viittaa itseensä.
 
 @en
 The note's text.

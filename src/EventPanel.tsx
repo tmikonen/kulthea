@@ -1,4 +1,6 @@
+import type { To } from 'react-router';
 import type { EventDef } from './content/types';
+import { RichText } from './journal/RichText';
 import { resolveText } from './content/text';
 import styles from './EventPanel.module.css';
 
@@ -21,11 +23,14 @@ interface Props {
   previousLabel: string;
   nextLabel: string;
   onStep: (target: EventDef) => void;
+  /** The address and the action of a journal link in the text. */
+  linkTo: (id: string) => To;
+  onOpenEntry: (id: string) => void;
 }
 
 /** The current event's details, below the map, with the buttons to step to the neighbouring events. */
 export function EventPanel({
-  event, locationName, date, textHtml, notTranslated, label, lang, defaultLang, previous, next, previousLabel, nextLabel, onStep,
+  event, locationName, date, textHtml, notTranslated, label, lang, defaultLang, previous, next, previousLabel, nextLabel, onStep, linkTo, onOpenEntry,
 }: Props) {
   // The arrow keys step while focus is in the panel. They are not handled on the map, which pans
   // with them, and a modified arrow (such as Alt+Left, the browser's back) is left alone.
@@ -54,7 +59,7 @@ export function EventPanel({
         <p className={styles.date}>{date}</p>
         {locationName && <p className={styles.location}>{locationName}</p>}
         {notTranslated && <p className={styles.note}>{notTranslated}</p>}
-        <div className={styles.text} dangerouslySetInnerHTML={{ __html: textHtml }} />
+        <RichText className={styles.text} html={textHtml} hrefFor={linkTo} onOpen={onOpenEntry} />
       </div>
     </section>
   );

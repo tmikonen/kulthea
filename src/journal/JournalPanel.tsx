@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link, type To } from 'react-router';
 import { resolveText } from '../content/text';
 import type { JournalEntryDef, JournalType } from '../content/types';
+import { RichText } from './RichText';
 import { entryName, entryText, type JournalGroup, type JournalView } from './journal';
 import styles from './JournalPanel.module.css';
 
@@ -20,6 +21,9 @@ interface Props {
   indexTo: To;
   /** The note shown when an entry's text is in the default language because it has no translation. */
   notTranslated: string;
+  /** The address and the action of a journal link in an entry's text. */
+  linkTo: (id: string) => To;
+  onOpenEntry: (id: string) => void;
 }
 
 /**
@@ -27,7 +31,7 @@ interface Props {
  * When it opens, focus moves into it, and when it closes, focus goes back to where it was, unless the
  * user has already moved it to something else.
  */
-export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose, label, closeLabel, typeLabels, indexTo, notTranslated }: Props) {
+export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose, label, closeLabel, typeLabels, indexTo, notTranslated, linkTo, onOpenEntry }: Props) {
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     const opener = document.activeElement;
@@ -75,6 +79,8 @@ export function JournalPanel({ view, groups, lang, defaultLang, entryTo, onClose
             indexTo={indexTo}
             backLabel={label}
             notTranslated={notTranslated}
+            linkTo={linkTo}
+            onOpenEntry={onOpenEntry}
           />
         )}
       </div>
@@ -89,10 +95,12 @@ interface EntryProps {
   indexTo: To;
   backLabel: string;
   notTranslated: string;
+  linkTo: (id: string) => To;
+  onOpenEntry: (id: string) => void;
 }
 
 /** One entry: a link back to the index, the lead image, the name, the motto and the text. */
-function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated }: EntryProps) {
+function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated, linkTo, onOpenEntry }: EntryProps) {
   const name = entryName(entry, lang, defaultLang);
   const text = entryText(entry, lang, defaultLang);
   const motto = entry.motto === null ? null : resolveText(entry.motto, lang, defaultLang);
@@ -107,7 +115,7 @@ function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated
       <h3 className={styles.name}>{name}</h3>
       {motto && <p className={styles.motto}>{motto}</p>}
       {text.fallback && <p className={styles.note}>{notTranslated}</p>}
-      <div className={styles.text} dangerouslySetInnerHTML={{ __html: text.html }} />
+      <RichText className={styles.text} html={text.html} hrefFor={linkTo} onOpen={onOpenEntry} />
     </article>
   );
 }

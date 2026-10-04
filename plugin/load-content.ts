@@ -4,7 +4,8 @@ import { imageSize } from 'image-size';
 import { parse as parseYaml } from 'yaml';
 import { compareEvents, parseEventFileName } from '../src/content/eventName.ts';
 import { splitSections } from '../src/content/sections.ts';
-import { findRawHtml, renderMarkdown } from './markdown.ts';
+import { renderWithLinks } from './links.ts';
+import { findRawHtml } from './markdown.ts';
 import { JOURNAL_TYPES } from '../src/content/types.ts';
 import type { Campaign, EventDef, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
@@ -26,6 +27,12 @@ type Json = Record<string, unknown>;
 
 function isRecord(value: unknown): value is Json {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** A short text in the chosen language, falling back to the default language. */
+function resolveText(text: string | Record<string, string>, lang: string, defaultLang: string): string {
+  if (typeof text === 'string') return text;
+  return text[lang] ?? text[defaultLang] ?? '';
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -83,12 +90,20 @@ export function loadContent(dir: string): LoadResult {
     campaign?.defaultLanguage,
     errors,
   );
+  // The journal is read first, because the links in the text of events and entries need the names of the entries.
+  const drafts = campaign && locations
+    ? readJournal(path.join(dir, 'journal'), dir, rel, campaign, locations, errors, warnings)
+    : null;
+  const linkName: LinkName = (id, lang) => {
+    // When an entry has an error, its own error is enough: do not report every link to the entries as broken too.
+    if (drafts === null) return id;
+    const draft = drafts?.find((d) => d.id === id);
+    return draft && campaign ? resolveText(draft.name, lang, campaign.defaultLanguage) : undefined;
+  };
   const events = campaign && maps && locations
-    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, errors, warnings)
+    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, errors, warnings)
     : null;
-  const journal = campaign && locations
-    ? validateJournal(path.join(dir, 'journal'), dir, rel, campaign, locations, errors, warnings)
-    : null;
+  const journal = drafts ? renderJournal(drafts, linkName, errors) : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
 
   if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) return { bundle: null, errors, warnings };
@@ -221,12 +236,23 @@ function isNotApplicable(value: unknown): boolean {
   return typeof value === 'string' && value.trim().toLowerCase() === 'n/a';
 }
 
+/** The text of a journal link with no text of its own in a language, or undefined when no entry has that id. */
+type LinkName = (id: string, lang: string) => string | undefined;
+
+/** Renders a language section to HTML, reporting the problems of its journal links. */
+function renderText(markdown: string, lang: string, linkName: LinkName, err: (problem: string) => void): string {
+  const { html, errors } = renderWithLinks(markdown, (id) => linkName(id, lang));
+  for (const problem of errors) err(`in the "${lang}" text, ${problem}`);
+  return html;
+}
+
 function validateEvents(
   eventsDir: string,
   rel: (file: string) => string,
   campaign: Campaign,
   maps: MapDef[],
   locations: LocationDef[],
+  linkName: LinkName,
   errors: string[],
   warnings: string[],
 ): EventDef[] | null {
@@ -292,7 +318,7 @@ function validateEvents(
     for (const [lang, markdown] of Object.entries(sections)) {
       const html = findRawHtml(markdown);
       if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
-      else text[lang] = renderMarkdown(markdown);
+      else text[lang] = renderText(markdown, lang, linkName, err);
     }
     if (front.title === undefined) err('"title" is missing');
     else if (!hasText(front.title, defaultLang, defaultLang)) {
@@ -449,7 +475,13 @@ function readImage(
   return { src: inside.split(path.sep).join('/'), width: dims.width, height: dims.height };
 }
 
-function validateJournal(
+/** An entry as read from its file: everything but the rendered text. */
+interface JournalDraft extends Omit<JournalEntryDef, 'text'> {
+  file: string;
+  sections: Record<string, string>;
+}
+
+function readJournal(
   journalDir: string,
   contentDir: string,
   rel: (file: string) => string,
@@ -457,12 +489,12 @@ function validateJournal(
   locations: LocationDef[],
   errors: string[],
   warnings: string[],
-): JournalEntryDef[] | null {
+): JournalDraft[] | null {
   if (!fs.existsSync(journalDir)) return [];
   const before = errors.length;
   const defaultLang = campaign.defaultLanguage;
   const locationsById = new Map(locations.map((location) => [location.id, location]));
-  const entries: JournalEntryDef[] = [];
+  const entries: JournalDraft[] = [];
 
   const files = fs.readdirSync(journalDir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && !entry.name.startsWith('.'))
@@ -525,19 +557,34 @@ function validateJournal(
 
     const image = front.image === undefined ? null : readImage(front.image, contentDir, file, err, warnings);
 
-    const text: Record<string, string> = {};
     const { sections, errors: sectionErrors } = splitSections(
       eventBody(fileText, match[0].length), campaign.languages, defaultLang);
     for (const problem of sectionErrors) err(problem);
     for (const [lang, markdown] of Object.entries(sections)) {
       const html = findRawHtml(markdown);
       if (html.length > 0) err(`raw HTML is not allowed in the "${lang}" text (found ${html[0]})`);
-      else text[lang] = renderMarkdown(markdown);
     }
 
-    if (errors.length === entryErrors && type) entries.push({ id, type, name, motto, text, image });
+    if (errors.length === entryErrors && type) entries.push({ id, type, name, motto, image, file, sections });
   }
 
+  return errors.length > before ? null : entries;
+}
+
+/** Renders the texts of the entries, which needs the names of all the entries for the links. */
+function renderJournal(
+  drafts: JournalDraft[],
+  linkName: LinkName,
+  errors: string[],
+): JournalEntryDef[] | null {
+  const before = errors.length;
+  const entries: JournalEntryDef[] = drafts.map(({ file, sections, ...entry }) => {
+    const text: Record<string, string> = {};
+    for (const [lang, markdown] of Object.entries(sections)) {
+      text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`));
+    }
+    return { ...entry, text };
+  });
   if (errors.length > before) return null;
   const order = (type: JournalType) => JOURNAL_TYPES.indexOf(type);
   return entries.sort((a, b) => order(a.type) - order(b.type) || a.id.localeCompare(b.id));

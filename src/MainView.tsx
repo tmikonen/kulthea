@@ -83,6 +83,11 @@ export function MainView({ event }: { event?: EventDef }) {
     return next;
   };
   const closeJournal = () => setParams(withJournal(null));
+  /** A journal link in a text: it opens the entry over the same event, unless that entry is already open. */
+  const entryLink = (id: string) => ({ pathname: location.pathname, search: withJournal(id).toString() });
+  const openEntry = (id: string) => {
+    if (params.get('journal') !== id) setParams(withJournal(id));
+  };
   useEffect(() => {
     if (!view) return;
     const onKey = (key: KeyboardEvent) => {
@@ -160,6 +165,8 @@ export function MainView({ event }: { event?: EventDef }) {
             previousLabel={uiText(ui, 'previous', lang, defaultLang)}
             nextLabel={uiText(ui, 'next', lang, defaultLang)}
             onStep={step}
+            linkTo={entryLink}
+            onOpenEntry={openEntry}
           />
         )}
         {view && (
@@ -174,6 +181,8 @@ export function MainView({ event }: { event?: EventDef }) {
             closeLabel={uiText(ui, 'closeJournal', lang, defaultLang)}
             indexTo={{ pathname: location.pathname, search: withJournal(INDEX_PARAM).toString() }}
             notTranslated={uiText(ui, 'notTranslated', lang, defaultLang)}
+            linkTo={entryLink}
+            onOpenEntry={openEntry}
             typeLabels={{
               pc: uiText(ui, 'typePc', lang, defaultLang),
               npc: uiText(ui, 'typeNpc', lang, defaultLang),

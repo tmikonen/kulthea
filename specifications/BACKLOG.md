@@ -726,7 +726,7 @@ Feedback wanted:
 
 ## B-23 Journal links in text
 
-Status: defined
+Status: done
 
 Related: FR-6, FR-9, "Journal links" (data model), "Validation rules".
 
@@ -743,11 +743,11 @@ How to check by hand:
 4. Switch to EN. An entry's name in a link follows the language.
 
 Acceptance criteria:
-- [ ] `[[id]]` and `[[id|text]]` become links in event and entry text. Several links in one paragraph work, and the syntax inside code is left as written.
-- [ ] A link without text shows the entry's name in the language of the text (a location's name for a location entry), falling back to the default language's name.
-- [ ] Following a link in an event opens the panel on the entry, and the event, map and language are unchanged. Following a link inside an entry replaces the panel content and adds a history entry.
-- [ ] The build fails, naming the file and the id, when a link names an id that is not an entry, in any language section of an event or an entry. A malformed link (empty id, or an unclosed `[[`) is also an error.
-- [ ] A link can be reached and followed with the keyboard (Tab and Enter).
+- [x] `[[id]]` and `[[id|text]]` become links in event and entry text. Several links in one paragraph work, and the syntax inside code is left as written.
+- [x] A link without text shows the entry's name in the language of the text (a location's name for a location entry), falling back to the default language's name.
+- [x] Following a link in an event opens the panel on the entry, and the event, map and language are unchanged. Following a link inside an entry replaces the panel content and adds a history entry.
+- [x] The build fails, naming the file and the id, when a link names an id that is not an entry, in any language section of an event or an entry. A malformed link (empty id, or an unclosed `[[`) is also an error.
+- [x] A link can be reached and followed with the keyboard (Tab and Enter).
 
 Automated tests: unit tests for the link parser (both forms, several in a paragraph, code, errors, language names and fallback); component tests for following links in an event and in an entry; a Playwright test that clicks a link in an event, then one in the entry, and goes back.
 

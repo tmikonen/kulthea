@@ -8,5 +8,9 @@ image: images/demo-rengas.png
 @fi
 Keksitty esine. Yksinkertainen rautasormus, jonka sisällä on kulunut kaiverrus.
 
+Sormuksen omistaa nyt [[demo-kaarlo]].
+
 @en
 An invented item. A plain iron ring with a worn engraving on the inside.
+
+The ring is now owned by [[demo-kaarlo]].

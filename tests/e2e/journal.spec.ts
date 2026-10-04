@@ -50,6 +50,7 @@ test.describe('journal button and panel (B-21)', () => {
     await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}$`));
 
     await button(page).click();
+    await expect(panel(page)).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(panel(page)).toHaveCount(0);
     await page.goBack();
@@ -268,5 +269,63 @@ test.describe('journal entry view (B-22)', () => {
     await expect(entry(page)).toBeVisible();
     expect(await scroller.evaluate((el) => el.scrollTop)).toBe(0);
     expect(await scroller.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+  });
+});
+
+test.describe('journal links in text (B-23)', () => {
+  const eventText = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ });
+  const entry = (page: Page) => panel(page).locator('article');
+
+  test('FR-6 a name in the event text is a link: it opens the entry over the same event, and back closes it', async ({ page }) => {
+    await open(page);
+    const link = eventText(page).getByRole('link', { name: 'Sankari' });
+    await expect(link).toHaveAttribute('href', new RegExp(`#/event/${FIRST}\\?journal=hero$`));
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}\\?journal=hero$`));
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sankari');
+    await expect(eventText(page).getByRole('heading', { level: 2 })).toHaveText('Ensimmäinen');
+    await page.goBack();
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test('FR-6 a link inside an entry replaces the content, each followed link is a step back, and the panel stays open', async ({ page }) => {
+    await open(page, '?journal=hero');
+    await entry(page).getByRole('link', { name: 'Tiedustelija' }).click();
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Tiedustelija');
+    await expect(panel(page)).toBeVisible();
+    await page.goBack();
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sankari');
+    await entry(page).getByRole('link', { name: 'sormus' }).click();
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sormus');
+  });
+
+  test('FR-6 a link can be followed with the keyboard, and its address opens the same entry when visited', async ({ page }) => {
+    await open(page);
+    const link = eventText(page).getByRole('link', { name: 'sormus' });
+    await link.focus();
+    await page.keyboard.press('Enter');
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sormus');
+    await page.keyboard.press('Escape');
+    const href = (await link.getAttribute('href'))!;
+    await page.goto(`./${href}`);
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Sormus');
+  });
+
+  test('FR-9 the link text and the entry follow the language', async ({ page }) => {
+    await open(page, '?lang=en');
+    await eventText(page).getByRole('link', { name: 'Hero' }).click();
+    await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText('Hero');
+    await expect(page).toHaveURL(/journal=hero&lang=en$|lang=en&journal=hero$/);
+  });
+
+  test('FR-6 a link is easy to see: it is underlined and in its own colour', async ({ page }) => {
+    await open(page);
+    const link = eventText(page).getByRole('link', { name: 'Sankari' });
+    const style = await link.evaluate((a) => {
+      const s = getComputedStyle(a);
+      return { color: s.color, decoration: s.textDecorationLine, body: getComputedStyle(a.parentElement!).color };
+    });
+    expect(style.decoration).toContain('underline');
+    expect(style.color).not.toBe(style.body);
   });
 });

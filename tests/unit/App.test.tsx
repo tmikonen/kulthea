@@ -186,7 +186,7 @@ describe('event view and routing (B-11)', () => {
     expect(path()).toBe('/event/6050-1-001-02-second');
     const panel = screen.getByRole('region', { name: 'Tapahtuma' });
     expect(within(panel).getByRole('heading', { level: 2, name: 'Toinen' })).toBeInTheDocument();
-    expect(within(panel).getByText('Molemmat paikat')).toBeInTheDocument();
+    expect(panel.querySelector('.location')).toHaveTextContent('Molemmat paikat');
   });
 
   it('FR-9 the panel follows the language, with the default language where there is no translation', () => {

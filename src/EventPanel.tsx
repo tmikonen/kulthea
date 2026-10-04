@@ -40,9 +40,7 @@ export function EventPanel({
 
   return (
     <section className={styles.panel} aria-label={label} onKeyDown={onKeyDown}>
-      <h2 className={styles.title}>{resolveText(event.title, lang, defaultLang)}</h2>
-      <p className={styles.date}>{date}</p>
-      {locationName && <p className={styles.location}>{locationName}</p>}
+      {/* The buttons have a row of their own above the details, so that they stay in one place however many lines the details have. */}
       <div className={styles.stepper}>
         <button type="button" disabled={!previous} onClick={() => previous && onStep(previous)}>
           {previousLabel}
@@ -51,8 +49,13 @@ export function EventPanel({
           {nextLabel}
         </button>
       </div>
-      {notTranslated && <p className={styles.note}>{notTranslated}</p>}
-      <div className={styles.text} dangerouslySetInnerHTML={{ __html: textHtml }} />
+      <div className={styles.content}>
+        <h2 className={styles.title}>{resolveText(event.title, lang, defaultLang)}</h2>
+        <p className={styles.date}>{date}</p>
+        {locationName && <p className={styles.location}>{locationName}</p>}
+        {notTranslated && <p className={styles.note}>{notTranslated}</p>}
+        <div className={styles.text} dangerouslySetInnerHTML={{ __html: textHtml }} />
+      </div>
     </section>
   );
 }

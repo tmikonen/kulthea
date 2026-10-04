@@ -247,3 +247,62 @@ test.describe('event text (B-10)', () => {
     expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
   });
 });
+
+test.describe('the position of the stepping buttons (BUG-5)', () => {
+  const IDS = [
+    '6050-1-001-01-first', '6050-1-001-02-second', '6050-1-9-01-ninth', '6050-1-10-01-on-second-map',
+    '6050-2-003-01-split', '6050-2-070-01-standalone', '6050-3-001-01-jump',
+  ];
+  const where = async (page: Page) => {
+    const previous = (await page.getByRole('button', { name: /^(Edellinen|Previous)$/ }).boundingBox())!;
+    const next = (await page.getByRole('button', { name: /^(Seuraava|Next)$/ }).boundingBox())!;
+    return [previous.x, previous.y, next.x, next.y].map(Math.round);
+  };
+
+  test('FR-2 the buttons stay in the same place for every event, with or without a location line', async ({ page }) => {
+    await page.goto(`./#/event/${IDS[0]}`);
+    await expect(title(page)).toBeVisible();
+    const first = await where(page);
+    for (const id of IDS) {
+      await page.goto(`./#/event/${id}`);
+      await expect(title(page)).toBeVisible();
+      expect(await where(page), id).toEqual(first);
+    }
+  });
+
+  test('FR-2 the buttons do not move while stepping, so Next can be clicked again and again', async ({ page }) => {
+    await page.goto(`./#/event/${IDS[0]}`);
+    const first = await where(page);
+    for (let i = 1; i < IDS.length; i++) {
+      await page.getByRole('button', { name: 'Seuraava' }).click();
+      await expect(page).toHaveURL(new RegExp(`#/event/${IDS[i]}`));
+      expect(await where(page), IDS[i]).toEqual(first);
+    }
+  });
+
+  test('FR-2 the buttons stay in the same place in English, with the note for a missing translation', async ({ page }) => {
+    await page.goto(`./#/event/${IDS[0]}`);
+    const first = await where(page);
+    await page.goto(`./#/event/${IDS[1]}?lang=en`); // no English text: the panel has the note line
+    await expect(page.getByRole('region', { name: 'Event' })).toContainText('Not available in this language');
+    // The labels are of another width in English, so the right button moves sideways. The rows do not move.
+    const now = await where(page);
+    expect([now[0], now[1], now[3]]).toEqual([first[0], first[1], first[3]]);
+  });
+
+  test('FR-2 a long text scrolls under the buttons, which stay in view', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 320 });
+    await page.goto(`./#/event/${IDS[1]}`);
+    await expect(title(page)).toBeVisible();
+    const before = await where(page);
+    const panel = page.getByRole('region', { name: 'Tapahtuma' });
+    const box = (await panel.boundingBox())!;
+    const buttons = (await page.getByRole('button', { name: 'Seuraava' }).boundingBox())!;
+    expect(buttons.y + buttons.height).toBeLessThanOrEqual(box.y + box.height + 1);
+    // The text is longer than the small panel, and scrolling it does not move the buttons.
+    const scroller = panel.locator('[class*="content"]');
+    await scroller.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    expect(await where(page)).toEqual(before);
+  });
+});

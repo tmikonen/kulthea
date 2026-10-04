@@ -18,7 +18,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-2 | Map is not refitted when the window is resized | fixed | B-4 |
 | BUG-3 | Quick shrink then enlarge of the window loses the refit | fixed | B-4 |
 | BUG-4 | The map is not refitted when its area changes size, and the area changes with the event text | fixed | B-15 |
-| BUG-5 | The Previous and Next buttons move up when the event has no location line | open | B-12 |
+| BUG-5 | The Previous and Next buttons move up when the event has no location line | fixed | B-12 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -65,10 +65,10 @@ Bugs found by the product owner while testing. This is not the list of planned w
 
 ## BUG-5: The Previous and Next buttons move up when the event has no location line
 
-- Status: open
+- Status: fixed
 - Related item: B-12 (the buttons), B-11 (the panel)
 - Found: the product owner, when testing Milestone 1.
 - Description: the buttons in the event panel are placed after the last line of the event's details. When an event has no location line (an event at a one-off position has no named place), the buttons move up by one line, so their place on the screen changes from event to event. While stepping through the events the buttons should stay where they are, so that the user can click Next repeatedly without moving the pointer.
-- Root cause: the location line is drawn only when the event has a named location, and the buttons follow it in the normal flow of the panel, so the panel's lines above the buttons change in number from event to event. Not yet confirmed in a test.
-- Fix: not made yet. Options: give the buttons a fixed place that does not depend on the lines above them, such as a row of their own at the top or bottom of the panel, or always reserve the height of the location line.
-- Verified by: not yet. A test should check that the buttons are at the same position for events with and without a location line, and it should fail before the fix.
+- Root cause: the location line is drawn only when the event has a named location, and the buttons follow it in the normal flow of the panel, so the panel's lines above the buttons change in number from event to event. Confirmed: a browser test that compares the buttons' positions over all the fixture events failed before the fix.
+- Fix: the buttons have a row of their own at the top of the panel, above the details. The title, date, location, note and text are in a scrolling area below the row, so a long text scrolls under the buttons and they stay in view.
+- Verified by: `tests/e2e/events.spec.ts`, "FR-2 the buttons stay in the same place for every event, with or without a location line", "FR-2 the buttons do not move while stepping, so Next can be clicked again and again", "FR-2 the buttons stay in the same place in English, with the note for a missing translation" and "FR-2 a long text scrolls under the buttons, which stay in view" (all failed before the fix and pass now).

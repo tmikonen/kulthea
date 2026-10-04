@@ -222,7 +222,7 @@ A `track` value is free text and is not checked against the journal, so a mistyp
 ## Application architecture
 
 - State: the URL is the single source of truth for the current event, the active map, the open journal entry and the language, read through React Router's hash router. The back button, a reload and later shareable links work without a second copy of the state. Map pan and zoom stay as local component state.
-- Layout on desktop: the map fills the upper area, with the stepper and the event details (title, date, text, images and previous/next controls) in a lower panel, like Wheel of Timelines. The event panel has a fixed height with its own scrolling, so the map keeps its size from event to event, and the map refits whenever its area changes size. The journal panel slides in from the right over the main view. On a phone the journal panel covers the screen.
+- Layout on desktop: the map fills the upper area, with the stepper and the event details (title, date, text, images and previous/next controls) in a lower panel, like Wheel of Timelines. The event panel has a fixed height. The previous and next buttons have a row of their own at its top, so they stay in one place, and the rest of the panel scrolls below them, so the map keeps its size from event to event, and the map refits whenever its area changes size. The journal panel slides in from the right over the main view. On a phone the journal panel covers the screen.
 - Styling: plain CSS with CSS Modules, so styles are scoped per component and a custom fantasy look is easy to build.
 - Map switching: a manual map switch lasts only until the next step. Stepping always shows the new event on its own map.
 

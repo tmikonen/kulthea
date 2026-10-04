@@ -108,3 +108,21 @@ describe('language switch (B-6)', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Test Campaign' })).toBeInTheDocument();
   });
 });
+
+describe('location markers (B-7)', () => {
+  const markerCount = (container: HTMLElement) => container.querySelectorAll('path.leaflet-interactive').length;
+
+  it('FR-1 shows a marker for each location that has a position on the displayed map', () => {
+    const { container, unmount } = renderApp();
+    expect(markerCount(container)).toBe(2); // both-places and main-only
+    unmount();
+    const second = renderApp('/?map=second-map');
+    expect(markerCount(second.container)).toBe(2); // both-places and second-only
+  });
+
+  it('FR-1 switching maps changes the markers', () => {
+    const { container } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(markerCount(container)).toBe(2);
+  });
+});

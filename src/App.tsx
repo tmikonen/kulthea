@@ -6,12 +6,13 @@ import { resolveText, uiText } from './content/text';
 import { LanguageSwitch } from './LanguageSwitch';
 import { activeMap } from './map/mapParam';
 import { MapSwitcher } from './map/MapSwitcher';
+import { markersFor } from './map/markers';
 import { MapView } from './map/MapView';
 import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './App.module.css';
 
 export function App() {
-  const { campaign, maps, ui } = content;
+  const { campaign, maps, locations, ui } = content;
   const defaultLang = campaign.defaultLanguage;
   const [params, setParams] = useSearchParams();
   const lang = activeLanguage(campaign.languages, defaultLang, params.get('lang'));
@@ -40,7 +41,12 @@ export function App() {
           onSelect={(language) => setParam('lang', language)}
         />
       </header>
-      <MapView map={current} label={nameOf(current)} onImageLoad={() => setShown(true)}>
+      <MapView
+        map={current}
+        label={nameOf(current)}
+        markers={markersFor(locations, current.id, lang, defaultLang)}
+        onImageLoad={() => setShown(true)}
+      >
         <MapSwitcher
           maps={maps}
           activeId={current.id}

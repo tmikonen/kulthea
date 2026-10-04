@@ -25,6 +25,13 @@ export interface MapDef {
   main: boolean;
 }
 
+/** A named place with a position, `[x, y]` in percent of the image, on each map it appears on. */
+export interface LocationDef {
+  id: string;
+  name: LocalizedText;
+  positions: Record<string, [number, number]>;
+}
+
 /** Interface texts by key, each a plain value (default language only) or a language map. */
 export type UiTexts = Record<string, LocalizedText>;
 
@@ -37,6 +44,7 @@ export interface ContentMap extends MapDef {
 export interface LoadedContent {
   campaign: Campaign;
   maps: MapDef[];
+  locations: LocationDef[];
   ui: UiTexts;
 }
 
@@ -44,5 +52,6 @@ export interface LoadedContent {
 export interface ContentBundle {
   campaign: Campaign;
   maps: ContentMap[];
+  locations: LocationDef[];
   ui: UiTexts;
 }

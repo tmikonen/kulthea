@@ -48,6 +48,12 @@ describe('content loading (B-3)', () => {
     expect(bundle?.campaign.defaultLanguage).toBe('fi');
     expect(bundle?.campaign.languages).toEqual(['fi', 'en']);
     expect(bundle?.campaign.months).toHaveLength(5);
+    expect(bundle?.locations.map((l) => l.id)).toEqual(['both-places', 'main-only', 'second-only']);
+    expect(bundle?.locations[0]).toEqual({
+      id: 'both-places',
+      name: { fi: 'Molemmat paikat', en: 'Both Places' },
+      positions: { 'main-map': [25, 75], 'second-map': [50, 50] },
+    });
     expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true },
@@ -93,6 +99,63 @@ describe('content loading (B-3)', () => {
         editJson(dir, 'ui.json', (ui) => { ui.maps = { fi: 'Kartta' }; }));
       expect(errors).toEqual([]);
       expect(bundle?.ui.maps).toEqual({ fi: 'Kartta' });
+    });
+
+    it('FR-1 rejects a missing locations.json and names the file', () => {
+      const { errors, bundle } = loadModified((dir) => fs.rmSync(path.join(dir, 'locations.json')));
+      expect(bundle).toBeNull();
+      expect(errors).toEqual([expect.stringMatching(/locations\.json: file not found/)]);
+    });
+
+    it('FR-1 rejects duplicate location ids', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { l[1].id = 'both-places'; }));
+      expect(errors).toEqual([expect.stringMatching(/locations\.json: location "both-places": duplicate id/)]);
+    });
+
+    it('FR-1 rejects a position on an unknown map', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { l[1].positions.nowhere = [10, 10]; }));
+      expect(errors).toEqual([expect.stringMatching(/locations\.json: location "main-only": position on unknown map "nowhere"/)]);
+    });
+
+    it.each([
+      ['x above 100', [120, 50]],
+      ['y above 100', [50, 100.1]],
+      ['a negative x', [-1, 50]],
+    ])('FR-1 rejects a position outside 0 to 100 (%s)', (_, position) => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { l[1].positions['main-map'] = position; }));
+      expect(errors).toEqual([expect.stringMatching(/locations\.json: location "main-only": position on map "main-map" must be \[x, y\] with both values from 0 to 100/)]);
+    });
+
+    it.each([
+      ['one number', [50]],
+      ['three numbers', [1, 2, 3]],
+      ['text', ['a', 'b']],
+      ['not a list', 'middle'],
+    ])('FR-1 rejects a position that is not an [x, y] pair (%s)', (_, position) => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { l[1].positions['main-map'] = position; }));
+      expect(errors).toEqual([expect.stringMatching(/location "main-only": position on map "main-map" must be \[x, y\]/)]);
+    });
+
+    it('FR-1 accepts positions on the edges, 0 and 100', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { l[1].positions['main-map'] = [0, 100]; }));
+      expect(errors).toEqual([]);
+    });
+
+    it('FR-9 rejects a location name with no default-language text', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { l[0].name = { en: 'Both Places' }; }));
+      expect(errors).toEqual([expect.stringMatching(/location "both-places": "name" has no text in the default language "fi"/)]);
+    });
+
+    it('FR-1 rejects a location with no positions object', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'locations.json', (l) => { delete l[1].positions; }));
+      expect(errors).toEqual([expect.stringMatching(/location "main-only": "positions" must be an object/)]);
     });
 
     it('FR-1 rejects two main maps', () => {

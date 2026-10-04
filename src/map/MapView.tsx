@@ -1,9 +1,10 @@
 import { useEffect, type ReactNode } from 'react';
 import { CRS } from 'leaflet';
-import { ImageOverlay, MapContainer, useMap } from 'react-leaflet';
+import { CircleMarker, ImageOverlay, MapContainer, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ContentMap } from '../content/types';
-import { imageBounds } from './coords';
+import { imageBounds, toLeaflet } from './coords';
+import type { MapMarker } from './markers';
 import styles from './MapView.module.css';
 
 /**
@@ -57,11 +58,13 @@ interface MapViewProps {
   label: string;
   /** Called when the map image has loaded, that is, when the map is shown. */
   onImageLoad?: () => void;
+  /** Location markers to draw on this map. */
+  markers?: MapMarker[];
   /** Controls drawn over the map area. */
   children?: ReactNode;
 }
 
-export function MapView({ map: def, label, onImageLoad, children }: MapViewProps) {
+export function MapView({ map: def, label, onImageLoad, markers = [], children }: MapViewProps) {
   const bounds = imageBounds(def);
   return (
     <div className={styles.map} role="region" aria-label={label}>
@@ -80,6 +83,16 @@ export function MapView({ map: def, label, onImageLoad, children }: MapViewProps
         className={styles.container}
       >
         <ImageOverlay url={def.imageUrl} bounds={bounds} eventHandlers={{ load: () => onImageLoad?.() }} />
+        {markers.map((marker) => (
+          <CircleMarker
+            key={marker.id}
+            center={toLeaflet(marker.position, def)}
+            radius={6}
+            pathOptions={{ color: '#7a1f1f', weight: 2, fillColor: '#d94a3d', fillOpacity: 0.9 }}
+          >
+            <Tooltip>{marker.label}</Tooltip>
+          </CircleMarker>
+        ))}
         <FitToImage map={def} />
       </MapContainer>
     </div>

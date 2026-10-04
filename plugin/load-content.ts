@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { imageSize } from 'image-size';
-import type { Campaign, LoadedContent, MapDef, Month, UiTexts } from '../src/content/types.ts';
+import type { Campaign, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
 export interface LoadResult {
   bundle: LoadedContent | null;
@@ -68,10 +68,17 @@ export function loadContent(dir: string): LoadResult {
     warnings,
   );
 
+  const locations = validateLocations(
+    readJson('locations.json'),
+    rel(path.join(dir, 'locations.json')),
+    maps?.map((map) => map.id),
+    campaign?.defaultLanguage,
+    errors,
+  );
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
 
-  if (errors.length > 0 || !campaign || !maps || !ui) return { bundle: null, errors, warnings };
-  return { bundle: { campaign, maps, ui }, errors, warnings };
+  if (errors.length > 0 || !campaign || !maps || !locations || !ui) return { bundle: null, errors, warnings };
+  return { bundle: { campaign, maps, locations, ui }, errors, warnings };
 }
 
 function validateCampaign(raw: unknown, file: string, errors: string[]): Campaign | null {
@@ -127,6 +134,66 @@ function validateCampaign(raw: unknown, file: string, errors: string[]): Campaig
     daysPerMonth: raw.daysPerMonth as number,
     dateFormat: dateFormat as Record<string, string>,
   };
+}
+
+function isPercentPosition(value: unknown): value is [number, number] {
+  return Array.isArray(value) && value.length === 2
+    && value.every((n) => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 100);
+}
+
+function validateLocations(
+  raw: unknown,
+  file: string,
+  mapIds: string[] | undefined,
+  defaultLanguage: string | undefined,
+  errors: string[],
+): LocationDef[] | null {
+  if (raw === undefined) return null;
+  const err = (problem: string) => errors.push(`${file}: ${problem}`);
+  if (!Array.isArray(raw)) {
+    err('must be a list of locations');
+    return null;
+  }
+  const before = errors.length;
+  const locations: LocationDef[] = [];
+  const ids = new Set<string>();
+
+  raw.forEach((entry, i) => {
+    if (!isRecord(entry)) {
+      err(`entry ${i + 1} must be an object`);
+      return;
+    }
+    const id = isNonEmptyString(entry.id) ? entry.id : undefined;
+    if (!id) {
+      err(`entry ${i + 1} has no "id"`);
+      return;
+    }
+    const where = `location "${id}"`;
+    if (ids.has(id)) err(`${where}: duplicate id`);
+    ids.add(id);
+
+    if (defaultLanguage !== undefined && !hasText(entry.name, defaultLanguage, defaultLanguage)) {
+      err(`${where}: "name" has no text in the default language "${defaultLanguage}"`);
+    }
+    if (!isRecord(entry.positions)) {
+      err(`${where}: "positions" must be an object with a position for each map`);
+      return;
+    }
+    for (const [mapId, position] of Object.entries(entry.positions)) {
+      if (mapIds !== undefined && !mapIds.includes(mapId)) {
+        err(`${where}: position on unknown map "${mapId}"`);
+      } else if (!isPercentPosition(position)) {
+        err(`${where}: position on map "${mapId}" must be [x, y] with both values from 0 to 100`);
+      }
+    }
+    locations.push({
+      id,
+      name: entry.name as LocationDef['name'],
+      positions: entry.positions as LocationDef['positions'],
+    });
+  });
+
+  return errors.length > before ? null : locations;
 }
 
 function validateUi(

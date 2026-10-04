@@ -176,7 +176,7 @@ Automated tests: unit tests for the resolver (plain value, language map, fallbac
 
 ## B-7 Locations
 
-Status: defined
+Status: done
 
 Related: "File formats" (`locations.json`), "Positions", "Validation rules".
 
@@ -188,11 +188,11 @@ How to check by hand:
 3. Put a position of 120 in `content/locations.json`. An error is shown.
 
 Acceptance criteria:
-- [ ] `content/locations.json` exists with a small demo set (about eight locations on the three maps, some on more than one map).
-- [ ] Each location's positions are percent values from 0 to 100 on a map that exists.
-- [ ] Errors: duplicate ids, a position on an unknown map, a position outside 0 to 100, a name with no default-language text.
-- [ ] Names are language maps or plain values, resolved with the resolver from B-6.
-- [ ] Markers appear at the converted positions on the displayed map.
+- [x] `content/locations.json` exists with a small demo set (eight locations on the three maps, some on more than one map: Port of Izar, Bentara, Ton-Bor, Bog End, Star Gate, Lean, Ruined Tower and Troll Cave, with positions chosen by the product owner and read off the map images).
+- [x] Each location's positions are percent values from 0 to 100 on a map that exists.
+- [x] Errors: duplicate ids, a position on an unknown map, a position outside 0 to 100, a name with no default-language text.
+- [x] Names are language maps or plain values, resolved with the resolver from B-6.
+- [x] Markers appear at the converted positions on the displayed map.
 
 Automated tests: unit tests for the validation; a test that the markers are placed at the converted positions; a Playwright test that the marker count and the tooltip text match the fixture.
 

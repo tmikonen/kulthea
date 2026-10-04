@@ -1,0 +1,18 @@
+[
+  { "id": "port-of-izar",  "name": { "fi": "Izarinportti", "en": "Port of Izar" },
+    "positions": { "bay-of-izar": [45.3, 79.0], "haestra": [48.8, 72.4] } },
+  { "id": "bentara",       "name": "Bentara",
+    "positions": { "bay-of-izar": [75.4, 57.7], "haestra": [58.3, 65.8], "bog-end": [91.5, 79.7] } },
+  { "id": "ton-bor",       "name": "Ton-Bor",
+    "positions": { "bay-of-izar": [98.7, 13.6], "bog-end": [94.5, 37.2] } },
+  { "id": "bog-end",       "name": { "fi": "Suonperä", "en": "Bog End" },
+    "positions": { "bog-end": [73.5, 44.5] } },
+  { "id": "star-gate",     "name": { "fi": "Tähtiportti", "en": "Star Gate" },
+    "positions": { "bog-end": [36.8, 36.0], "haestra": [55.6, 59.9] } },
+  { "id": "lean",          "name": "Lean",
+    "positions": { "bay-of-izar": [61.0, 60.7] } },
+  { "id": "ruined-tower",  "name": { "fi": "Rauniotorni", "en": "Ruined Tower" },
+    "positions": { "bay-of-izar": [59.3, 56.6] } },
+  { "id": "troll-cave",    "name": { "fi": "Peikkoluola", "en": "Troll Cave" },
+    "positions": { "bay-of-izar": [61.5, 56.6] } }
+]

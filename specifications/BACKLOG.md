@@ -726,7 +726,7 @@ Feedback wanted:
 
 ## B-23 Journal links in text
 
-Status: done
+Status: accepted
 
 Related: FR-6, FR-9, "Journal links" (data model), "Validation rules".
 
@@ -753,7 +753,7 @@ Automated tests: unit tests for the link parser (both forms, several in a paragr
 
 ## B-24 Events listed on entries
 
-Status: done
+Status: accepted
 
 Related: FR-6, FR-3, "Location entries", "Character event lists".
 

@@ -21,7 +21,7 @@ import styles from './MainView.module.css';
 /** The route segments of every map, worked out once when the app loads. */
 const routeSegments = buildRoutes(
   content.events,
-  content.maps.map((map) => map.id),
+  content.maps.map((map) => ({ id: map.id, routes: map.routes })),
   content.maps.find((map) => map.main)!.id,
   content.locations,
 );

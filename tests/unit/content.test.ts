@@ -195,6 +195,13 @@ describe('content loading (B-3)', () => {
       expect(bundle?.maps.map((m) => m.routes)).toEqual(['visit', 'history']);
     });
 
+    it('FR-5 accepts the routes setting overview on any map', () => {
+      const { errors, bundle } = loadModified((dir) =>
+        editJson(dir, 'maps.json', (maps) => { maps[1].routes = 'overview'; }));
+      expect(errors).toEqual([]);
+      expect(bundle?.maps.map((m) => m.routes)).toEqual(['history', 'overview']);
+    });
+
     it.each([
       ['another word', 'always'],
       ['a number', 1],
@@ -205,7 +212,7 @@ describe('content loading (B-3)', () => {
       const { errors, bundle } = loadModified((dir) =>
         editJson(dir, 'maps.json', (maps) => { maps[1].routes = value; }));
       expect(bundle).toBeNull();
-      expect(errors).toEqual([expect.stringMatching(/maps\.json: map "second-map": "routes" must be "history" or "visit"/)]);
+      expect(errors).toEqual([expect.stringMatching(/maps\.json: map "second-map": "routes" must be "history", "visit" or "overview"/)]);
     });
 
     it('FR-1 rejects two main maps', () => {

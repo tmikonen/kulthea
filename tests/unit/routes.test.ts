@@ -38,7 +38,8 @@ function ev(name: string, spec: Spec = {}): EventDef {
   };
 }
 
-const build = (events: EventDef[]) => buildRoutes(events, [MAIN, BOG], MAIN, locations);
+const build = (events: EventDef[]) =>
+  buildRoutes(events, [{ id: MAIN, routes: 'history' }, { id: BOG, routes: 'visit' }], MAIN, locations);
 
 /** The names of the events at the points of each segment on a map, as lists. */
 const lines = (segments: RouteSegment[], mapId: string) =>
@@ -181,7 +182,7 @@ describe('route logic: more cases (B-16)', () => {
 
   it('FR-5 no events, and a map that no event is on, give no segments', () => {
     expect(build([])).toEqual([]);
-    expect(buildRoutes([ev('A')], ['elsewhere'], MAIN, locations)).toEqual([]);
+    expect(buildRoutes([ev('A')], [{ id: 'elsewhere', routes: 'visit' }], MAIN, locations)).toEqual([]);
   });
 
   it('FR-5 the events of a group do not give segments here, only the party\'s do', () => {
@@ -262,5 +263,71 @@ describe('route logic: more cases (B-16)', () => {
     // At G1 the party's latest event is P1, on Bog End, so its line is there. At P2 the party has left.
     expect(lines(visibleRoutes(segments, events, 1, BOG, 'visit'), BOG)).toEqual([['P1']]);
     expect(lines(visibleRoutes(segments, events, 2, BOG, 'visit'), BOG)).toEqual([]);
+  });
+});
+
+describe('an overview map (BUG-6)', () => {
+  // On an overview map, an event at a place that is not on the map is skipped and does not break the route.
+  const maps = [
+    { id: MAIN, routes: 'history' as const },
+    { id: BOG, routes: 'overview' as const },
+  ];
+  const buildOverview = (events: EventDef[]) => buildRoutes(events, maps, MAIN, locations);
+
+  it('FR-5 events at places that are not on the map are skipped, and the route goes on past them', () => {
+    // U1 and U2 are only on the main map. On the overview map the route joins S1 to S2 across them.
+    const events = [ev('S1', { bog: [1, 1] }), ev('U1'), ev('U2'), ev('S2', { bog: [2, 2] })];
+    expect(lines(buildOverview(events), BOG)).toEqual([['S1', 'S2']]);
+  });
+
+  it('FR-5 the same events break the route on a map that is not an overview', () => {
+    const events = [ev('S1', { bog: [1, 1] }), ev('U1'), ev('S2', { bog: [2, 2] })];
+    const history = buildRoutes(events, [{ id: MAIN, routes: 'history' }, { id: BOG, routes: 'history' }], MAIN, locations);
+    expect(lines(history, BOG)).toEqual([['S1'], ['S2']]);
+    const visit = buildRoutes(events, [{ id: MAIN, routes: 'history' }, { id: BOG, routes: 'visit' }], MAIN, locations);
+    expect(lines(visit, BOG)).toEqual([['S1'], ['S2']]);
+    expect(lines(buildOverview(events), BOG)).toEqual([['S1', 'S2']]);
+  });
+
+  it('FR-5 an n/a event is skipped too, and a standalone event or a group\'s event still changes nothing', () => {
+    const events = [
+      ev('S1', { bog: [1, 1] }), ev('N', { main: null }), ev('G', { track: 'scout', bog: [9, 9] }),
+      ev('X', { track: 'none', bog: [8, 8] }), ev('S2', { bog: [2, 2] }),
+    ];
+    expect(lines(buildOverview(events), BOG)).toEqual([['S1', 'S2']]);
+  });
+
+  it('FR-5 a new segment on an event that is on the map still starts a new segment', () => {
+    const events = [ev('S1', { bog: [1, 1] }), ev('U'), ev('S2', { bog: [2, 2], newSegment: true }), ev('S3', { bog: [3, 3] })];
+    expect(lines(buildOverview(events), BOG)).toEqual([['S1'], ['S2', 'S3']]);
+  });
+
+  it('FR-5 a new segment on a skipped event still ends the route, because the jump is before it', () => {
+    const events = [ev('S1', { bog: [1, 1] }), ev('U', { newSegment: true }), ev('S2', { bog: [2, 2] })];
+    expect(lines(buildOverview(events), BOG)).toEqual([['S1'], ['S2']]);
+  });
+
+  it('FR-5 skipped events at the start and the end of the route change nothing', () => {
+    const events = [ev('U1'), ev('S1', { bog: [1, 1] }), ev('U2'), ev('S2', { bog: [2, 2] }), ev('U3')];
+    expect(lines(buildOverview(events), BOG)).toEqual([['S1', 'S2']]);
+  });
+
+  it('FR-5 an overview map shows the whole route up to the current event, as a history map does', () => {
+    const events = [ev('S1', { bog: [1, 1] }), ev('U'), ev('S2', { bog: [2, 2] }), ev('U2'), ev('S3', { bog: [3, 3] })];
+    const segments = buildOverview(events);
+    expect(lines(visibleRoutes(segments, events, 2, BOG, 'overview'), BOG)).toEqual([['S1', 'S2']]);
+    expect(lines(visibleRoutes(segments, events, 4, BOG, 'overview'), BOG)).toEqual([['S1', 'S2', 'S3']]);
+    // Also when the party's latest event is one that is not on the map.
+    expect(lines(visibleRoutes(segments, events, 3, BOG, 'overview'), BOG)).toEqual([['S1', 'S2']]);
+  });
+
+  it('FR-5 the main map is not changed by an overview map', () => {
+    const events = [ev('A'), ev('N', { main: null, bog: [5, 5] }), ev('B')];
+    expect(lines(buildOverview(events), MAIN)).toEqual([['A'], ['B']]);
+  });
+
+  it('FR-5 the Haestra case: a place that is on the map, then three that are not, then two that are, is one line', () => {
+    const events = [ev('Izar', { bog: [1, 1] }), ev('Lean'), ev('Tower'), ev('Camp'), ev('Bentara', { bog: [2, 2] }), ev('Izar2', { bog: [3, 3] })];
+    expect(lines(buildOverview(events), BOG)).toEqual([['Izar', 'Bentara', 'Izar2']]);
   });
 });

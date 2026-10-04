@@ -498,8 +498,8 @@ function validateMaps(
     }
 
     const routes = entry.routes === undefined ? (entry.main === true ? 'history' : 'visit') : entry.routes;
-    if (routes !== 'history' && routes !== 'visit') {
-      err(`${where}: "routes" must be "history" or "visit"`);
+    if (routes !== 'history' && routes !== 'visit' && routes !== 'overview') {
+      err(`${where}: "routes" must be "history", "visit" or "overview"`);
     }
 
     maps.push({
@@ -510,7 +510,7 @@ function validateMaps(
       height: entry.height as number,
       main: entry.main === true,
       focusZoom: typeof focusZoom === 'number' ? focusZoom : 0,
-      routes: routes === 'history' ? 'history' : 'visit',
+      routes: routes === 'history' || routes === 'overview' ? routes : 'visit',
     });
   });
 

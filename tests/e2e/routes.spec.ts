@@ -8,18 +8,21 @@ import { test, expect, type Page } from '@playwright/test';
 //   p5 (40,40)  jump (60,70, new segment)  p6 (80,80)
 //   n3 (50,10 on the second map)
 //   h1 (20,20 on the third map)  h2 (60,60)   p7 (30,30)   h3 (80,20)  h4 (90,90)
+//   o1 (20,20 on the fourth map, an overview)  p8 (50,50)  o2 (60,60)  j2 (80,20, new segment)  o3 (90,50)
 
 const ID = {
   p1: '6050-1-001-01-p1', p2: '6050-1-002-01-p2', p3: '6050-1-003-01-p3', standalone: '6050-1-004-01-standalone',
   p4: '6050-1-005-01-p4', n1: '6050-1-006-01-n1', n2: '6050-1-007-01-n2', p5: '6050-1-008-01-p5',
   jump: '6050-1-009-01-jump', p6: '6050-1-010-01-p6', n3: '6050-1-011-01-n3', h1: '6050-1-012-01-h1',
   h2: '6050-1-013-01-h2', p7: '6050-1-014-01-p7', h3: '6050-1-015-01-h3', h4: '6050-1-016-01-h4',
+  o1: '6050-1-017-01-o1', p8: '6050-1-018-01-p8', o2: '6050-1-019-01-o2', j2: '6050-1-020-01-j2', o3: '6050-1-021-01-o3',
 };
 
 type Point = [number, number];
 const P: Record<string, Point> = {
   p1: [10, 10], p2: [30, 20], p3: [50, 60], p4: [70, 30], p5: [40, 40], jump: [60, 70], p6: [80, 80],
   n1: [20, 20], n2: [80, 60], n3: [50, 10], h1: [20, 20], h2: [60, 60], h3: [80, 20], h4: [90, 90],
+  o1: [20, 20], o2: [60, 60], j2: [80, 20], o3: [90, 50],
 };
 
 const routeLines = (page: Page) => page.locator('path.route-line');
@@ -210,5 +213,47 @@ test.describe('the party route (B-17)', () => {
     await page.setViewportSize({ width: 1000, height: 700 });
     await page.waitForTimeout(600);
     await expectLines(page, [[P.p1, P.p2, P.p3, P.p4]]);
+  });
+});
+
+test.describe('an overview map (BUG-6)', () => {
+  test('FR-5 the route on an overview map goes on past events at places that are not on it', async ({ page }) => {
+    // o1 and o2 are on the fourth map. Between them p8 is only on the main map, and it does not break the route.
+    await open(page, ID.o1);
+    await expect(image(page)).toHaveAttribute('src', /second-map/);
+    await expectLines(page, []);
+    await open(page, ID.o2, '?map=fourth-map');
+    await expectLines(page, [[P.o1, P.o2]]);
+  });
+
+  test('FR-5 on the overview map the whole route stays, and a new segment starts a new line', async ({ page }) => {
+    await open(page, ID.j2);
+    await expectLines(page, [[P.o1, P.o2]]); // j2 starts a new segment, and is alone so far
+    await next(page).click();
+    await expect(page).toHaveURL(new RegExp(ID.o3));
+    await expectLines(page, [[P.o1, P.o2], [P.j2, P.o3]]);
+    await previous(page).click();
+    await expectLines(page, [[P.o1, P.o2]]);
+  });
+
+  test('FR-5 events that are not on the overview map do not break its route, even when the current event is one of them', async ({ page }) => {
+    await open(page, ID.p8, '?map=fourth-map');
+    await expect(image(page)).toHaveAttribute('src', /second-map/);
+    await expectLines(page, []); // o1 alone so far
+    await open(page, ID.p7, '?map=fourth-map');
+    await expectLines(page, []);
+  });
+
+  test('FR-5 the same events break the route on a map that shows only the current visit', async ({ page }) => {
+    // On the main map p8 is placed, so it is part of the main route and there is no break on it.
+    await open(page, ID.o2, '?map=second-map');
+    await expectLines(page, []);
+  });
+
+  test('FR-5 the lines of an overview map look like the others', async ({ page }) => {
+    await open(page, ID.o2, '?map=fourth-map');
+    await expectLines(page, [[P.o1, P.o2]]);
+    const stroke = await page.evaluate(() => getComputedStyle(document.querySelector('path.route-line')!).stroke);
+    expect(stroke).toBe('rgb(31, 78, 140)');
   });
 });

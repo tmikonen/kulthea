@@ -20,7 +20,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-4 | The map is not refitted when its area changes size, and the area changes with the event text | fixed | B-15 |
 | BUG-5 | The Previous and Next buttons move up when the event has no location line | fixed | B-12 |
 | BUG-6 | A regional map's route is broken by events at places that are not on it | fixed | B-17 |
-| BUG-7 | Markers and route lines are drawn at wrong places and snap into place when stepping quickly | open | B-33 |
+| BUG-7 | Markers and route lines are drawn at wrong places and snap into place when stepping quickly | fixed | B-33 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -88,10 +88,10 @@ Bugs found by the product owner while testing. This is not the list of planned w
 
 ## BUG-7: Markers and route lines are drawn at wrong places and snap into place when stepping quickly
 
-- Status: open
+- Status: fixed
 - Related item: B-33 (the animated move to the focused view), B-13, B-14 and B-17 (the markers and lines)
 - Found: the product owner, when clicking Next or Previous in quick succession.
 - Description: the route lines and the location markers first appear at wrong places. They move with the panning motion, but displaced, and when the motion stops they shift to their correct places.
-- Root cause: not confirmed yet. Hypothesis: the move to the next event is an animated flight, which also changes the zoom on the way. Leaflet draws markers and lines in an SVG layer that is placed relative to the zoom at its last redraw. A marker or line that is added or updated while a flight is in progress is projected at the in-flight zoom, and then the layer's own scaling is applied on top, so it is displaced until the move ends and the layer is redrawn. Quick clicks start the next step while the previous flight is still running.
-- Fix: not made yet.
-- Verified by: not yet.
+- Root cause: confirmed by reproduction. The move to the next event is an animated flight, which also changes the zoom on the way. Leaflet draws markers and lines in an SVG layer that is placed relative to the zoom at its last redraw. A marker or line that is added or updated while a flight is in progress is projected at the in-flight zoom, and then the layer's own scaling is applied on top, so it is displaced until the move ends and the layer is redrawn. Quick clicks start the next step while the previous flight is still running. A browser test shows it: with four quick steps a dot was drawn about 285 px from any place, while a single step, which adds its layers before the flight starts, was always right.
+- Fix: when the event changes on a map with a focus zoom, a layout effect stops the flight that is running, before the markers and lines are updated in the effects that follow. Stopping redraws the layers at the zoom that the flight has reached, and the next flight starts from there, so an interrupted move continues smoothly to the new event.
+- Verified by: `tests/e2e/focus.spec.ts`, "FR-1 on every frame of the move, also when stepping quickly, markers, dots and lines are where their places are" (it clicks Next four times, 100 ms apart, and checks every animation frame; it failed before the fix with a worst displacement of about 285 px, and passes now), and "FR-1 a single step also keeps everything at its place on every frame".

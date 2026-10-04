@@ -417,7 +417,8 @@ Scope note: a map can be set to show an event in a focused, zoomed-in view, so t
 - when the map is switched manually to a map that has a focus zoom, the view is focused if the current event has a place on it, and shows the whole map if it has not;
 - when the event stays on the same map, the view zooms and pans smoothly (about 0.6 s). When the map itself changes, the new map starts already focused, with no animation;
 - a window resize keeps the zoom, as it does when the user has zoomed in;
-- a map with no focus zoom keeps the behaviour from B-13: the view pans only when the marker is outside it.
+- a map with no focus zoom keeps the behaviour from B-13: the view pans only when the marker is outside it;
+- when the event changes while a move is still running (quick clicks), the running move is stopped first, so that the markers and lines are not drawn displaced (BUG-7), and the new move starts from where the view has got to.
 
 You will see: on Bay of Izar, stepping to an event zooms in around its marker, and stepping to the next event glides to the next place. On Bog End and Haestra the whole map stays in view.
 

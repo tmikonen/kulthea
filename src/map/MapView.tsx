@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { CRS, latLng } from 'leaflet';
 import { CircleMarker, ImageOverlay, MapContainer, Pane, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -100,6 +100,14 @@ function FocusOnMarker({ map: def, marker, eventId }: { map: ContentMap; marker:
   const map = useMap();
   const focused = useRef<string | undefined>(undefined);
   const [x, y] = marker?.position ?? [];
+  // The markers and lines are added or moved in effects that run after this one. A layer that is added
+  // or moved while a flight is in progress is projected at the zoom of that moment, and then the layer
+  // is scaled again, so it is drawn displaced until the move ends. So stop the flight before the layers
+  // change. Stopping also redraws the layers at the zoom the flight has reached, and the next flight
+  // starts from there.
+  useLayoutEffect(() => {
+    if (def.focusZoom > 0 && focused.current !== undefined && focused.current !== eventId) map.stop();
+  }, [map, def, eventId]);
   useEffect(() => {
     if (def.focusZoom <= 0 || x === undefined || y === undefined) return;
     const size = map.getSize();

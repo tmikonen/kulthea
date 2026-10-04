@@ -236,3 +236,86 @@ test.describe('focused view (B-33)', () => {
     expect(Math.abs(after.width - before.width)).toBeLessThan(2);
   });
 });
+
+test.describe('markers and lines during the move (BUG-7)', () => {
+  // Every place that an event has on the main map, in percent. A marker, a dot or a line that is drawn
+  // somewhere else, at any moment of the move, is in the wrong place.
+  const PLACES: [number, number][] = [[50, 50], [80, 30], [30, 70], [3, 4], [88, 88], [12, 12], [88, 12], [12, 88]];
+
+  test('FR-1 on every frame of the move, also when stepping quickly, markers, dots and lines are where their places are', async ({ page }) => {
+    await page.goto(`./#/event/${SAME}`);
+    await expectFocused(page, [3, 4]);
+
+    const result = await page.evaluate(({ places }) => new Promise<{ worst: number; frames: number; at: string }>((resolve) => {
+      let worst = 0;
+      let at = '';
+      let frames = 0;
+      const start = performance.now();
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const nextButton = buttons.find((b) => b.textContent === 'Seuraava')!;
+
+      const check = () => {
+        const img = document.querySelector('img.leaflet-image-layer')!.getBoundingClientRect();
+        const spot = ([x, y]: number[]) => ({ x: img.left + (img.width * x) / 100, y: img.top + (img.height * y) / 100 });
+        const known = places.map(spot);
+        const distanceToKnown = (point: { x: number; y: number }) =>
+          Math.min(...known.map((k) => Math.hypot(k.x - point.x, k.y - point.y)));
+        for (const el of document.querySelectorAll('path.current-marker, path.visited-dot')) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.width > 40) continue; // a layer that is not drawn
+          const d = distanceToKnown({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+          if (d > worst) { worst = d; at = `${el.getAttribute('class')} at ${Math.round(performance.now() - start)} ms`; }
+        }
+        // A line has its ends at places, so its box must be inside the box of all the places.
+        const xs = known.map((k) => k.x);
+        const ys = known.map((k) => k.y);
+        const box = { left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys) };
+        for (const el of document.querySelectorAll('path.route-line')) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0) continue;
+          const out = Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom, 0);
+          if (out - 2 > worst) { worst = out - 2; at = `line at ${Math.round(performance.now() - start)} ms`; }
+        }
+        frames += 1;
+      };
+
+      // Click Next four times, 100 ms apart, while each move is still in progress.
+      [0, 100, 200, 300].forEach((delay) => setTimeout(() => nextButton.click(), delay));
+      const tick = () => {
+        check();
+        if (performance.now() - start < 2500) requestAnimationFrame(tick);
+        else resolve({ worst, frames, at });
+      };
+      requestAnimationFrame(tick);
+    }), { places: PLACES });
+
+    expect(result.frames).toBeGreaterThan(60);
+    expect(result.worst, `the worst place was ${result.at}`).toBeLessThan(4);
+    await expectFocused(page, [12, 88]);
+  });
+
+  test('FR-1 a single step also keeps everything at its place on every frame', async ({ page }) => {
+    await page.goto(`./#/event/${SAME}`);
+    await expectFocused(page, [3, 4]);
+    const worst = await page.evaluate(({ places }) => new Promise<number>((resolve) => {
+      let worst = 0;
+      const start = performance.now();
+      const nextButton = Array.from(document.querySelectorAll('button')).find((b) => b.textContent === 'Seuraava')!;
+      const tick = () => {
+        const img = document.querySelector('img.leaflet-image-layer')!.getBoundingClientRect();
+        const known = places.map(([x, y]) => ({ x: img.left + (img.width * x) / 100, y: img.top + (img.height * y) / 100 }));
+        for (const el of document.querySelectorAll('path.current-marker, path.visited-dot')) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.width > 40) continue;
+          const d = Math.min(...known.map((k) => Math.hypot(k.x - (r.x + r.width / 2), k.y - (r.y + r.height / 2))));
+          worst = Math.max(worst, d);
+        }
+        if (performance.now() - start < 1500) requestAnimationFrame(tick);
+        else resolve(worst);
+      };
+      nextButton.click();
+      requestAnimationFrame(tick);
+    }), { places: PLACES });
+    expect(worst).toBeLessThan(4);
+  });
+});

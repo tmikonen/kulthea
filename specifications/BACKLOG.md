@@ -188,7 +188,7 @@ How to check by hand:
 3. Put a position of 120 in `content/locations.json`. An error is shown.
 
 Acceptance criteria:
-- [x] `content/locations.json` exists with a small demo set (eight locations on the three maps, some on more than one map: Port of Izar, Bentara, Ton-Bor, Bog End, Star Gate, Lean, Ruined Tower and Troll Cave, with positions chosen by the product owner and read off the map images).
+- [x] `content/locations.json` exists with a small demo set (eight locations on the three maps, some on more than one map: Port of Izar, Bentara, Ton-Bor, Bog End, Ancient Jinteni Ruins, Lean, Ruined Tower and Troll Cave, with positions chosen by the product owner and read off the map images).
 - [x] Each location's positions are percent values from 0 to 100 on a map that exists.
 - [x] Errors: duplicate ids, a position on an unknown map, a position outside 0 to 100, a name with no default-language text.
 - [x] Names are language maps or plain values, resolved with the resolver from B-6.

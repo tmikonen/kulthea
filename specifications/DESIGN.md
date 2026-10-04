@@ -260,7 +260,7 @@ At runtime:
 2. The router reads the URL: an event id, an optional `map`, an optional `journal` and an optional `lang`.
 3. The event id gives the current event's position in the ordered list. Previous and next move that position and update the URL.
 4. The language is the `lang` value, or the default language. Every text shown is taken in that language, falling back to the default language where it is missing (see "Languages"). The bundle holds all languages, so switching language needs no download.
-5. From the current event the app derives what is shown. The displayed map is the URL's `map` override if present, otherwise the event's `showOn` map, otherwise the main map. The markers and route lines for that map run up to and including the current event. The journal panel shows the entry or index named in the URL.
+5. From the current event the app derives what is shown. The displayed map is the URL's `map` override if present, otherwise the event's `showOn` map, otherwise the main map. The markers and route lines for that map run up to and including the current event, by the rules under "Map markers" and "Route rules" (a visit map shows only the current visit of each track). The journal panel shows the entry or index named in the URL.
 
 Map loading: the main map loads first. Once it and the first event are shown, the app downloads the other maps in the background, so switching to them is quick later. Maps are used at full size, with no resizing or tiling.
 
@@ -328,7 +328,7 @@ Consequences: Leaflet's image coordinate system measures y upward from the botto
 
 ### DD-3 Multiple maps and routes
 
-Decision: maps are independent images with their own coordinates. Each event has a main-map location (or N/A) and an optional `showOn` entry naming one other map and a location on it; when present, that map is the one displayed. Routes are derived from event order, per map and per track, with an optional "new segment" flag per event. Standalone events belong to no track.
+Decision: maps are independent images with their own coordinates. Each event has a main-map location (or N/A) and an optional `showOn` entry naming one other map and a location on it; when present, that map is the one displayed. A named location also gives the event a place on any other map where the location has a position (see "Map markers"). Routes are derived from event order, per map and per track, with an optional "new segment" flag per event. Standalone events belong to no track.
 
 Reasons: it keeps authoring to locations and dates and avoids hand-written route data. Breaks happen where the data already says so (N/A), and the flag covers the one case the data cannot show (a jump).
 

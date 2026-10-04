@@ -479,7 +479,7 @@ Acceptance criteria:
 - [ ] An explicit place wins over a place taken from a location, `n/a` on the main map is respected, and a one-off position gives a place only on its own map.
 - [ ] The build warns, and does not fail, when an event is `n/a` on the main map and its `showOn` location has a main-map position. The warning names the file and the location. The real events and the demo events give no warning.
 - [ ] The demo event 6 has the main location Suonperä. The tests of B-13 and B-14 that depended on the old rule are updated.
-- [ ] The documents give the new rule, and the open question is removed from this file.
+- [x] The documents give the new rule, and the open question is removed from this file (done when the item was defined).
 
 Automated tests: unit tests for the place function (each rule, the precedence, `n/a`, one-off positions, a location with no position on the map) and for the warning (given, not given, several events, the build continues); the B-13 and B-14 unit, component and Playwright tests are updated to the new rule. In the fixtures, the event at `both-places` now has a marker at its second-map position when the second map is viewed.
 
@@ -495,18 +495,18 @@ Scope note: a plain function, worked out once at load, that turns the events in 
 
 You will see: nothing new on the screen yet. The behaviour is defined by the worked examples below, which become the unit tests word for word, and which I would like you to read and confirm.
 
-Worked examples (A, B, C, D are party events on the main map, in date order):
+Worked examples (A, B, C, D are party events on the main map, in date order). A map that an example names is the only map where the event has a place, unless the example says otherwise, so an event "on the main map" is at a place with no position on Bog End:
 1. A, B, C, D give one line A-B-C-D. One event alone gives no line.
 2. A, B, S, C, where S is a standalone event, give A-B-C. The standalone event neither adds a line nor breaks the route.
 3. A, B, N, C, D, where N has `n/a` on the main map and is shown on Bog End: on the main map there are two lines, A-B and C-D, because N has no place there and breaks the route. On Bog End N is alone, so it has no line.
 4. A, X, Y, B, where X and Y have a main location and are also shown on Bog End: on the main map A-X-Y-B is one line, because they still have main-map places. On Bog End X-Y is a line of its own.
-5. N1, N2, A, N3, where N1, N2 and N3 are only on Bog End and A is on the main map: on Bog End N1-N2 is one line and N3 is alone. Each separate visit to another map is its own segment.
+5. N1, N2, A, N3, where N1, N2 and N3 are only on Bog End and A is only on the main map (at a place with no position on Bog End): on Bog End N1-N2 is one line and N3 is alone. Each separate visit to another map is its own segment.
 6. A, B with `newSegment`, C give A alone, then B-C. There is no line from A to B on any map where both have a place.
 7. Two events at the same position in a row give no zero-length line, and the route goes on from that point.
 8. Events of a named group between A and B do not change the party's line A-B.
 9. Clipping: with the current event C in A-B-C-D, the line is A-B-C. With the current event B it is A-B.
 10. A place from a location: an event E at Suonperä, with no `showOn`, has a place on Bog End as well as on the main map, because the location has a position on both. Consecutive party events at places with a Bog End position are one visit there.
-11. A visit map shows only the current visit. A, S1, S2, S3, B, S4, where S1 to S4 are at places on Bog End and A and B are only on the main map. On Bog End, at S3 the line is S1-S2-S3. At B the party has left, so there is no line, and S1, S2 and S3 stay as dots. At S4 the line is S4 alone, with no line from the earlier visit.
+11. A visit map shows only the current visit. A, S1, S2, S3, B, S4, where S1 to S4 are at places on Bog End and A and B are only on the main map (at places with no position on Bog End). On Bog End, at S3 the line is S1-S2-S3. At B the party has left, so there is no line, and S1, S2 and S3 stay as dots. At S4 the line is S4 alone, with no line from the earlier visit.
 12. Tracks are separate: the party is on Bog End (P1, P2) and the current event is an event of a group on the main map. Bog End still shows the party's line P1-P2, because the party's latest event is on Bog End, and shows no line for the group.
 13. A history map shows everything: on the main map at S4 in example 11, the lines of the whole route up to S4 are shown, however many times the party has been to Bog End.
 
@@ -515,7 +515,7 @@ How to check by hand: read the worked examples and tell me if any is not how you
 Acceptance criteria:
 - [ ] A route function returns the segments per map for the party track, with each point tied to its event, following the worked examples above.
 - [ ] A second function clips the segments to the events up to a given event in date order, so stepping needs no recomputation. A third gives the lines to show on a map for the current event: all the clipped segments on a history map, and on a visit map for each track only the clipped segment that holds the track's latest event up to the current one, if that event has a place on the map.
-- [ ] Standalone events and named-group events are ignored, an `n/a` or other-map event breaks the route on the maps it has no place on, and `newSegment` starts a new segment on every map.
+- [ ] Standalone events and named-group events are ignored, an event with no place on a map breaks the route there, and `newSegment` starts a new segment on every map.
 - [ ] Every worked example is a unit test, with the event order and places written out as in the example.
 
 Automated tests: the unit tests of the worked examples, plus tests that a segment never holds an event twice, that the points are in date order, and that clipping at any event keeps exactly the earlier part.
@@ -562,7 +562,7 @@ Scope note: this extends the route function from B-16 to named groups (a `track`
 
 Rules: a group's events are joined in date order, among themselves only. The party's events in between do not end the split, so the party and the group can go on at the same time. A group's line starts at the party's last event before the group's first event, and ends at the first party event after the group's last event, which is where the group rejoins. A start or an end is drawn on a map only when that party event has a place on that map. A group with no later party event ends at its last event. Breaks, other-map visits, and `newSegment` work as for the party. A group that is split twice under the same name is one line, unless `newSegment` or another name is used for the second split.
 
-Worked examples (P1, P2, P3 are party events, G1, G2 are events of the group `scout`, all on the main map):
+Worked examples (P1, P2, P3 are party events, G1, G2 are events of the group `scout`, all on the main map). As in B-16, a map that an example names is the only map where the event has a place, unless the example says otherwise:
 1. P1, G1, G2, P2 give the party P1-P2, and the group P1-G1-G2-P2. The group's line starts at P1 where it split and ends at P2 where it rejoined.
 2. P1, G1, P2, G2, P3 give the party P1-P2-P3, and the group P1-G1-G2-P3. The party's event P2 does not interrupt the group.
 3. Two groups, `scout` and `mage`, have their own lines, each with its own start and end.

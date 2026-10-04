@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link, type To } from 'react-router';
 import { resolveText } from '../content/text';
 import type { JournalEntryDef, JournalType } from '../content/types';
+import { useImageViewer } from './ImageViewer';
 import { RichText } from './RichText';
 import { entryName, entryText, type JournalGroup, type JournalView } from './journal';
 import styles from './JournalPanel.module.css';
@@ -133,6 +134,7 @@ interface EntryProps {
 function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated, linkTo, onOpenEntry, eventItems, eventsLabel, excerptItems, campaignLabel }: EntryProps) {
   const name = entryName(entry, lang, defaultLang);
   const text = entryText(entry, lang, defaultLang);
+  const { open: openImage, viewer } = useImageViewer();
   const motto = entry.motto === null ? null : resolveText(entry.motto, lang, defaultLang);
   return (
     <article className={styles.entry}>
@@ -140,8 +142,11 @@ function EntryView({ entry, lang, defaultLang, indexTo, backLabel, notTranslated
         ‹ {backLabel}
       </Link>
       {entry.image && (
-        <img className={styles.image} src={entry.image.src} width={entry.image.width} height={entry.image.height} alt={name} />
+        <button type="button" className={styles.imageButton} onClick={() => openImage({ src: entry.image!.src, alt: name, caption: null })}>
+          <img className={styles.image} src={entry.image.src} width={entry.image.width} height={entry.image.height} alt={name} />
+        </button>
       )}
+      {viewer}
       <h3 className={styles.name}>{name}</h3>
       {motto && <p className={styles.motto}>{motto}</p>}
       {text.fallback && <p className={styles.note}>{notTranslated}</p>}

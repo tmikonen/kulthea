@@ -847,13 +847,13 @@ Automated tests: unit tests for the scanner (one and several ids, document order
 
 ## B-27 Images in text
 
-Status: defined
+Status: done
 
 Related: FR-3, FR-4, FR-6, FR-9, "Images" (data model), "Validation rules".
 
 Depends on: B-22 (and so the entry view). It is independent of B-23 to B-26.
 
-Scope note: an image is written as in `![alt text](images/ford.jpg "caption")`: the alt text in the brackets, the path from the content folder, and the optional title text as a visible caption. It works in events and in entries, and alt text and caption are written in each language section. The images are served from hashed URLs, as the maps are. The lead image of an entry (B-20) also opens in the viewer. The demo events and entries get images, with their captions.
+Scope note: an image is written as in `![alt text](images/ford.jpg "caption")`: the alt text in the brackets, the path from the content folder, and the optional title text as a visible caption. It works in events and in entries, and alt text and caption are written in each language section. A caption is shown for an image that stands alone in its paragraph; an image in the middle of a line has none. An image path has only letters, digits, `.`, `_`, `-` and `/`. The images are served from hashed URLs, as the maps are. The lead image of an entry (B-20) also opens in the viewer. The demo events and entries get images, with their captions.
 
 You will see: pictures with captions in events and entries, which fit the panel. Click one and it opens large, in a viewer you can close.
 
@@ -864,11 +864,11 @@ How to check by hand:
 4. Point an image at a missing file. The build fails. Add an image with no alt text, and one over 1 MB. The build warns and does not fail.
 
 Acceptance criteria:
-- [ ] Markdown images in event and entry text are shown as images with `loading="lazy"` and their width and height set, so the layout does not jump. They never scroll horizontally in the event panel or in the journal panel: they are scaled down to the width of the panel and never enlarged.
-- [ ] A title text becomes a visible caption under the image, and the alt text is the image's alt text. Both are in the language section's language.
-- [ ] Clicking an image (also the lead image of an entry) opens it in a viewer, scaled down to the window if needed and never enlarged, with the caption. The viewer closes with Escape, with a close button, and with a click outside the image. Escape closes only the viewer, and focus returns to the image. The image can be opened with the keyboard (Tab and Enter).
-- [ ] Errors: an image file that is not in the content folder (a missing file, or a path outside the folder, or a web address). Warnings, which do not fail the build: an image over about 1 MB or 1600 px wide or not JPEG, PNG or WebP, and an image with empty alt text.
-- [ ] The viewer's close text is in `ui.json`.
+- [x] Markdown images in event and entry text are shown as images with `loading="lazy"` and their width and height set, so the layout does not jump. They never scroll horizontally in the event panel or in the journal panel: they are scaled down to the width of the panel and never enlarged.
+- [x] A title text becomes a visible caption under the image, and the alt text is the image's alt text. Both are in the language section's language.
+- [x] Clicking an image (also the lead image of an entry) opens it in a viewer, scaled down to the window if needed and never enlarged, with the caption. The viewer closes with Escape, with a close button, and with a click outside the image. Escape closes only the viewer, and focus returns to the image. The image can be opened with the keyboard (Tab and Enter).
+- [x] Errors: an image file that is not in the content folder (a missing file, or a path outside the folder, or a web address). Warnings, which do not fail the build: an image over about 1 MB or 1600 px wide or not JPEG, PNG or WebP, and an image with empty alt text.
+- [x] The viewer's close text is in `ui.json`.
 
 Automated tests: unit tests for the image handling (path, caption, size and format warnings, missing file, empty alt, languages); component tests for the viewer; Playwright tests that open and close the viewer with each method, check that Escape leaves the journal panel open, and check that a wide picture does not make the panel scroll sideways.
 

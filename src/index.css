@@ -13,3 +13,22 @@ a.journal-link:hover,
 a.journal-link:focus-visible {
   text-decoration-style: solid;
 }
+
+/* Pictures in event and entry text: scaled down to the width of the panel, never enlarged, and they open large on a click. */
+figure.text-figure {
+  margin: 0.75rem 0;
+}
+
+img[data-image] {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  cursor: zoom-in;
+}
+
+figure.text-figure figcaption {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #555;
+}

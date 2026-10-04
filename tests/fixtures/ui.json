@@ -15,5 +15,6 @@
   "typeLocation": {"fi": "Paikat", "en": "Locations"},
   "typeNote": {"fi": "Muistiinpanot", "en": "Notes"},
   "journalEvents": {"fi": "Tapahtumat", "en": "Events"},
-  "journalCampaign": {"fi": "Kampanjassa", "en": "In the campaign"}
+  "journalCampaign": {"fi": "Kampanjassa", "en": "In the campaign"},
+  "closeImage": {"fi": "Sulje kuva", "en": "Close the picture"}
 }

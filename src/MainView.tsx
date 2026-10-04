@@ -15,6 +15,7 @@ import { buildRoutes, visibleRoutes } from './map/routes';
 import { eventPlaceOn, placeName, visitedPlaces } from './map/places';
 import { MapView } from './map/MapView';
 import { groupEntries, journalView, INDEX_PARAM } from './journal/journal';
+import { CloseImageLabel } from './journal/ImageViewer';
 import { JournalPanel, type EventItem, type ExcerptItem } from './journal/JournalPanel';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
@@ -131,6 +132,7 @@ export function MainView({ event }: { event?: EventDef }) {
   };
 
   return (
+    <CloseImageLabel.Provider value={uiText(ui, 'closeImage', lang, defaultLang)}>
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>{resolveText(campaign.title, lang, defaultLang)}</h1>
@@ -225,5 +227,6 @@ export function MainView({ event }: { event?: EventDef }) {
         )}
       </div>
     </div>
+    </CloseImageLabel.Provider>
   );
 }

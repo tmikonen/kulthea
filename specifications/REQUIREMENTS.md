@@ -33,7 +33,7 @@ Events are shown in chronological order and stepped with previous/next controls.
 ### FR-3 Event
 An event is a scene or moment at one location on one date, with a Markdown description and images. Several consecutive events may share a location. Order within a day follows an order number in the event's file name.
 - AC: details show the date in the chosen language's format (see FR-7), the location, the text and the images.
-- AC: clicking an image opens it in a viewer that can be closed, as large as the window allows and never larger than the image itself.
+- AC: clicking an image opens it in a viewer that can be closed, as large as the window allows and never larger than the image itself. An image that stands alone in its paragraph shows its title text as a visible caption.
 
 Every event defines a location on the main map, which may be "N/A". An event may also define a location on at most one other map. If it does, that other map is the one displayed for the event, and otherwise the main map is displayed. An event with "N/A" on the main map must define a location on another map. "N/A" means that the event is outside the main map's region, so an event inside it should have a main location, and "show on" chooses the map it is displayed on.
 

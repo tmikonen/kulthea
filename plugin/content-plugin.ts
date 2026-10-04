@@ -39,7 +39,16 @@ export function contentPlugin(options: { dir: string }): Plugin {
         return `{ ...${JSON.stringify(entry)}, image: { ...${JSON.stringify(entry.image)}, src: ${name} } }`;
       });
       imports.push(...entryImports);
-      return `${imports.join('\n')}\nexport default { campaign: ${JSON.stringify(bundle!.campaign)}, locations: ${JSON.stringify(bundle!.locations)}, events: ${JSON.stringify(bundle!.events)}, journal: [${journal.join(', ')}], ui: ${JSON.stringify(bundle!.ui)}, maps: [${maps.join(', ')}] };`;
+      let body = `export default { campaign: ${JSON.stringify(bundle!.campaign)}, locations: ${JSON.stringify(bundle!.locations)}, events: ${JSON.stringify(bundle!.events)}, journal: [${journal.join(', ')}], ui: ${JSON.stringify(bundle!.ui)}, maps: [${maps.join(', ')}] };`;
+      // The images in the texts are marked `@@image:path@@` in the HTML. Each is imported, so that Vite serves
+      // it in dev and emits it, hashed, in the build, and the mark becomes the imported address. The mark is
+      // inside a string, so the string is closed and joined to the import.
+      const used = [...new Set([...body.matchAll(/@@image:([A-Za-z0-9_./-]+)@@/g)].map((match) => match[1]))];
+      used.forEach((image, i) => {
+        imports.push(`import textImage${i} from ${JSON.stringify(path.join(contentDir, image).split(path.sep).join('/'))};`);
+        body = body.split(`@@image:${image}@@`).join(`" + textImage${i} + "`);
+      });
+      return `${imports.join('\n')}\n${body}`;
     },
     configureServer(server) {
       server.watcher.add(contentDir);

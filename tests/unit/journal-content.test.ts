@@ -153,12 +153,12 @@ describe('journal content (B-20)', () => {
   describe('image warnings', () => {
     it('FR-6 an image that is too wide, too large or not JPEG, PNG or WebP only warns', () => {
       const wide = loadModified((dir) => {
-        fs.writeFileSync(path.join(dir, 'images', 'wide.png'), png(2000, 100));
-        writeEntry(dir, 'a.md', 'type: note\nname: X\nimage: images/wide.png');
+        fs.writeFileSync(path.join(dir, 'images', 'huge.png'), png(2000, 100));
+        writeEntry(dir, 'a.md', 'type: note\nname: X\nimage: images/huge.png');
       });
       expect(wide.errors).toEqual([]);
-      expect(wide.bundle?.journal.find((e) => e.id === 'a')?.image).toEqual({ src: 'images/wide.png', width: 2000, height: 100 });
-      expect(wide.warnings).toEqual([expect.stringMatching(/journal\/a\.md: image "images\/wide\.png" is over 1600 px wide \(2000 px\)/)]);
+      expect(wide.bundle?.journal.find((e) => e.id === 'a')?.image).toEqual({ src: 'images/huge.png', width: 2000, height: 100 });
+      expect(wide.warnings).toEqual([expect.stringMatching(/journal\/a\.md: image "images\/huge\.png" is over 1600 px wide \(2000 px\)/)]);
 
       const heavy = loadModified((dir) => {
         fs.writeFileSync(path.join(dir, 'images', 'heavy.png'), Buffer.concat([png(100, 100), Buffer.alloc(1.2 * 1024 * 1024)]));
@@ -371,7 +371,7 @@ describe('journal-only passages in the build (B-26)', () => {
     const first = event(bundle!, '-first');
     expect(first.text.fi).not.toContain('epäili');
     expect(first.text.en).not.toContain('doubted');
-    expect(first.text.fi.endsWith('sormus</a>.</p>')).toBe(true);
+    expect(first.text.fi).toMatch(/sormus<\/a>\.<\/p>\n<figure class="text-figure"><img [^>]*><figcaption>Sankarin kuva<\/figcaption><\/figure>$/);
     expect(event(bundle!, '-second').text.fi).not.toContain('vaikeni');
   });
 
@@ -459,5 +459,75 @@ describe('journal-only passages in the build (B-26)', () => {
     it('FR-6 a block in a fenced code block is not a passage', () => {
       expect(errorsOf('Example:\n\n```\n:::journal{for="hero"}\nx\n:::\n```')).toEqual([]);
     });
+  });
+});
+
+describe('images in text in the build (B-27)', () => {
+  const png2000 = () => {
+    const buffer = Buffer.alloc(33);
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(buffer);
+    buffer.writeUInt32BE(13, 8);
+    buffer.write('IHDR', 12);
+    buffer.writeUInt32BE(2000, 16);
+    buffer.writeUInt32BE(100, 20);
+    buffer.set([8, 2, 0, 0, 0], 24);
+    return buffer;
+  };
+
+  it('FR-3 the fixture event shows its picture as a figure with the caption, in each language', () => {
+    const { bundle, errors, warnings } = loadContent(FIXTURES);
+    expect(errors).toEqual([]);
+    expect(warnings).toEqual([]);
+    const first = bundle!.events.find((e) => e.id.endsWith('-first'))!;
+    expect(first.text.fi).toContain('<figcaption>Sankarin kuva</figcaption>');
+    expect(first.text.fi).toContain('alt="Kuva sankarista"');
+    expect(first.text.en).toContain('<figcaption>The hero</figcaption>');
+    expect(first.text.en).toContain('alt="Picture of the hero"');
+    expect(first.text.fi).toContain('src="@@image:images/hero.png@@" alt="Kuva sankarista" width="60" height="40" loading="lazy"');
+  });
+
+  it('FR-6 an entry\'s text can have pictures too', () => {
+    const { bundle } = loadContent(FIXTURES);
+    expect(bundle!.journal.find((e) => e.id === 'hero')!.text.en).toContain('<figcaption>The drawing\'s title</figcaption>');
+  });
+
+  it('FR-3 an image that is missing, outside the folder, a web address or with a bad path is an error naming the file and language', () => {
+    const errors = (path: string) =>
+      loadModified((dir) => writeEvent(dir, '6050-1-001-03-img.md', 'title: K\nlocation: main-only', `@fi\nTeksti.\n\n@en\n![x](${path})`)).errors;
+    expect(errors('images/nope.png')).toEqual([expect.stringMatching(/events\/6050-1-001-03-img\.md: in the "en" text, image file "images\/nope\.png" not found/)]);
+    expect(errors('../outside.png')).toEqual([expect.stringMatching(/in the "en" text, image "\.\.\/outside\.png" is not in the content folder/)]);
+    expect(errors('https://example.com/a.png')).toEqual([expect.stringMatching(/an image path has only letters/)]);
+    expect(errors('images/ä.png')).toEqual([expect.stringMatching(/an image path has only letters/)]);
+  });
+
+  it('FR-3 a missing image in an entry or in a passage is an error too', () => {
+    expect(loadModified((dir) => writeEntry(dir, 'bad.md', 'type: note\nname: X', '![x](images/nope.png)')).errors).toEqual([
+      expect.stringMatching(/journal\/bad\.md: in the "fi" text, image file "images\/nope\.png" not found/),
+    ]);
+    expect(loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-img.md', 'title: K\nlocation: main-only', ':::journal{for="hero"}\n![x](images/nope.png)\n:::')).errors).toEqual([
+      expect.stringMatching(/in a journal passage in the "fi" text, image file "images\/nope\.png" not found/),
+    ]);
+  });
+
+  it('FR-3 empty alt text, a large image and another format only warn, once for each', () => {
+    const { errors, warnings, bundle } = loadModified((dir) => {
+      fs.writeFileSync(path.join(dir, 'images', 'huge.png'), png2000());
+      writeEvent(dir, '6050-1-001-03-img.md', 'title: K\nlocation: main-only', '![](images/hero.png)\n\n![alt](images/huge.png)\n\n![again](images/huge.png)');
+    });
+    expect(errors).toEqual([]);
+    expect(bundle).not.toBeNull();
+    expect(warnings).toHaveLength(2);
+    expect(warnings).toEqual(expect.arrayContaining([
+      expect.stringMatching(/events\/6050-1-001-03-img\.md: in the "fi" text, the image "images\/hero\.png" has no alt text/),
+      expect.stringMatching(/events\/6050-1-001-03-img\.md: image "images\/huge\.png" is over 1600 px wide \(2000 px\)/),
+    ]));
+  });
+
+  it('FR-3 an image in a passage is in the excerpt, and an image used in text is checked once for every file', () => {
+    const { bundle } = loadModified((dir) =>
+      writeEvent(dir, '6050-1-001-03-img.md', 'title: K\nlocation: main-only', ':::journal{for="hero"}\n![Kuva](images/hero.png "Otsikko")\n:::'));
+    const excerpt = bundle!.journal.find((e) => e.id === 'hero')!.excerpts.fi.find((x) => x.event.endsWith('-img'))!;
+    expect(excerpt.html[0]).toContain('<figcaption>Otsikko</figcaption>');
   });
 });

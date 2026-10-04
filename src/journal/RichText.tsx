@@ -1,5 +1,6 @@
-import { useContext, useLayoutEffect, useRef, type MouseEvent } from 'react';
+import { useContext, useLayoutEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { UNSAFE_NavigationContext, type To } from 'react-router';
+import { useImageViewer } from './ImageViewer';
 
 interface Props {
   className?: string;
@@ -17,6 +18,7 @@ interface Props {
  */
 export function RichText({ className, html, hrefFor, onOpen }: Props) {
   const container = useRef<HTMLDivElement>(null);
+  const { open: openImage, viewer } = useImageViewer();
   const { navigator } = useContext(UNSAFE_NavigationContext);
   // The addresses depend on the current address, so they are set again after every render.
   useLayoutEffect(() => {
@@ -25,7 +27,27 @@ export function RichText({ className, html, hrefFor, onOpen }: Props) {
     }
   });
 
+  /** Opens a picture of the text in the viewer, with its caption. */
+  const showImage = (image: HTMLImageElement) => {
+    const caption = image.closest('figure')?.querySelector('figcaption')?.textContent ?? null;
+    openImage({ src: image.currentSrc || image.src, alt: image.alt, caption });
+  };
+
+  const onKeyDown = (key: KeyboardEvent<HTMLDivElement>) => {
+    const image = (key.target as Element).closest<HTMLImageElement>('img[data-image]');
+    if (image && (key.key === 'Enter' || key.key === ' ')) {
+      key.preventDefault();
+      showImage(image);
+    }
+  };
+
   const onClick = (click: MouseEvent<HTMLDivElement>) => {
+    const image = (click.target as Element).closest<HTMLImageElement>('img[data-image]');
+    if (image && container.current?.contains(image)) {
+      click.preventDefault();
+      showImage(image);
+      return;
+    }
     if (click.button !== 0 || click.ctrlKey || click.metaKey || click.shiftKey || click.altKey) return;
     const anchor = (click.target as Element).closest<HTMLAnchorElement>('a[data-journal]');
     if (!anchor || !container.current?.contains(anchor)) return;
@@ -33,5 +55,10 @@ export function RichText({ className, html, hrefFor, onOpen }: Props) {
     onOpen(anchor.dataset.journal!);
   };
 
-  return <div ref={container} className={className} onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <>
+      <div ref={container} className={className} onClick={onClick} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
+      {viewer}
+    </>
+  );
 }

@@ -182,7 +182,7 @@ describe('journal entry view (B-22)', () => {
     const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
     const article = entryPanel(container);
     const order = [...article.children].map((el) => el.tagName.toLowerCase() + (el.className ? '.' + el.className : ''));
-    expect(order).toEqual(['a.back', 'img.image', 'h3.name', 'p.motto', 'div.text', 'section.campaign', 'section.events']);
+    expect(order).toEqual(['a.back', 'button.imageButton', 'h3.name', 'p.motto', 'div.text', 'section.campaign', 'section.events']);
     expect(article.querySelector('a.back')).toHaveTextContent('‹ Päiväkirja');
     const img = within(article).getByRole('img', { name: 'Sankari' });
     expect(img.getAttribute('src')).toMatch(/hero/);
@@ -480,5 +480,102 @@ describe('journal-only passages (B-26)', () => {
     const { container } = renderApp('/event/6050-1-001-01-first?journal=scout');
     expect(container.querySelector('article')).not.toHaveTextContent('Sankari epäili');
     expect(container.querySelector('article')).toHaveTextContent('Tiedustelija kuuli kaiken ja vaikeni.');
+  });
+});
+
+describe('images in text and the viewer (B-27)', () => {
+  const figure = (container: HTMLElement) => container.querySelector<HTMLElement>('section figure.text-figure')!;
+  const dialog = () => screen.queryByRole('dialog');
+
+  it('FR-3 a picture in the event text is a figure with a lazy image of the right size and a visible caption', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    const img = figure(container).querySelector('img')!;
+    expect(img.getAttribute('src')).toMatch(/hero/);
+    expect(img.getAttribute('src')).not.toContain('@@');
+    expect(img).toHaveAttribute('loading', 'lazy');
+    expect(img).toHaveAttribute('width', '60');
+    expect(img).toHaveAttribute('height', '40');
+    expect(img).toHaveAttribute('alt', 'Kuva sankarista');
+    expect(figure(container).querySelector('figcaption')).toHaveTextContent('Sankarin kuva');
+  });
+
+  it('FR-9 the alt text and the caption follow the language', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?lang=en');
+    expect(figure(container).querySelector('img')).toHaveAttribute('alt', 'Picture of the hero');
+    expect(figure(container).querySelector('figcaption')).toHaveTextContent('The hero');
+  });
+
+  it('FR-3 a click on the picture opens it in a viewer with the caption, and the close button closes it', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    expect(dialog()).toBeNull();
+    fireEvent.click(figure(container).querySelector('img')!);
+    const viewer = dialog()!;
+    expect(viewer).toBeInTheDocument();
+    expect(within(viewer).getByRole('img')).toHaveAttribute('src', expect.stringMatching(/hero/));
+    expect(within(viewer).getByRole('img')).toHaveAttribute('alt', 'Kuva sankarista');
+    expect(viewer).toHaveTextContent('Sankarin kuva');
+    fireEvent.click(within(viewer).getByRole('button', { name: 'Sulje kuva' }));
+    expect(dialog()).toBeNull();
+  });
+
+  it('FR-3 the viewer closes with a click outside the picture, and not with a click on it', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    fireEvent.click(figure(container).querySelector('img')!);
+    fireEvent.click(within(dialog()!).getByRole('img'));
+    expect(dialog()).not.toBeNull();
+    fireEvent.click(dialog()!.parentElement!);
+    expect(dialog()).toBeNull();
+  });
+
+  it('FR-3 the picture opens with the keyboard (Enter and Space), and focus goes back to it when the viewer closes', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    const img = figure(container).querySelector('img')!;
+    expect(img).toHaveAttribute('tabindex', '0');
+    img.focus();
+    fireEvent.keyDown(img, { key: 'Enter' });
+    expect(dialog()).not.toBeNull();
+    expect(within(dialog()!).getByRole('button', { name: 'Sulje kuva' })).toHaveFocus();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(dialog()).toBeNull();
+    expect(img).toHaveFocus();
+    fireEvent.keyDown(img, { key: ' ' });
+    expect(dialog()).not.toBeNull();
+  });
+
+  it('FR-6 Escape closes only the viewer, and the journal panel under it stays open', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    fireEvent.click(container.querySelector('article figure img')!);
+    expect(dialog()).not.toBeNull();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(dialog()).toBeNull();
+    expect(panel()).not.toBeNull();
+    expect(search()).toBe('?journal=hero');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(panel()).toBeNull();
+  });
+
+  it('FR-6 the lead image of an entry opens in the viewer too, with its name as the alt text and no caption', () => {
+    renderApp('/event/6050-1-001-01-first?journal=hero&lang=en');
+    fireEvent.click(within(panel()!).getByRole('button', { name: 'Hero' }));
+    expect(dialog()).not.toBeNull();
+    expect(within(dialog()!).getByRole('img')).toHaveAttribute('alt', 'Hero');
+    expect(within(dialog()!).getByRole('button', { name: 'Close the picture' })).toBeInTheDocument();
+    expect(dialog()!.querySelector('p')).toBeNull();
+  });
+
+  it('FR-3 pictures in an entry text, and in an excerpt, open in the viewer', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first?journal=hero');
+    const pictures = container.querySelectorAll('article figure img');
+    // The drawing in the entry's own text, and the picture of the first event in the excerpts.
+    expect(pictures.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(pictures[0]);
+    expect(dialog()).not.toBeNull();
+  });
+
+  it('FR-3 the arrow keys in the viewer do not step through the events', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    fireEvent.click(figure(container).querySelector('img')!);
+    fireEvent.keyDown(within(dialog()!).getByRole('button', { name: 'Sulje kuva' }), { key: 'ArrowRight' });
+    expect(pathname()).toBe('/event/6050-1-001-01-first');
   });
 });

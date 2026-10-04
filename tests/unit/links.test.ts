@@ -105,4 +105,48 @@ describe('journal links (B-23)', () => {
       expect(paragraphs('# Only a heading')).toEqual([]);
     });
   });
+
+  describe('images', () => {
+    const lookup = (path: string) => (path === 'images/a.png' ? { width: 60, height: 40 } : { error: `image file "${path}" not found` });
+    const withImages = (markdown: string) => renderWithLinks(markdown, nameOf, lookup);
+    const img = (alt: string) =>
+      `<img src="@@image:images/a.png@@" alt="${alt}" width="60" height="40" loading="lazy" decoding="async" data-image="" tabindex="0" role="button">`;
+
+    it('FR-3 an image alone in a paragraph is a figure with the title as a visible caption', () => {
+      const { html, errors, warnings } = withImages('![Alt text](images/a.png "The caption")');
+      expect(errors).toEqual([]);
+      expect(warnings).toEqual([]);
+      expect(html).toBe(`<figure class="text-figure">${img('Alt text')}<figcaption>The caption</figcaption></figure>`);
+    });
+
+    it('FR-3 with no title there is no caption, and lazy loading, the size and the address mark are always there', () => {
+      const { html } = withImages('![Alt](images/a.png)');
+      expect(html).toBe(`<figure class="text-figure">${img('Alt')}</figure>`);
+      expect(html).toContain('loading="lazy"');
+      expect(html).toContain('width="60" height="40"');
+    });
+
+    it('FR-3 an image among text stays in the line, without a caption', () => {
+      expect(withImages('Text ![in](images/a.png "t") more').html).toBe(`<p>Text ${img('in')} more</p>`);
+    });
+
+    it('FR-3 a missing image is an error, and an image with no alt text is a warning', () => {
+      expect(withImages('![x](images/no.png)').errors).toEqual(['image file "images/no.png" not found']);
+      const empty = withImages('![](images/a.png)');
+      expect(empty.errors).toEqual([]);
+      expect(empty.warnings).toEqual(['the image "images/a.png" has no alt text']);
+      expect(withImages('![   ](images/a.png)').warnings).toHaveLength(1);
+    });
+
+    it('FR-3 an image in a paragraph that names a character is in the paragraph\'s excerpt', () => {
+      const { paragraphs } = withImages('See [[mira]] ![pic](images/a.png) here.');
+      expect(paragraphs).toHaveLength(1);
+      expect(paragraphs[0].links).toEqual(['mira']);
+      expect(paragraphs[0].html).toContain('data-image');
+    });
+
+    it('FR-3 without a lookup, images are left as they are', () => {
+      expect(render('![x](images/a.png)').html).toBe('<p><img src="images/a.png" alt="x"></p>');
+    });
+  });
 });

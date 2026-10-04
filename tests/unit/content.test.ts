@@ -54,7 +54,7 @@ describe('content loading (B-3)', () => {
       name: { fi: 'Molemmat paikat', en: 'Both Places' },
       positions: { 'main-map': [25, 75], 'second-map': [50, 50] },
     });
-    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' }, journal: { fi: 'Päiväkirja', en: 'Journal' }, closeJournal: expect.any(Object), typePc: expect.any(Object), typeNpc: expect.any(Object), typeItem: expect.any(Object), typeLocation: expect.any(Object), typeNote: expect.any(Object), journalEvents: { fi: 'Tapahtumat', en: 'Events' }, journalCampaign: { fi: 'Kampanjassa', en: 'In the campaign' } });
+    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' }, journal: { fi: 'Päiväkirja', en: 'Journal' }, closeJournal: expect.any(Object), typePc: expect.any(Object), typeNpc: expect.any(Object), typeItem: expect.any(Object), typeLocation: expect.any(Object), typeNote: expect.any(Object), journalEvents: { fi: 'Tapahtumat', en: 'Events' }, journalCampaign: { fi: 'Kampanjassa', en: 'In the campaign' }, closeImage: { fi: 'Sulje kuva', en: 'Close the picture' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true, focusZoom: 0, routes: 'history' },
       { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false, focusZoom: 0, routes: 'visit' },
@@ -579,8 +579,8 @@ describe('event text (B-10)', () => {
   it('FR-9 splits the text of an event into its languages and renders it to HTML', () => {
     const a = (id: string, text: string) => `<a href="#" class="journal-link" data-journal="${id}">${text}</a>`;
     expect(ev('first').text).toEqual({
-      fi: `<p>Ensimmäisen tapahtuman teksti.</p>\n<p>${a('hero', 'Sankari')} saapui paikalle, ja mukana oli ${a('ring', 'sormus')}.</p>`,
-      en: `<p>The text of the first event.</p>\n<p>${a('hero', 'Hero')} arrived, with ${a('ring', 'a ring')}.</p>`,
+      fi: expect.stringMatching(new RegExp(`^<p>Ensimmäisen tapahtuman teksti\\.</p>\\n<p>${a('hero', 'Sankari')} saapui paikalle, ja mukana oli ${a('ring', 'sormus')}\\.</p>\\n<figure `)),
+      en: expect.stringMatching(new RegExp(`^<p>The text of the first event\\.</p>\\n<p>${a('hero', 'Hero')} arrived, with ${a('ring', 'a ring')}\\.</p>\\n<figure `)),
     });
   });
 

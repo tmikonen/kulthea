@@ -1,0 +1,54 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.dialog {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* As large as the window allows, and never larger than the picture itself. */
+.image {
+  display: block;
+  max-width: 95vw;
+  max-height: calc(100vh - 6rem);
+  max-height: calc(100dvh - 6rem);
+  object-fit: contain;
+}
+
+.caption {
+  margin: 0;
+  max-width: 95vw;
+  color: #f4ecd8;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.close {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  transform: translate(50%, -50%);
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #f4ecd8;
+  border-radius: 50%;
+  background: #2a2118;
+  color: #f4ecd8;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}

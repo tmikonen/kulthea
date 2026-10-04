@@ -4,7 +4,7 @@ import { imageSize } from 'image-size';
 import { parse as parseYaml } from 'yaml';
 import { compareEvents, parseEventFileName } from '../src/content/eventName.ts';
 import { splitSections } from '../src/content/sections.ts';
-import { renderWithLinks, type RenderedText } from './links.ts';
+import { renderWithLinks, type ImageInfo, type ImageLookup, type RenderedText } from './links.ts';
 import { extractPassages } from './passages.ts';
 import { findRawHtml } from './markdown.ts';
 import { JOURNAL_TYPES } from '../src/content/types.ts';
@@ -107,7 +107,7 @@ export function loadContent(dir: string): LoadResult {
   const events = campaign && maps && locations
     ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, entryType, linkLog, errors, warnings)
     : null;
-  const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, errors) : null;
+  const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, dir, errors, warnings) : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
 
   if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) return { bundle: null, errors, warnings };
@@ -249,10 +249,13 @@ function renderText(
   lang: string,
   linkName: LinkName,
   err: (problem: string) => void,
+  images: ImageLookup,
+  warn: (problem: string) => void,
   onRendered?: (rendered: RenderedText) => void,
 ): string {
-  const rendered = renderWithLinks(markdown, (id) => linkName(id, lang));
+  const rendered = renderWithLinks(markdown, (id) => linkName(id, lang), images);
   for (const problem of rendered.errors) err(`in the "${lang}" text, ${problem}`);
+  for (const problem of rendered.warnings) warn(`in the "${lang}" text, ${problem}`);
   onRendered?.(rendered);
   return rendered.html;
 }
@@ -336,6 +339,7 @@ function validateEvents(
     }
 
     const eventErrors = errors.length;
+    const images = makeImageLookup(path.dirname(eventsDir), file, warnings);
     const text: Record<string, string> = {};
     const { sections, errors: sectionErrors } = splitSections(
       eventBody(fileText, match[0].length), campaign.languages, defaultLang);
@@ -351,16 +355,17 @@ function validateEvents(
         const items: TextLog['items'] = [];
         const passageIds: string[] = [];
         for (const segment of passages.segments) {
-          const rendered = renderWithLinks(segment.markdown, (id) => linkName(id, lang));
+          const rendered = renderWithLinks(segment.markdown, (id) => linkName(id, lang), images);
           if (segment.kind === 'text') {
             items.push(...rendered.paragraphs.map((paragraph) => ({ html: paragraph.html, ids: paragraph.links })));
           } else {
             for (const problem of rendered.errors) err(`in a journal passage in the "${lang}" text, ${problem}`);
+            for (const problem of rendered.warnings) warnings.push(`${file}: in a journal passage in the "${lang}" text, ${problem}`);
             items.push({ html: rendered.html, ids: segment.ids });
             passageIds.push(...segment.ids);
           }
         }
-        text[lang] = renderText(passages.text, lang, linkName, err, (rendered) => {
+        text[lang] = renderText(passages.text, lang, linkName, err, images, (problem) => warnings.push(`${file}: ${problem}`), (rendered) => {
           const id = fileName.replace(/\.md$/, '');
           const logged = linkLog.get(id) ?? {};
           logged[lang] = { links: rendered.links, passageIds, items };
@@ -523,6 +528,25 @@ function readImage(
   return { src: inside.split(path.sep).join('/'), width: dims.width, height: dims.height };
 }
 
+/** Looks up the images that the text of one file uses, reading each image once and giving its warnings once. */
+function makeImageLookup(contentDir: string, file: string, warnings: string[]): ImageLookup {
+  const known = new Map<string, ImageInfo>();
+  return (value) => {
+    const cached = known.get(value);
+    if (cached) return cached;
+    let info: ImageInfo;
+    if (!/^[A-Za-z0-9_./-]+$/.test(value)) {
+      info = { error: `image "${value}": an image path has only letters, digits, ".", "_", "-" and "/"` };
+    } else {
+      let problem = '';
+      const image = readImage(value, contentDir, file, (text) => { problem = text; }, warnings);
+      info = image ? { width: image.width, height: image.height } : { error: problem };
+    }
+    known.set(value, info);
+    return info;
+  };
+}
+
 /** An entry as read from its file: everything but the rendered text. */
 interface JournalDraft extends Omit<JournalEntryDef, 'text' | 'events' | 'excerpts'> {
   file: string;
@@ -630,13 +654,16 @@ function renderJournal(
   events: EventDef[],
   linkLog: LinkLog,
   linkName: LinkName,
+  contentDir: string,
   errors: string[],
+  warnings: string[],
 ): JournalEntryDef[] | null {
   const before = errors.length;
   const entries: JournalEntryDef[] = drafts.map(({ file, sections, ...entry }) => {
+    const images = makeImageLookup(contentDir, file, warnings);
     const text: Record<string, string> = {};
     for (const [lang, markdown] of Object.entries(sections)) {
-      text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`));
+      text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`), images, (problem) => warnings.push(`${file}: ${problem}`));
     }
     return { ...entry, text, events: eventLists(entry, campaign, events, linkLog), excerpts: excerptLists(entry, campaign, events, linkLog) };
   });

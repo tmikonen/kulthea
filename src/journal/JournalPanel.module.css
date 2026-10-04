@@ -94,6 +94,15 @@
   color: #5a2a1a;
 }
 
+.imageButton {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
 .image {
   display: block;
   max-width: 100%;

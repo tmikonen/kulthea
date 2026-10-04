@@ -222,7 +222,7 @@ test.describe('journal entry view (B-22)', () => {
     ] as const) {
       await panel(page).getByRole('link', { name: link, exact: true }).click();
       await expect(entry(page).getByRole('heading', { level: 3 })).toHaveText(heading);
-      await expect(entry(page).locator('img')).toHaveCount(hasImage ? 1 : 0);
+      await expect(entry(page).locator(':scope > button img')).toHaveCount(hasImage ? 1 : 0);
       await expect(entry(page).locator('p').filter({ hasText: 'Eteenpäin.' })).toHaveCount(hasMotto ? 1 : 0);
       await page.goBack();
       await expect(panel(page).getByRole('heading', { level: 3 })).toHaveCount(5);
@@ -236,7 +236,7 @@ test.describe('journal entry view (B-22)', () => {
 
   test('FR-6 the picture is shown, loaded, and fits the panel without scrolling sideways', async ({ page }) => {
     await open(page, '?journal=hero');
-    const img = entry(page).locator('img');
+    const img = entry(page).locator(':scope > button img');
     await expect(img).toBeVisible();
     await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(60);
     const fits = await panel(page).evaluate((aside) => {
@@ -440,5 +440,126 @@ test.describe('journal-only passages (B-26)', () => {
     await open(page, '?journal=hero&lang=en');
     await expect(entry(page)).toContainText('The hero doubted the order already here.');
     await expect(entry(page)).not.toContainText('Sankari epäili');
+  });
+});
+
+test.describe('images in text and the viewer (B-27)', () => {
+  const eventRegion = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ });
+  const entry = (page: Page) => panel(page).locator('article');
+  const viewer = (page: Page) => page.getByRole('dialog');
+  const sideways = (page: Page, selector: string) =>
+    page.locator(selector).first().evaluate((el) => el.scrollWidth <= el.clientWidth);
+
+  test('FR-3 a picture in the event text is loaded from a served file, lazy, with its caption, and fits the panel', async ({ page }) => {
+    await open(page);
+    const figure = eventRegion(page).locator('figure');
+    const img = figure.locator('img');
+    await expect(img).toBeVisible();
+    await expect(img).toHaveAttribute('loading', 'lazy');
+    await expect(img).toHaveAttribute('src', /\/kulthea\/assets\/hero-.*\.png$/);
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(60);
+    await expect(figure.locator('figcaption')).toHaveText('Sankarin kuva');
+  });
+
+  test('FR-4 a wide picture is scaled down to the panel and the panels do not scroll sideways', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second');
+    const img = eventRegion(page).locator('figure img');
+    await expect(img).toBeVisible();
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(1500);
+    const box = (await img.boundingBox())!;
+    const area = (await eventRegion(page).boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(area.width);
+    expect(box.width).toBeLessThan(1500);
+    expect(await eventRegion(page).evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+
+    await open(page, '?journal=lore');
+    const lead = entry(page).locator('figure img');
+    await expect(lead).toBeVisible();
+    await expect.poll(() => lead.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(1500);
+    const panelBox = (await panel(page).boundingBox())!;
+    expect((await lead.boundingBox())!.width).toBeLessThanOrEqual(panelBox.width);
+    expect(await sideways(page, 'aside > div:nth-of-type(2)')).toBe(true);
+  });
+
+  test('FR-3 a click opens the picture in a viewer, as large as fits and never enlarged, with the caption', async ({ page }) => {
+    await open(page);
+    await eventRegion(page).locator('figure img').click();
+    await expect(viewer(page)).toBeVisible();
+    await expect(viewer(page)).toContainText('Sankarin kuva');
+    const shown = (await viewer(page).getByRole('img').boundingBox())!;
+    expect(shown.width).toBeCloseTo(60, 0); // the picture is 60 px wide: not enlarged
+    expect(shown.height).toBeCloseTo(40, 0);
+  });
+
+  test('FR-3 a picture larger than the window is scaled down to fit it', async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 500 });
+    await page.goto('./#/event/6050-1-001-02-second');
+    await eventRegion(page).locator('figure img').click();
+    const shown = (await viewer(page).getByRole('img').boundingBox())!;
+    expect(shown.width).toBeLessThanOrEqual(700);
+    expect(shown.height).toBeLessThanOrEqual(500);
+    expect(shown.width).toBeGreaterThan(300);
+    expect(shown.x).toBeGreaterThanOrEqual(0);
+    expect(shown.y).toBeGreaterThanOrEqual(0);
+  });
+
+  test('FR-3 the viewer closes with Escape, the close button, and a click outside the picture, and focus returns to the picture', async ({ page }) => {
+    await open(page);
+    const img = eventRegion(page).locator('figure img');
+    await img.focus();
+    await page.keyboard.press('Enter');
+    await expect(viewer(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(viewer(page)).toHaveCount(0);
+    await expect(img).toBeFocused();
+
+    await img.click();
+    await viewer(page).getByRole('button', { name: 'Sulje kuva' }).click();
+    await expect(viewer(page)).toHaveCount(0);
+
+    await img.click();
+    await page.mouse.click(5, 5);
+    await expect(viewer(page)).toHaveCount(0);
+    await img.click();
+    await viewer(page).getByRole('img').click();
+    await expect(viewer(page)).toBeVisible();
+  });
+
+  test('FR-6 Escape closes only the viewer, and the journal panel stays open until the next Escape', async ({ page }) => {
+    await open(page, '?journal=hero');
+    await entry(page).locator('figure img').first().click();
+    await expect(viewer(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(viewer(page)).toHaveCount(0);
+    await expect(panel(page)).toBeVisible();
+    await expect(page).toHaveURL(/journal=hero$/);
+    await page.keyboard.press('Escape');
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test('FR-6 the lead image of an entry opens in the viewer', async ({ page }) => {
+    await open(page, '?journal=hero');
+    await entry(page).locator(':scope > button').click();
+    await expect(viewer(page)).toBeVisible();
+    await expect(viewer(page).getByRole('img')).toHaveAttribute('alt', 'Sankari');
+    await page.keyboard.press('Escape');
+    await expect(viewer(page)).toHaveCount(0);
+  });
+
+  test('FR-9 the alt text, the caption and the close text follow the language', async ({ page }) => {
+    await open(page, '?lang=en');
+    const img = eventRegion(page).locator('figure img');
+    await expect(img).toHaveAttribute('alt', 'Picture of the hero');
+    await expect(eventRegion(page).locator('figcaption')).toHaveText('The hero');
+    await img.click();
+    await expect(viewer(page).getByRole('button', { name: 'Close the picture' })).toBeVisible();
+    await expect(viewer(page)).toContainText('The hero');
+  });
+
+  test('FR-3 the arrow keys do not step through the events while the viewer is open', async ({ page }) => {
+    await open(page);
+    await eventRegion(page).locator('figure img').click();
+    await page.keyboard.press('ArrowRight');
+    await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}$`));
   });
 });

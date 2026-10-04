@@ -7,6 +7,8 @@ interface MdNode {
   type: string;
   value?: string;
   url?: string;
+  alt?: string | null;
+  title?: string | null;
   children?: MdNode[];
   data?: Record<string, unknown>;
 }
@@ -21,6 +23,15 @@ export interface Paragraph {
   links: string[];
 }
 
+/** What is known of an image file: its size, or what is wrong with it. */
+export type ImageInfo = { width: number; height: number } | { error: string };
+
+/** Finds an image by the path written in the text. */
+export type ImageLookup = (path: string) => ImageInfo;
+
+/** The mark that the build puts where the served address of an image goes. The plugin replaces it. */
+export const imageMark = (path: string) => `@@image:${path}@@`;
+
 export interface RenderedText {
   html: string;
   /** The ids of the entries the text links to, once each, in the order they first appear. */
@@ -28,6 +39,8 @@ export interface RenderedText {
   /** Every paragraph of the text in document order, also those inside lists and quotes. */
   paragraphs: Paragraph[];
   errors: string[];
+  /** Things that are not wrong enough to stop the build, such as an image with no alt text. */
+  warnings: string[];
 }
 
 /**
@@ -36,9 +49,83 @@ export interface RenderedText {
  * its own, or undefined when no entry has that id. A link in code is left as written. Raw HTML is dropped,
  * so reject it first.
  */
-export function renderWithLinks(markdown: string, nameOf: (id: string) => string | undefined): RenderedText {
+export function renderWithLinks(
+  markdown: string,
+  nameOf: (id: string) => string | undefined,
+  imageOf?: ImageLookup,
+): RenderedText {
   const links: string[] = [];
   const errors: string[] = [];
+  const warnings: string[] = [];
+
+  const imageElement = (node: MdNode, info: { width: number; height: number }) => ({
+    type: 'element',
+    tagName: 'img',
+    properties: {
+      src: imageMark(node.url ?? ''),
+      alt: node.alt ?? '',
+      width: info.width,
+      height: info.height,
+      loading: 'lazy',
+      decoding: 'async',
+      dataImage: '',
+      tabIndex: 0,
+      role: 'button',
+    },
+    children: [],
+  });
+
+  /**
+   * Gives each image its size, lazy loading and a served address (the app opens it large on a click).
+   * A paragraph that holds only an image becomes a figure, with the image's title as a visible caption.
+   */
+  function processImages(node: MdNode) {
+    for (const child of node.children ?? []) {
+      if (child.type === 'image') {
+        const path = child.url ?? '';
+        const info = imageOf ? imageOf(path) : null;
+        if (info && 'error' in info) {
+          errors.push(info.error);
+        } else if (info) {
+          if ((child.alt ?? '').trim() === '') warnings.push(`the image "${path}" has no alt text`);
+          const element = imageElement(child, info);
+          child.data = { hName: 'img', hProperties: element.properties };
+          child.title = null;
+        }
+      }
+      processImages(child);
+    }
+  }
+
+  /** Turns paragraphs that hold only an image into figures. Runs after `processImages`, which needs the titles. */
+  function makeFigures(node: MdNode, titles: Map<MdNode, string | undefined>) {
+    for (const child of node.children ?? []) {
+      if (child.type === 'paragraph' && child.children?.length === 1 && child.children[0].type === 'image' && child.children[0].data) {
+        const image = child.children[0];
+        const caption = titles.get(image);
+        const img = { type: 'element', tagName: 'img', properties: image.data!.hProperties, children: [] };
+        child.data = {
+          hName: 'figure',
+          hProperties: { className: ['text-figure'] },
+          hChildren: [
+            img,
+            ...(caption ? [{ type: 'element', tagName: 'figcaption', properties: {}, children: [{ type: 'text', value: caption }] }] : []),
+          ],
+        };
+      } else {
+        makeFigures(child, titles);
+      }
+    }
+  }
+
+  /** The titles of the images, which are the captions, noted before `processImages` takes them off the nodes. */
+  const titles = new Map<MdNode, string | undefined>();
+  const rememberTitles = (node: MdNode) => {
+    for (const child of node.children ?? []) {
+      if (child.type === 'image') titles.set(child, child.title ?? undefined);
+      rememberTitles(child);
+    }
+  };
 
   /** Replaces the links in the text nodes by link nodes, and reports what is wrong with the rest. */
   function transform(node: MdNode, insideLink: boolean) {
@@ -116,10 +203,15 @@ export function renderWithLinks(markdown: string, nameOf: (id: string) => string
     .use(remarkParse)
     .use(() => (tree: MdNode) => {
       transform(tree, false);
+      if (imageOf) {
+        rememberTitles(tree);
+        processImages(tree);
+        makeFigures(tree, titles);
+      }
       collect(tree);
     })
     .use(remarkRehype)
     .use(rehypeStringify);
   const html = String(processor.processSync(markdown));
-  return { html, links, paragraphs, errors };
+  return { html, links, paragraphs, errors, warnings };
 }

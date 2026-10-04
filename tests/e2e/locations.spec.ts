@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const markers = (page: Page) => page.locator('path.leaflet-interactive');
+const markers = (page: Page) => page.locator('path.location-marker');
 
 /** Where each marker is, as percent of the displayed image, from the top-left. */
 async function markerPercents(page: Page) {

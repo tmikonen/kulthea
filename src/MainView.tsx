@@ -11,6 +11,7 @@ import { LanguageSwitch } from './LanguageSwitch';
 import { displayedMap } from './map/mapParam';
 import { MapSwitcher } from './map/MapSwitcher';
 import { markersFor } from './map/markers';
+import { eventPlaceOn, placeName } from './map/places';
 import { MapView } from './map/MapView';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
@@ -46,6 +47,9 @@ export function MainView({ event }: { event?: EventDef }) {
     navigate({ pathname: eventPath(target.id), search: kept.toString() });
   };
 
+  const mainMapId = maps.find((map) => map.main)!.id;
+  const place = event ? eventPlaceOn(event, current.id, mainMapId) : null;
+
   const nameOf = (map: (typeof maps)[number]) => resolveText(map.name, lang, defaultLang);
   const setParam = (name: string, value: string) => {
     const next = new URLSearchParams(params);
@@ -68,6 +72,7 @@ export function MainView({ event }: { event?: EventDef }) {
         map={current}
         label={nameOf(current)}
         markers={markersFor(locations, current.id, lang, defaultLang)}
+        current={place ? { position: place.position, label: placeName(place, locations, lang, defaultLang) } : undefined}
         onImageLoad={() => setShown(true)}
       >
         <MapSwitcher

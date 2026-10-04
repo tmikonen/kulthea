@@ -1,10 +1,11 @@
 import { useEffect, type ReactNode } from 'react';
 import { CRS } from 'leaflet';
-import { CircleMarker, ImageOverlay, MapContainer, Tooltip, useMap } from 'react-leaflet';
+import { CircleMarker, ImageOverlay, MapContainer, Pane, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ContentMap } from '../content/types';
-import { imageBounds, toLeaflet } from './coords';
+import { imageBounds, toLeaflet, type Position } from './coords';
 import type { MapMarker } from './markers';
+import { isInView } from './view';
 import styles from './MapView.module.css';
 
 /**
@@ -58,6 +59,28 @@ function FitToImage({ map: def }: { map: ContentMap }) {
   return null;
 }
 
+/** The current event's marker: where it is on the displayed map, and its location's name if it has one. */
+export interface CurrentMarker {
+  position: Position;
+  label: string | null;
+}
+
+/** Pans to the current marker when it is outside the visible area. The zoom is never changed. */
+function PanToMarker({ map: def, marker }: { map: ContentMap; marker: CurrentMarker | undefined }) {
+  const map = useMap();
+  const [x, y] = marker?.position ?? [];
+  useEffect(() => {
+    if (x === undefined || y === undefined) return;
+    const target = toLeaflet([x, y], def);
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+    if (!isInView(map.latLngToContainerPoint(target), size)) {
+      map.panTo(target, { animate: true, duration: 0.3 });
+    }
+  }, [map, def, x, y]);
+  return null;
+}
+
 interface MapViewProps {
   map: ContentMap;
   label: string;
@@ -65,11 +88,13 @@ interface MapViewProps {
   onImageLoad?: () => void;
   /** Location markers to draw on this map. */
   markers?: MapMarker[];
+  /** The current event's marker, drawn above the others, or none when the event is not on this map. */
+  current?: CurrentMarker;
   /** Controls drawn over the map area. */
   children?: ReactNode;
 }
 
-export function MapView({ map: def, label, onImageLoad, markers = [], children }: MapViewProps) {
+export function MapView({ map: def, label, onImageLoad, markers = [], current, children }: MapViewProps) {
   const bounds = imageBounds(def);
   return (
     <div className={styles.map} role="region" aria-label={label}>
@@ -93,11 +118,25 @@ export function MapView({ map: def, label, onImageLoad, markers = [], children }
             key={marker.id}
             center={toLeaflet(marker.position, def)}
             radius={6}
+            className="location-marker"
             pathOptions={{ color: '#7a1f1f', weight: 2, fillColor: '#d94a3d', fillOpacity: 0.9 }}
           >
             <Tooltip>{marker.label}</Tooltip>
           </CircleMarker>
         ))}
+        {current && (
+          <Pane name="current-event" style={{ zIndex: 650 }}>
+            <CircleMarker
+              center={toLeaflet(current.position, def)}
+              radius={11}
+              className="current-marker"
+              pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#e0301e', fillOpacity: 1 }}
+            >
+              {current.label && <Tooltip>{current.label}</Tooltip>}
+            </CircleMarker>
+          </Pane>
+        )}
+        <PanToMarker map={def} marker={current} />
         <FitToImage map={def} />
       </MapContainer>
     </div>

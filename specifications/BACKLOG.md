@@ -350,7 +350,7 @@ Automated tests: unit tests for the displayed-map function (known, unknown and m
 
 ## B-13 Current event marker
 
-Status: defined
+Status: done
 
 Related: FR-1, FR-2, FR-3, FR-8, "Map markers".
 
@@ -367,12 +367,12 @@ How to check by hand (with the demo content):
 4. Hover over the marker. The location's name is shown, if it has one.
 
 Acceptance criteria:
-- [ ] One function gives an event's place on a given map, with the rule in the scope note.
-- [ ] The marker is at the converted position of that place on the displayed map, follows stepping, and does not change with the language.
-- [ ] The marker is clearly larger and a different colour from the other markers, and is drawn above them. Its hover text is the location's name where it has one.
-- [ ] No marker is shown when the event has no place on the displayed map.
-- [ ] When the marker is outside the visible area, the view pans to it with a short animation. The zoom is not changed, the view does not move when the marker is already inside it, and nothing happens at the fitted zoom.
-- [ ] Fitting and refitting the map still work: the tests for BUG-1, BUG-2 and BUG-3 still pass.
+- [x] One function gives an event's place on a given map, with the rule in the scope note.
+- [x] The marker is at the converted position of that place on the displayed map, follows stepping, and does not change with the language.
+- [x] The marker is clearly larger and a different colour from the other markers, and is drawn above them. Its hover text is the location's name where it has one.
+- [x] No marker is shown when the event has no place on the displayed map.
+- [x] When the marker is outside the visible area, the view pans to it with a short animation. The zoom is not changed, the view does not move when the marker is already inside it, and nothing happens at the fitted zoom.
+- [x] Fitting and refitting the map still work: the tests for BUG-1, BUG-2 and BUG-3 still pass.
 
 Automated tests: unit tests for the place function (main, `showOn`, `n/a`, one-off, another map) and for deciding whether the view has to move; component tests for the marker's presence; Playwright tests that the marker's position in percent matches the event at every step of the fixtures (main map, second map, one-off), that zooming in and stepping brings the marker into view with the same zoom, and that it does not move the view when the marker is visible.
 

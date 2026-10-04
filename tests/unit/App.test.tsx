@@ -115,7 +115,7 @@ describe('language switch (B-6)', () => {
 });
 
 describe('location markers (B-7)', () => {
-  const markerCount = (container: HTMLElement) => container.querySelectorAll('path.leaflet-interactive').length;
+  const markerCount = (container: HTMLElement) => container.querySelectorAll('path.location-marker').length;
 
   it('FR-1 shows a marker for each location that has a position on the displayed map', () => {
     const { container, unmount } = renderApp();
@@ -430,5 +430,53 @@ describe('the displayed map follows the event (B-15)', () => {
     renderApp('/event/6050-2-003-01-split');
     expect(pressed('Second Map')).toBe('true');
     expect(pressed('Pääkartta')).toBe('false');
+  });
+});
+
+describe('the current event marker (B-13)', () => {
+  const current = (container: HTMLElement) => container.querySelectorAll('path.current-marker');
+
+  it('FR-1 shows one current marker for an event that has a place on the displayed map', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    expect(current(container)).toHaveLength(1);
+  });
+
+  it('FR-8 a standalone event has a marker too', () => {
+    const { container } = renderApp('/event/6050-2-070-01-standalone');
+    expect(current(container)).toHaveLength(1);
+  });
+
+  it('FR-3 an event shown on the second map has its marker there', () => {
+    const { container } = renderApp('/event/6050-1-10-01-on-second-map');
+    expect(current(container)).toHaveLength(1);
+  });
+
+  it('FR-1 stepping keeps exactly one current marker', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    for (let i = 0; i < 6; i++) {
+      fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+      expect(current(container)).toHaveLength(1);
+    }
+  });
+
+  it('FR-1 a map that the event is not placed on has no current marker, though its location has a position there', () => {
+    // The location of this event, both-places, has a position on the second map, but the event is not placed there.
+    const { container } = renderApp('/event/6050-1-001-02-second');
+    expect(current(container)).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(current(container)).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Pääkartta' }));
+    expect(current(container)).toHaveLength(1);
+  });
+
+  it('FR-3 an event with no place on the main map has no marker there', () => {
+    const { container } = renderApp('/event/6050-1-10-01-on-second-map?map=main-map');
+    expect(current(container)).toHaveLength(0);
+  });
+
+  it('FR-9 changing the language keeps the marker', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+    expect(current(container)).toHaveLength(1);
   });
 });

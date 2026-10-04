@@ -322,7 +322,7 @@ Automated tests: unit tests for the section splitter, the language rules and the
 
 ## B-15 Events on another map
 
-Status: done
+Status: accepted
 
 Related: FR-1, FR-3, DD-3, "Data flow" (step 5), "Map switching".
 
@@ -350,7 +350,7 @@ Automated tests: unit tests for the displayed-map function (known, unknown and m
 
 ## B-13 Current event marker
 
-Status: done
+Status: accepted
 
 Related: FR-1, FR-2, FR-3, FR-8, "Map markers".
 
@@ -378,7 +378,7 @@ Automated tests: unit tests for the place function (main, `showOn`, `n/a`, one-o
 
 ## B-14 Places visited so far
 
-Status: done
+Status: accepted
 
 Related: FR-1, FR-8, "Map markers".
 

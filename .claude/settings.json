@@ -1,8 +1,10 @@
 {
   "attribution": { "commit": "", "pr": "" },
   "includeCoAuthoredBy": false,
+  "env": { "PLAYWRIGHT_BROWSERS_PATH": ".playwright-browsers" },
   "permissions": {
     "allow": [
+      "Bash(npx playwright install:*)",
       "Bash(npm run dev:*)",
       "Bash(npm run build:*)",
       "Bash(npm run test:*)",
@@ -18,7 +20,6 @@
     "ask": [
       "Bash(npm install:*)",
       "Bash(npm ci:*)",
-      "Bash(npx playwright install:*)",
       "Bash(git checkout:*)",
       "Bash(git stash:*)"
     ],

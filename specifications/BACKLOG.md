@@ -485,7 +485,7 @@ Automated tests: unit tests for the place function (each rule, the precedence, `
 
 ## B-16 Party route logic
 
-Status: defined
+Status: in progress
 
 Related: FR-5, FR-8, DD-3, "Data flow" (routes), "Shared logic without UI".
 

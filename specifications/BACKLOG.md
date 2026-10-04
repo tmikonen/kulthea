@@ -176,7 +176,7 @@ Automated tests: unit tests for the resolver (plain value, language map, fallbac
 
 ## B-7 Locations
 
-Status: done
+Status: accepted
 
 Related: "File formats" (`locations.json`), "Positions", "Validation rules".
 

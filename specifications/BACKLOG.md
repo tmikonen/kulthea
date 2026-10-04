@@ -1,6 +1,6 @@
 # Kulthea Campaign Chronicles: Backlog
 
-The work is split into small increments, in implementation order. The ids are stable labels, not positions: the order of the sections below is the implementation order, and it can differ from the order of the ids (B-11 and B-12 come before B-9 and B-10). Each increment adds one testable piece of functionality. Some code will be revisited when a later item extends it, and that is accepted. Requirement ids (FR-n) refer to `REQUIREMENTS.md`, and section names refer to `DESIGN.md`.
+The work is split into small increments, in implementation order. The ids are stable labels, not positions: the order of the sections below is the implementation order, and it can differ from the order of the ids (for example B-15 comes before B-13 and B-14). Each increment adds one testable piece of functionality. Some code will be revisited when a later item extends it, and that is accepted. Requirement ids (FR-n) refer to `REQUIREMENTS.md`, and section names refer to `DESIGN.md`.
 
 ## Status values
 
@@ -226,7 +226,7 @@ Status: accepted
 
 Related: FR-2, FR-3, DD-4, "URLs", "Bad links", "Application architecture" (layout).
 
-Scope note: this item comes before B-9 and B-10, so the panel shows the title and the location now, and B-9 and B-10 add the date and the text to it. The B-7 location markers stay on the map until B-13 and B-14 replace them. An unknown event id is replaced in the address by the first event's id, and the notice is kept in the browser's history state, so it does not come back on every reload.
+Scope note: this item comes before B-9 and B-10, so the panel shows the title and the location now, and B-9 and B-10 add the date and the text to it. The B-7 location markers stay on the map until B-14 replaces them. An unknown event id is replaced in the address by the first event's id, and the notice is kept in the browser's history state, so it does not come back on every reload.
 
 You will see: opening the site goes to the first event, and the address becomes `/#/event/<id>`. Under the map is an event panel with the event's title and its location name. The temporary list is gone. The map and its markers behave as before.
 
@@ -320,32 +320,253 @@ Acceptance criteria:
 
 Automated tests: unit tests for the section splitter, the language rules and the HTML check; component tests for the fallback note; a Playwright test for the language switch on event text.
 
+## B-15 Events on another map
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-1, FR-3, DD-3, "Data flow" (step 5), "Map switching".
+
+Depends on: B-12 (stepping).
+
+Scope note: this item comes before B-13 and B-14, because it fixes the displayed map that they draw on. The displayed map is the `map` URL parameter when it names a map, otherwise the map of the event's `showOn`, otherwise the main map. This changes the rule from B-5, where a missing or unknown `map` meant the main map: it now means "the event's own map". B-12 already drops a manual `map` choice when stepping, so after this item stepping always shows the new event on its own map. The B-7 location markers stay as they are, and the event's own marker comes in B-13.
+
+You will see: stepping to an event that is shown on another map switches the map by itself, and stepping on to an event on the main map switches back. A choice made with the map switcher lasts until the next step. Opening a link to such an event opens that map.
+
+How to check by hand (with the demo content):
+1. Step through the ten demo events. Event 6 ("Saapuminen Suonperään") shows the Bog End map, and event 7 ("Tiedustelijat raunioilla") stays on it. Event 8 ("Ryhmät yhdistyvät") is back on Bay of Izar, event 9 ("Keksityn hahmon synnyinpaikka") shows Haestra, and event 10 ("Teleporttaus Ton-Boriin") is back on Bay of Izar.
+2. Switch to another map with the switcher, then press Next. The map follows the next event, not your choice. The event itself never changes when you switch maps.
+3. Open the address of event 6 directly. Bog End opens. Add `?map=haestra`. Haestra opens, with the same event. Reload. It stays.
+4. Add `?map=nowhere`. The event's own map opens.
+
+Acceptance criteria:
+- [ ] One function gives the displayed map from the maps, the `map` parameter and the current event, with the rule above.
+- [ ] The map switcher marks the displayed map, and choosing a map keeps the event.
+- [ ] Stepping to an event with `showOn` shows that map, and stepping on to an event without it shows the main map. Stepping back works the same way.
+- [ ] After a manual map choice, stepping shows the next event on its own map.
+- [ ] The `map` parameter wins over the event's own map, and an unknown one is ignored.
+- [ ] The shown map starts fitted to the window after an automatic switch, and the maps are still downloaded in the background.
+
+Automated tests: unit tests for the displayed-map function (known, unknown and missing `map`; with and without `showOn`); component tests for the switcher marking the displayed map; Playwright tests that step through the fixture events and check the map each time, a manual choice followed by a step, a direct link, a link with `map`, an unknown `map`, and reload. The B-5 tests that say an unknown `map` means the main map are updated.
+
+## B-13 Current event marker
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-1, FR-2, FR-3, FR-8, "Map markers".
+
+Depends on: B-15 (the displayed map).
+
+Scope note: an event has at most two places, its main-map place and, when it has `showOn`, its place on one other map. The event's place on a map is: on the main map its main place (none for `n/a`), on the `showOn` map its `showOn` place, and on any other map none. A named location that merely has a position on another map does not give the event a place there. This is also the rule for the dots in B-14 and the routes in B-16 and B-18, and I will write it into `DESIGN.md` when the product owner approves it. The B-7 markers for all locations stay until B-14, and the current marker is drawn above them.
+
+You will see: a large marker on the map at the current event's place. It moves as you step. A standalone event has one too. An event shown on another map has its marker on that map. When you have zoomed in and the marker is outside the visible area, the map pans to it, and the zoom does not change.
+
+How to check by hand (with the demo content):
+1. Open the first event. The marker is at the Port of Izar. Step on. It moves to each event's place, including the one-off camp position and the places on Bog End and Haestra.
+2. Zoom in on a corner of the map and step to an event that is somewhere else on it. The map moves so that the marker is in view, with the same zoom. Step to an event whose marker is already visible. The map stays still.
+3. Switch with the map switcher to a map that the event is not on. There is no current marker there, and the event does not change.
+4. Hover over the marker. The location's name is shown, if it has one.
+
+Acceptance criteria:
+- [ ] One function gives an event's place on a given map, with the rule in the scope note.
+- [ ] The marker is at the converted position of that place on the displayed map, follows stepping, and does not change with the language.
+- [ ] The marker is clearly larger and a different colour from the other markers, and is drawn above them. Its hover text is the location's name where it has one.
+- [ ] No marker is shown when the event has no place on the displayed map.
+- [ ] When the marker is outside the visible area, the view pans to it with a short animation. The zoom is not changed, the view does not move when the marker is already inside it, and nothing happens at the fitted zoom.
+- [ ] Fitting and refitting the map still work: the tests for BUG-1, BUG-2 and BUG-3 still pass.
+
+Automated tests: unit tests for the place function (main, `showOn`, `n/a`, one-off, another map) and for deciding whether the view has to move; component tests for the marker's presence; Playwright tests that the marker's position in percent matches the event at every step of the fixtures (main map, second map, one-off), that zooming in and stepping brings the marker into view with the same zoom, and that it does not move the view when the marker is visible.
+
+## B-14 Places visited so far
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-1, FR-8, "Map markers".
+
+Depends on: B-13 (an event's place on a map and the current marker).
+
+Scope note: this item replaces the B-7 markers for all locations, so the map now shows only where the story has been. The dots on a map are the places of the earlier events, in date order, that have a place on that map (the rule from B-13). Standalone events count. A place that was visited several times is one dot, and a place that is the current marker has no dot. Locations that have a position on a map but were not visited are not shown. A named place visited by an event on one map is not shown on another map where it also happens to have a position; that could be added after the first version.
+
+You will see: at the first event there is only the current marker. Each step adds a small dot for the place you came from, and stepping back takes dots away. Several events at one place make one dot.
+
+How to check by hand (with the demo content, then with `CONTENT_DIR=campaign`):
+1. Open the first event. Only its marker is shown. Step forward. Dots accumulate behind the marker.
+2. Step back. The dots go away in the same order.
+3. In the real events, the two events at the Troll Cave make one dot.
+4. Open an event on Bog End. Its map shows only the dots for earlier events that were on Bog End. Switch to Bay of Izar. The dots there are those of earlier events on the main map.
+5. Hover over a dot. A named place shows its name.
+
+Acceptance criteria:
+- [ ] The dots on a map are computed from the events before the current one, so they are the same however you arrived at an event.
+- [ ] The B-7 markers for all locations are gone, and no place the story has not reached is shown.
+- [ ] A place visited by several events is one dot, a place at the current marker has no dot, and standalone events have dots.
+- [ ] Dots are small and clearly different from the current marker. A named place shows its name on hover, and a one-off position shows nothing.
+- [ ] A manual map switch shows the dots of the earlier events that have a place on that map.
+
+Automated tests: unit tests for the visited-places function (order, repeats, standalone, one-off positions, the current place, other maps); component and Playwright tests that replace the B-7 marker tests: dots and marker positions at each step of the fixtures, dots disappearing when stepping back, hover names. The B-7 acceptance stays as it was, since its marker positions are still tested.
+
+### Milestone 1: the map follows the story (after B-14)
+
+A checkpoint for a longer manual test, with your feedback before the routes start. Stepping through the events, the map switches itself, the marker moves, the view follows it, and the trail of visited places grows.
+
+What to try: step through all ten demo events and through the five real events (`CONTENT_DIR=campaign npm run dev`), forwards and backwards, with and without zooming in, switching maps by hand in between, and opening addresses directly.
+
+Feedback wanted:
+- the look and size of the marker and the dots;
+- whether the map moving to the marker feels right, or should be more or less eager;
+- whether the rule that an event only has places on its own maps is what you want. It means that a visited place does not appear on a map where the event was not placed, even if the place has a position there.
+
+## B-16 Party route logic
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-5, FR-8, DD-3, "Data flow" (routes), "Shared logic without UI".
+
+Depends on: B-13 (an event's place on a map).
+
+Scope note: a plain function, worked out once at load, that turns the events in date order into route segments per map, and a second one that clips them to the events up to the current one. It has no screen of its own, so this item is accepted together with B-17. It covers the party track (events with no `track`), the places of B-13, standalone events (`track: none`, ignored), the breaks at `n/a`, one segment for each visit to another map, and `newSegment`. Events of named groups are ignored here, and B-18 adds them. There is no debug view, since B-17 draws the routes straight away.
+
+You will see: nothing new on the screen yet. The behaviour is defined by the worked examples below, which become the unit tests word for word, and which I would like you to read and confirm.
+
+Worked examples (A, B, C, D are party events on the main map, in date order):
+1. A, B, C, D give one line A-B-C-D. One event alone gives no line.
+2. A, B, S, C, where S is a standalone event, give A-B-C. The standalone event neither adds a line nor breaks the route.
+3. A, B, N, C, D, where N has `n/a` on the main map and is shown on Bog End: on the main map there are two lines, A-B and C-D, because N has no place there and breaks the route. On Bog End N is alone, so it has no line.
+4. A, X, Y, B, where X and Y have a main location and are also shown on Bog End: on the main map A-X-Y-B is one line, because they still have main-map places. On Bog End X-Y is a line of its own.
+5. N1, N2, A, N3, where N1, N2 and N3 are only on Bog End and A is on the main map: on Bog End N1-N2 is one line and N3 is alone. Each separate visit to another map is its own segment.
+6. A, B with `newSegment`, C give A alone, then B-C. There is no line from A to B on any map where both have a place.
+7. Two events at the same position in a row give no zero-length line, and the route goes on from that point.
+8. Events of a named group between A and B do not change the party's line A-B.
+9. Clipping: with the current event C in A-B-C-D, the line is A-B-C. With the current event B it is A-B.
+
+How to check by hand: read the worked examples and tell me if any is not how you want routes to behave. Run `npm test` to see them pass.
+
+Acceptance criteria:
+- [ ] A route function returns the segments per map for the party track, with each point tied to its event, following the worked examples above.
+- [ ] A second function clips the segments to the events up to a given event in date order, so stepping needs no recomputation.
+- [ ] Standalone events and named-group events are ignored, an `n/a` or other-map event breaks the route on the maps it has no place on, and `newSegment` starts a new segment on every map.
+- [ ] Every worked example is a unit test, with the event order and places written out as in the example.
+
+Automated tests: the unit tests of the worked examples, plus tests that a segment never holds an event twice, that the points are in date order, and that clipping at any event keeps exactly the earlier part.
+
+## B-17 Drawing the party route
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-5.
+
+Depends on: B-16 (the route logic) and B-14 (the dots and marker that the line goes under).
+
+Scope note: the fixtures and the demo events are extended where the routes need it. Today the demo's main-map line would be 1-2-3-4-5 and then only single points, so I would add a party event after the standalone event (9), a party event after the new segment (10), and a second party event on Bog End. Only invented events are changed, never the real campaign, and I will list the changes in the commit. Tests that count or list the fixture events are updated. Accepted together with B-16.
+
+You will see: a blue solid line joining the places of the party's events, up to the current event, on the displayed map. The line grows as you step forward and shortens as you step back. A jump leaves a gap, a standalone event is not part of the line, and a visit to another map has its own line there.
+
+How to check by hand (with the demo content):
+1. Step through the demo events on Bay of Izar. The line follows the party from place to place.
+2. The standalone event (9) is not part of the line: the line goes straight from the party event before it to the one after it.
+3. At the event with the new segment (10) there is no line from the previous place to it, and the line goes on from it.
+4. Step to Bog End. The party's line there is separate from the line on the main map, and the main map's line has a gap where the party was only on Bog End (event 6).
+5. Step back. The line shortens.
+
+Acceptance criteria:
+- [ ] The segments are worked out once when the app loads, and each step only clips them.
+- [ ] The displayed map shows the party's lines up to the current event, and nothing from later events.
+- [ ] The line is solid, blue and clearly thinner than the current marker, and is drawn below the dots and the marker.
+- [ ] A segment of one event draws no line, a new segment leaves a gap, and the lines are the same however you arrived at an event.
+- [ ] After a manual map switch, the lines of the earlier events on that map are shown.
+
+Automated tests: component tests that the right number of lines is drawn for a given event; Playwright tests that step through the extended fixtures and check the line's ends against the markers at each step, the gap at a new segment, the separate line on the second map, and stepping back.
+
+## B-18 Split-group route logic
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-5, FR-8.
+
+Depends on: B-16 (the party route logic).
+
+Scope note: this extends the route function from B-16 to named groups (a `track` that is not empty and not `none`). It was "Tracks, standalone events and new segments" in the outline, and the standalone and `newSegment` rules moved to B-16. It is accepted together with B-19. The rules below are my reading of FR-5 where it is not exact, and I would like you to confirm them.
+
+Rules: a group's events are joined in date order, among themselves only. The party's events in between do not end the split, so the party and the group can go on at the same time. A group's line starts at the party's last event before the group's first event, and ends at the first party event after the group's last event, which is where the group rejoins. A start or an end is drawn on a map only when that party event has a place on that map. A group with no later party event ends at its last event. Breaks, other-map visits, and `newSegment` work as for the party. A group that is split twice under the same name is one line, unless `newSegment` or another name is used for the second split.
+
+Worked examples (P1, P2, P3 are party events, G1, G2 are events of the group `scout`, all on the main map):
+1. P1, G1, G2, P2 give the party P1-P2, and the group P1-G1-G2-P2. The group's line starts at P1 where it split and ends at P2 where it rejoined.
+2. P1, G1, P2, G2, P3 give the party P1-P2-P3, and the group P1-G1-G2-P3. The party's event P2 does not interrupt the group.
+3. Two groups, `scout` and `mage`, have their own lines, each with its own start and end.
+4. P1, G1, G2 with no later party event give the group P1-G1-G2, which ends at G2.
+5. G1 as the first event of all has no start: the group's line starts at G1.
+6. P1 on the main map, G1 only on Bog End, P2 on the main map: on the main map G1 has no place, so the group has no line there. On Bog End G1 is alone, because P1 is not on Bog End.
+7. P1, G1 with `newSegment`, G2, P2 give the group G1-G2-P2. There is no line from P1 into G1.
+8. A standalone event between group events is ignored.
+9. P1 on the main map, P2 only on Bog End, G1 on both maps, P3 on the main map: the group's start is P2, the party's last event before G1. On Bog End the line goes from P2 to G1, and on the main map it has no start, because P2 has no place there.
+10. Clipping works as for the party: at G1 the group's line is P1-G1, and the end at P2 appears only when the current event is P2 or a later one.
+
+How to check by hand: read the rules and examples and tell me if any is not how you want split groups to behave. In particular, say if the line should not start from the party's last place or end at the rejoin.
+
+Acceptance criteria:
+- [ ] The route function returns the segments of each named group per map, following the rules and examples above, together with the party's from B-16.
+- [ ] Every worked example is a unit test.
+- [ ] Group events never change the party's segments and the party's events never end a group's split, apart from being its start and end.
+- [ ] Clipping at an event keeps the group's start, the events up to it, and the rejoin only from the rejoin event on.
+
+Automated tests: the unit tests of the worked examples, plus tests that two groups do not affect each other, that the party's result is the same with and without groups, and that clipping is consistent at every event.
+
+## B-19 Drawing split routes
+
+Status: backlog
+
+Draft: written for the product owner's approval. It becomes `defined` when approved.
+
+Related: FR-5.
+
+Depends on: B-18 (the split-group logic) and B-17 (drawing routes).
+
+Scope note: the fixtures and the demo events get a group that splits, travels and rejoins (the demo already has a group on Bog End). Accepted together with B-18.
+
+You will see: a dashed line for each group, in a colour of its own, from where it split from the party to where it rejoins, growing as you step. While the group is split, the party's solid line goes on separately. Where the group rejoins, its line meets the party's.
+
+How to check by hand (with the demo content):
+1. Step to event 7 ("Tiedustelijat raunioilla"), the first event of the group. On Bog End a dashed line appears from the party's place at event 6 to it.
+2. Step on. The party's solid line and the group's dashed line are clearly different, and the group's line stops growing when the group's events end.
+3. At the rejoin event the dashed line ends at the party's place and the line is complete. Step back to see it shorten.
+4. Open the real events. There is no group, so only the party's line is shown.
+
+Acceptance criteria:
+- [ ] Each group is drawn with a dashed line in its own colour from a fixed palette, taken in the order the groups first appear. The party's line stays solid blue.
+- [ ] The line grows with the current event, starts at the split place, and reaches the rejoin place only when the current event is the rejoin event or a later one.
+- [ ] Group lines are drawn below the party line and below the dots and marker.
+- [ ] On each map only the segments that have places on that map are shown.
+- [ ] There is no legend. (A legend could be added after the first version.)
+
+Automated tests: component tests for the number and style of the lines; Playwright tests that step through the extended fixtures and check the group's line ends at each step against the markers, that two groups have different colours, and that stepping back shortens the line.
+
+### Milestone 2: the routes (after B-19)
+
+A second checkpoint for a longer manual test of how the story's movement looks, with your feedback before the journal work begins. B-17 is a smaller checkpoint on the way, for the party's line alone.
+
+What to try: step through the demo events and the real events forwards and backwards, switch maps by hand, and in `content/events` try a few edits of your own (add a `track`, a `newSegment`, an `n/a` event) to see how a route behaves.
+
+Feedback wanted:
+- the look of the lines: colours, the thickness, solid and dashed, and the lack of arrowheads and of a legend;
+- whether the way a split group starts and ends feels right, and what happens when the party continues at the same time;
+- whether the routes help the story or crowd the map, especially with many events.
+
 ---
 
 # Outlined items (status: backlog)
 
 These are outlined only. Each is refined into a defined item, with acceptance criteria, automated tests and a manual check, when its turn comes. Each will also state what you can expect to see and how to check it by hand.
-
-## B-13 Current event marker
-The current event's marker on its map, using the main location, a one-off position, or none for `n/a`. The map view moves to show the marker. You will see the marker follow the stepping. FR-1, FR-3.
-
-## B-14 Places visited so far
-Replace the show-everything markers of B-7 with the current marker plus small dots for the locations of earlier events on that map. You will see the dots accumulate as you step forward and disappear as you step back. FR-1.
-
-## B-15 Events on another map
-An event with `showOn` is shown on that map automatically, a manual switch lasts only until the next step, and `map` in the URL is respected. You will see the map change when stepping to such an event. FR-1, FR-3.
-
-## B-16 Party route logic
-A pure route builder for the party track on each map, with breaks at `n/a` and separate segments per visit to another map. Verified only by unit tests and a debug view.
-
-## B-17 Drawing the party route
-Route lines up to the current event on the displayed map. You will see the line grow as you step forward. FR-5.
-
-## B-18 Tracks, standalone events and new segments
-Route logic for split groups that rejoin, standalone events that are ignored by routes, and the `newSegment` flag. Verified by unit tests and by extending the debug view of B-16, which lists the route segments per map and track. FR-5, FR-8.
-
-## B-19 Drawing split routes
-Split-group routes drawn in a clearly different style from the party route. You will see a second line appear while the group is split and stop where it rejoins. FR-5.
 
 ## B-20 Journal content
 Read journal entries (player character, NPC, item, location, note) with their fields and language rules, and validate them, including that a location entry's id exists in `locations.json`. A temporary list of entries is shown. FR-6.

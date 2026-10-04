@@ -1,6 +1,6 @@
 # Kulthea Campaign Chronicles: Backlog
 
-The work is split into small increments, in implementation order. Each increment adds one testable piece of functionality. Some code will be revisited when a later item extends it, and that is accepted. Requirement ids (FR-n) refer to `REQUIREMENTS.md`, and section names refer to `DESIGN.md`.
+The work is split into small increments, in implementation order. The ids are stable labels, not positions: the order of the sections below is the implementation order, and it can differ from the order of the ids (B-11 and B-12 come before B-9 and B-10). Each increment adds one testable piece of functionality. Some code will be revisited when a later item extends it, and that is accepted. Requirement ids (FR-n) refer to `REQUIREMENTS.md`, and section names refer to `DESIGN.md`.
 
 ## Status values
 
@@ -220,23 +220,41 @@ Acceptance criteria:
 
 Automated tests: unit tests for the file name parser, the sort order and each validation rule; a Playwright test that the list shows the fixture events in the expected order.
 
+## B-11 Event view and routing
+
+Status: backlog
+
+Not yet defined: outlined only, to be refined with the product owner before it starts. It now comes before B-9 and B-10, so B-9 and B-10 add the date and the text to the event panel that this item creates.
+
+Hash route for an event (`/#/event/<id>`), redirect from `/#/` to the first event, a fallback with a dismissible notice for an unknown id, and the main layout with the map above and an event panel below replacing the temporary event list from B-8. You will see the first event's title and its location under the map. FR-2, FR-3, DD-4.
+
+## B-12 Stepping through events
+
+Status: backlog
+
+Not yet defined: outlined only, to be refined with the product owner before it starts.
+
+Previous and next controls, a URL that follows the current event, controls disabled at the ends, keyboard operation. You will see the event change as you click and the address change with it. FR-2.
+
 ## B-9 Calendar and dates
 
 Status: defined
 
 Related: FR-7, "File formats" (`campaign.json` dates), "Languages".
 
-You will see: each event in the temporary list with its date written in full, in the chosen language: "K.A. 6050, Talven 37. päivä" in Finnish and "TE 6050, 37th of Winter" in English.
+Depends on: B-11 and B-12 (the event panel and stepping). Do not start before they are done.
+
+You will see: the current event's date in the event panel, written in full in the chosen language: "K.A. 6050, Talven 37. päivä" in Finnish and "TE 6050, 37th of Winter" in English.
 
 How to check by hand:
-1. Open the page and look at the dates in the event list.
-2. Switch between FI and EN. The dates change format and month forms.
-3. Look at events on the 1st, 2nd, 3rd, 11th, 12th, 13th, 21st and 70th day. The English endings are 1st, 2nd, 3rd, 11th, 12th, 13th, 21st and 70th.
+1. Open the page and look at the date in the event panel.
+2. Switch between FI and EN. The date changes format and month form.
+3. Step to events on the 1st, 2nd, 3rd, 11th, 12th, 13th, 21st and 70th day. The English endings are 1st, 2nd, 3rd, 11th, 12th, 13th, 21st and 70th.
 
 Acceptance criteria:
 - [ ] A date formatter builds a date from the campaign settings: `{era}`, `{year}`, `{month}` (the in-date form), `{day}` and the English `{ordinal}`, which is empty in Finnish.
 - [ ] The Finnish month forms are Talven, Kevään, Kesän, Ruskan and Martaan, and the English ones are Winter, Spring, Summer, Autumn and Fall.
-- [ ] The dates in the event list use the formatter and follow the chosen language.
+- [ ] The date in the event panel uses the formatter and follows the chosen language.
 - [ ] The demo events include dates on days 1, 2, 3, 11, 12, 13, 21 and 70, so the English endings can be checked by hand (the B-8 demo events already have them, so only adjust if needed).
 
 Automated tests: unit tests for the formatter in both languages for all five months, days 1 to 70 and the ordinal edge cases; a Playwright test for the two formats.
@@ -247,11 +265,13 @@ Status: defined
 
 Related: FR-3, FR-9, DD-5, "Languages", "Validation rules" (languages, raw HTML).
 
-You will see: clicking an event in the temporary list shows its text below the map, in the chosen language. An event with no English text shows the Finnish text with a small note when English is chosen.
+Depends on: B-11 and B-12 (the event panel and stepping). Do not start before they are done.
+
+You will see: the event panel shows the text of the current event, in the chosen language. An event with no English text shows the Finnish text with a small note when English is chosen.
 
 How to check by hand:
-1. Click an event that has both languages. Switch language. The text changes.
-2. Click an event that is only in Finnish and choose English. The Finnish text is shown with the note "Not available in this language".
+1. Step to an event that has both languages. Switch language. The text changes.
+2. Step to an event that is only in Finnish and choose English. The Finnish text is shown with the note "Not available in this language".
 3. Add raw HTML (for example `<b>`) to an event file. An error is shown.
 4. Add an `@de` section. An error is shown for an unconfigured language.
 
@@ -269,12 +289,6 @@ Automated tests: unit tests for the section splitter, the language rules and the
 # Outlined items (status: backlog)
 
 These are outlined only. Each is refined into a defined item, with acceptance criteria, automated tests and a manual check, when its turn comes. Each will also state what you can expect to see and how to check it by hand.
-
-## B-11 Event view and routing
-Hash route for an event (`/#/event/<id>`), redirect from `/#/` to the first event, a fallback with a dismissible notice for an unknown id, and the main layout with the map above and an event panel below replacing the temporary list. You will see the first event's title, date and text under the map. FR-2, FR-3, DD-4.
-
-## B-12 Stepping through events
-Previous and next controls, a URL that follows the current event, controls disabled at the ends, keyboard operation. You will see the event change as you click and the address change with it. FR-2.
 
 ## B-13 Current event marker
 The current event's marker on its map, using the main location, a one-off position, or none for `n/a`. The map view moves to show the marker. You will see the marker follow the stepping. FR-1, FR-3.

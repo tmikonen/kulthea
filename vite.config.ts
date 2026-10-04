@@ -9,6 +9,8 @@ const contentDir = process.env.CONTENT_DIR ?? (process.env.VITEST ? 'tests/fixtu
 export default defineConfig({
   base: '/kulthea/',
   plugins: [react(), contentPlugin({ dir: contentDir })],
+  // Map images are always emitted as files, never inlined as data URIs, however small they are.
+  build: { assetsInlineLimit: 0 },
   test: {
     environment: 'jsdom',
     globals: true,

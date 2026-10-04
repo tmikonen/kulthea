@@ -48,6 +48,7 @@ describe('content loading (B-3)', () => {
     expect(bundle?.campaign.defaultLanguage).toBe('fi');
     expect(bundle?.campaign.languages).toEqual(['fi', 'en']);
     expect(bundle?.campaign.months).toHaveLength(5);
+    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true },
       { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false },
@@ -67,6 +68,31 @@ describe('content loading (B-3)', () => {
       expect(bundle).toBeNull();
       expect(errors).toHaveLength(1);
       expect(errors[0]).toMatch(/maps\.json: exactly one map must have "main": true, found 0/);
+    });
+
+    it('FR-9 rejects a missing ui.json and names the file', () => {
+      const { errors, bundle } = loadModified((dir) => fs.rmSync(path.join(dir, 'ui.json')));
+      expect(bundle).toBeNull();
+      expect(errors).toEqual([expect.stringMatching(/ui\.json: file not found/)]);
+    });
+
+    it('FR-9 rejects a ui.json text with no default-language value', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'ui.json', (ui) => { ui.maps = { en: 'Map' }; }));
+      expect(errors).toEqual([expect.stringMatching(/ui\.json: text "maps" has no text in the default language "fi"/)]);
+    });
+
+    it('FR-9 rejects a ui.json text that is neither a string nor a language map', () => {
+      const { errors } = loadModified((dir) =>
+        editJson(dir, 'ui.json', (ui) => { ui.maps = 5; }));
+      expect(errors).toEqual([expect.stringMatching(/ui\.json: text "maps" must be a string or a language map/)]);
+    });
+
+    it('FR-9 accepts a ui.json text that is only in the default language', () => {
+      const { errors, bundle } = loadModified((dir) =>
+        editJson(dir, 'ui.json', (ui) => { ui.maps = { fi: 'Kartta' }; }));
+      expect(errors).toEqual([]);
+      expect(bundle?.ui.maps).toEqual({ fi: 'Kartta' });
     });
 
     it('FR-1 rejects two main maps', () => {

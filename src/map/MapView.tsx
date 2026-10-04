@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { CRS } from 'leaflet';
 import { ImageOverlay, MapContainer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -52,10 +52,20 @@ function FitToImage({ map: def }: { map: ContentMap }) {
   return null;
 }
 
-export function MapView({ map: def, label }: { map: ContentMap; label: string }) {
+interface MapViewProps {
+  map: ContentMap;
+  label: string;
+  /** Called when the map image has loaded, that is, when the map is shown. */
+  onImageLoad?: () => void;
+  /** Controls drawn over the map area. */
+  children?: ReactNode;
+}
+
+export function MapView({ map: def, label, onImageLoad, children }: MapViewProps) {
   const bounds = imageBounds(def);
   return (
     <div className={styles.map} role="region" aria-label={label}>
+      {children}
       <MapContainer
         // A different image is a different coordinate space, so start a new Leaflet map.
         key={def.id}
@@ -69,7 +79,7 @@ export function MapView({ map: def, label }: { map: ContentMap; label: string })
         attributionControl={false}
         className={styles.container}
       >
-        <ImageOverlay url={def.imageUrl} bounds={bounds} />
+        <ImageOverlay url={def.imageUrl} bounds={bounds} eventHandlers={{ load: () => onImageLoad?.() }} />
         <FitToImage map={def} />
       </MapContainer>
     </div>

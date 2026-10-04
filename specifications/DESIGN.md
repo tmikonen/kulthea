@@ -196,7 +196,7 @@ Free-form lore, a faction summary, a session recap, ...
 - Processing happens at build time in a Vite plugin. It parses and validates all content files, renders Markdown to HTML, resolves `[[links]]`, builds the journal excerpts, and outputs one compact data bundle. The browser does no parsing. In the dev server the plugin re-runs when a content file is saved, so edits and errors show up immediately.
 - Errors stop the build: broken links, invalid dates or ids, impossible locations, missing files. Warnings do not: images over the size limit, unused images or locations.
 - Content is Markdown only: raw HTML is not allowed, so content cannot break the page layout or inject scripts.
-- Map images are imported by the plugin's generated module, so Vite serves them in the dev server and emits them with hashed file names in the build. Each map in the bundle carries the resulting `imageUrl`.
+- Map images are imported by the plugin's generated module, so Vite serves them in the dev server and emits them with hashed file names in the build (inlining of small assets is switched off, so a map is never a data URI). Each map in the bundle carries the resulting `imageUrl`.
 - The output is one data bundle loaded at start, which keeps stepping and opening the journal instant. Images load lazily.
 - Validation runs in the dev server while editing and in the GitHub publishing workflow before deployment, so a broken commit never replaces the live site. There is no separate standalone validate command.
 

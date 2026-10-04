@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { imageSize } from 'image-size';
-import type { Campaign, LoadedContent, MapDef, Month } from '../src/content/types.ts';
+import type { Campaign, LoadedContent, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
 export interface LoadResult {
   bundle: LoadedContent | null;
@@ -68,8 +68,10 @@ export function loadContent(dir: string): LoadResult {
     warnings,
   );
 
-  if (errors.length > 0 || !campaign || !maps) return { bundle: null, errors, warnings };
-  return { bundle: { campaign, maps }, errors, warnings };
+  const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
+
+  if (errors.length > 0 || !campaign || !maps || !ui) return { bundle: null, errors, warnings };
+  return { bundle: { campaign, maps, ui }, errors, warnings };
 }
 
 function validateCampaign(raw: unknown, file: string, errors: string[]): Campaign | null {
@@ -125,6 +127,28 @@ function validateCampaign(raw: unknown, file: string, errors: string[]): Campaig
     daysPerMonth: raw.daysPerMonth as number,
     dateFormat: dateFormat as Record<string, string>,
   };
+}
+
+function validateUi(
+  raw: unknown,
+  file: string,
+  defaultLanguage: string | undefined,
+  errors: string[],
+): UiTexts | null {
+  if (raw === undefined) return null;
+  if (!isRecord(raw)) {
+    errors.push(`${file}: must be a JSON object of texts`);
+    return null;
+  }
+  const before = errors.length;
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value !== 'string' && !isRecord(value)) {
+      errors.push(`${file}: text "${key}" must be a string or a language map`);
+    } else if (defaultLanguage !== undefined && !hasText(value, defaultLanguage, defaultLanguage)) {
+      errors.push(`${file}: text "${key}" has no text in the default language "${defaultLanguage}"`);
+    }
+  }
+  return errors.length > before ? null : (raw as UiTexts);
 }
 
 function validateMaps(

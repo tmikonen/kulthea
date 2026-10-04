@@ -122,25 +122,31 @@ Automated tests: unit tests for the converter (corners, centre, and that the y a
 
 ## B-5 Switch between maps
 
-Status: defined
+Status: done
 
-Related: FR-1, "Data flow" (map loading), DD-4.
+Related: FR-1, "Data flow" (map loading), DD-4, "Interface texts" (`ui.json`).
 
-You will see: a map switcher listing Bay of Izar, Bog End and Haestra. Choosing one shows that map. The choice is in the web address, so reloading keeps it and the back button goes back.
+You will see: a map switcher at the top left of the map area, listing Bay of Izar, Bog End and Haestra. Choosing one shows that map. The choice is in the web address, so reloading keeps it and the back button goes back.
+
+Scope note: the switcher needs an interface text (its label), and every user-facing text must come from `ui.json`. So this item creates a minimal `ui.json` with one text and reads and validates it through the plugin. B-6 builds on it. Until B-11 the route is `/#/?map=<id>`; B-11 moves it to `/#/event/<id>?map=<id>`.
 
 How to check by hand:
 1. Use the map switcher to show each of the three maps.
 2. Reload the page. The same map stays selected. Press the browser's back button. The previous map returns.
 3. Open the address with `?map=haestra` after the `#/` part. That map opens. Use an unknown map id. The main map opens.
 4. In the browser's network view, watch that the main map loads first and the other two download afterwards.
+5. Remove the Finnish text from `content/ui.json`. The terminal shows an error naming the file and the key. Undo it.
 
 Acceptance criteria:
-- [ ] A hash router is in place, and the active map is the `map` query parameter; no or an unknown value means the main map.
-- [ ] The map switcher shows all maps from `maps.json` and changes the displayed map.
-- [ ] The other maps are downloaded in the background after the main map is shown.
-- [ ] Switching maps does not reload the page.
+- [x] A hash router (React Router) is in place, and the active map is the `map` query parameter; no or an unknown value means the main map.
+- [x] The map switcher is at the top left of the map area, shows all maps from `maps.json` by name, marks the active one, and changes the displayed map.
+- [x] The other maps are downloaded in the background (with `new Image()`) after the main map is shown.
+- [x] Switching maps does not reload the page.
+- [x] `content/ui.json` exists with one text, the switcher label (`maps`: "Kartta" / "Map"), and `tests/fixtures/ui.json` likewise.
+- [x] The plugin reads `ui.json` into the data bundle. A text without a default-language value, or a missing or invalid `ui.json`, is a build error naming the file and the key.
+- [x] The switcher label is shown through the text resolver in the default language (language selection comes in B-6).
 
-Automated tests: unit tests for reading and validating the `map` parameter; a component test for the switcher; Playwright tests for switching, reload and back.
+Automated tests: unit tests for reading and validating the `map` parameter; unit tests for the `ui.json` validation (valid, missing file, missing default-language text); a component test for the switcher; Playwright tests for switching, reload and back.
 
 ## B-6 Interface languages
 
@@ -148,23 +154,25 @@ Status: defined
 
 Related: FR-9, DD-5, "Languages", `ui.json`.
 
+Scope note: `ui.json` itself, its reading through the plugin and its default-language validation are done in B-5. This item adds the language selection and extends `ui.json` with the texts it needs.
+
 You will see: a FI | EN switch at the top right of the page (the journal button, added in B-21, will go next to it). Switching changes all interface texts (for example the map switcher label) and the campaign title, without reloading and while keeping the selected map.
 
 How to check by hand:
 1. Click FI and EN. The interface texts change, and the map stays the same.
 2. Open the address with `?lang=en`. The page opens in English. Use `?lang=xx`, or no value. It opens in Finnish.
 3. Check in the browser's developer tools that the page's `lang` attribute follows the chosen language.
-4. Remove a Finnish text from `content/ui.json`. The terminal shows an error.
+4. Remove a Finnish text from `content/ui.json`. The terminal shows an error (already in place from B-5).
 
 Acceptance criteria:
-- [ ] `content/ui.json` exists, and its texts are read through the plugin.
+- [ ] `ui.json` has the texts this item needs (for example the switch label), each with Finnish and English.
 - [ ] A text resolver returns a value for the chosen language and falls back to the default language; a plain value means the default language only.
 - [ ] The `lang` query parameter selects the language (missing or unknown means the default), together with `map`.
 - [ ] The language switch changes only the `lang` parameter and keeps the other parameters.
 - [ ] The page's `lang` attribute follows the language.
-- [ ] A text in `ui.json` without a default-language value is a build error.
+- [ ] A text in `ui.json` that is missing in a non-default language falls back to the default language without an error.
 
-Automated tests: unit tests for the resolver (plain value, language map, fallback, missing) and the `ui.json` validation; a component test for the switch; Playwright tests that the switch changes text and keeps the map.
+Automated tests: unit tests for the resolver (plain value, language map, fallback, missing) and the `ui.json` fallback; a component test for the switch; Playwright tests that the switch changes text and keeps the map.
 
 ## B-7 Locations
 

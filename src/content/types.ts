@@ -25,6 +25,9 @@ export interface MapDef {
   main: boolean;
 }
 
+/** Interface texts by key, each a plain value (default language only) or a language map. */
+export type UiTexts = Record<string, LocalizedText>;
+
 /** A map as the app sees it: the validated definition plus the served URL of its image. */
 export interface ContentMap extends MapDef {
   imageUrl: string;
@@ -34,10 +37,12 @@ export interface ContentMap extends MapDef {
 export interface LoadedContent {
   campaign: Campaign;
   maps: MapDef[];
+  ui: UiTexts;
 }
 
 /** What the app receives from `virtual:content`. */
 export interface ContentBundle {
   campaign: Campaign;
   maps: ContentMap[];
+  ui: UiTexts;
 }

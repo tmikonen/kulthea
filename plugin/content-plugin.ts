@@ -31,7 +31,7 @@ export function contentPlugin(options: { dir: string }): Plugin {
       const maps = bundle!.maps.map(
         (map, i) => `{ ...${JSON.stringify(map)}, imageUrl: mapImage${i} }`,
       );
-      return `${imports.join('\n')}\nexport default { campaign: ${JSON.stringify(bundle!.campaign)}, maps: [${maps.join(', ')}] };`;
+      return `${imports.join('\n')}\nexport default { campaign: ${JSON.stringify(bundle!.campaign)}, ui: ${JSON.stringify(bundle!.ui)}, maps: [${maps.join(', ')}] };`;
     },
     configureServer(server) {
       server.watcher.add(contentDir);

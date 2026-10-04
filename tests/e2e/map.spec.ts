@@ -125,3 +125,55 @@ test.describe('main map (B-4)', () => {
     expect(area.height).toBeGreaterThan(300);
   });
 });
+
+test.describe('switching maps (B-5)', () => {
+  const imageSrc = (page: Page) =>
+    page.locator('img.leaflet-image-layer').getAttribute('src');
+
+  test('FR-1 the switcher shows another map, and reload and back keep the choice', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.getByRole('button', { name: 'Pääkartta' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await imageSrc(page)).toMatch(/main-map/);
+
+    await page.getByRole('button', { name: 'Second Map' }).click();
+    await expect(page).toHaveURL(/#\/\?map=second-map$/);
+    await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
+    await expect(page.getByRole('button', { name: 'Second Map' })).toHaveAttribute('aria-pressed', 'true');
+
+    await page.reload();
+    await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
+
+    await page.goBack();
+    await expect.poll(() => imageSrc(page)).toMatch(/main-map/);
+    await expect(page.getByRole('button', { name: 'Pääkartta' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('FR-1 switching maps does not reload the page', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.locator('img.leaflet-image-layer')).toBeVisible();
+    await page.evaluate(() => { (window as unknown as { marker: number }).marker = 1; });
+    await page.getByRole('button', { name: 'Second Map' }).click();
+    await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
+    expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBe(1);
+  });
+
+  test('FR-1 the map parameter opens a map, and an unknown id opens the main map', async ({ page }) => {
+    await page.goto('./#/?map=second-map');
+    await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
+    await page.goto('./#/?map=nowhere');
+    await expect.poll(() => imageSrc(page)).toMatch(/main-map/);
+  });
+
+  test('FR-1 the other maps are downloaded in the background after the main map', async ({ page }) => {
+    const requested: string[] = [];
+    page.on('request', (request) => {
+      const match = request.url().match(/(main-map|second-map)[^/]*\.png$/);
+      if (match) requested.push(match[1]);
+    });
+    await page.goto('./');
+    await expect.poll(() => requested.includes('second-map')).toBe(true);
+    expect(requested[0]).toBe('main-map');
+    // The second map was never chosen, so only the preload can have requested it.
+    expect(await imageSrc(page)).toMatch(/main-map/);
+  });
+});

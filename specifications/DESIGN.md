@@ -126,7 +126,7 @@ Campaign settings (`campaign.json`): the calendar and site text live here, so no
   }
 }
 ```
-Dates: month number 1 to 5 in a file name selects the month in this list. In a date, `{era}` is the era abbreviation, `{month}` is the month's `inDate` form (Finnish inflects the name, so "Talven 37. päivä", while English keeps "Winter"), and `{ordinal}` is the English ordinal suffix ("st", "nd", "rd", "th") and empty in Finnish. The `name` form is used where a month is mentioned on its own. The result is "K.A. 6050, Talven 37. päivä" in Finnish and "TE 6050, 37th of Winter" in English. Every configured language must supply the era, the five months and a date format, because a date cannot fall back to another language without mixing them.
+Dates: month number 1 to 5 in a file name selects the month in this list. In a date, `{era}` is the era abbreviation, `{month}` is the month's `inDate` form (Finnish inflects the name, so "Talven 37. päivä", while English keeps "Winter"), and `{ordinal}` is the English ordinal suffix ("st", "nd", "rd", "th"; 11, 12 and 13 take "th") and empty in Finnish and in any other language, because the suffix rule is English grammar and lives in the date formatter. The `name` form is used where a month is mentioned on its own. The result is "K.A. 6050, Talven 37. päivä" in Finnish and "TE 6050, 37th of Winter" in English. Every configured language must supply the era, the five months and a date format, because a date cannot fall back to another language without mixing them.
 
 Interface texts (`ui.json`): each text has a key and a value per language. The default language must have every text, and a missing text in another language falls back to the default language.
 ```json

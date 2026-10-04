@@ -274,7 +274,7 @@ Automated tests: unit tests for finding the previous and next ids (none at the e
 
 ## B-9 Calendar and dates
 
-Status: in progress
+Status: done
 
 Related: FR-7, "File formats" (`campaign.json` dates), "Languages".
 
@@ -288,10 +288,10 @@ How to check by hand:
 3. Step to events on the 1st, 2nd, 3rd, 11th, 12th, 13th, 21st and 70th day. The English endings are 1st, 2nd, 3rd, 11th, 12th, 13th, 21st and 70th.
 
 Acceptance criteria:
-- [ ] A date formatter builds a date from the campaign settings: `{era}`, `{year}`, `{month}` (the in-date form), `{day}` and the English `{ordinal}`, which is empty in Finnish.
-- [ ] The Finnish month forms are Talven, Kevään, Kesän, Ruskan and Martaan, and the English ones are Winter, Spring, Summer, Autumn and Fall.
-- [ ] The date in the event panel uses the formatter and follows the chosen language.
-- [ ] The demo events include dates on days 1, 2, 3, 11, 12, 13, 21 and 70, so the English endings can be checked by hand (the B-8 demo events already have them, so only adjust if needed).
+- [x] A date formatter builds a date from the campaign settings: `{era}`, `{year}`, `{month}` (the in-date form), `{day}` and the English `{ordinal}`, which is empty in Finnish.
+- [x] The Finnish month forms are Talven, Kevään, Kesän, Ruskan and Martaan, and the English ones are Winter, Spring, Summer, Autumn and Fall.
+- [x] The date in the event panel uses the formatter and follows the chosen language.
+- [x] The demo events include dates on days 1, 2, 3, 11, 12, 13, 21 and 70, so the English endings can be checked by hand (the B-8 demo events already have them, so only adjust if needed).
 
 Automated tests: unit tests for the formatter in both languages for all five months, days 1 to 70 and the ordinal edge cases; a Playwright test for the two formats.
 

@@ -10,6 +10,11 @@
   font-size: 1.15rem;
 }
 
+.date {
+  margin: 0.2rem 0 0;
+  color: #555;
+}
+
 .location {
   margin: 0.25rem 0 0;
   color: #555;

@@ -174,7 +174,8 @@ describe('event view and routing (B-11)', () => {
     renderApp('/event/6050-3-001-01-jump');
     const panel = screen.getByRole('region', { name: 'Tapahtuma' });
     expect(within(panel).getByRole('heading', { level: 2, name: 'Hyppy' })).toBeInTheDocument();
-    expect(panel.querySelector('p')).toBeNull();
+    // Only the date line: there is no location line.
+    expect(Array.from(panel.querySelectorAll('p')).map((p) => p.textContent)).toEqual(['K.A. 6050, Kesän 1. päivä']);
   });
 
   it('FR-2 an unknown event shows the first event with a notice, and the address names the first event', () => {
@@ -306,5 +307,28 @@ describe('stepping (B-12)', () => {
     const { container } = renderApp(`/event/${IDS[1]}`);
     fireEvent.keyDown(container.querySelector('.leaflet-container')!, { key: 'ArrowRight' });
     expect(path()).toBe(`/event/${IDS[1]}`);
+  });
+});
+
+describe('dates in the panel (B-9)', () => {
+  const panel = (name: string) => screen.getByRole('region', { name });
+
+  it('FR-7 shows the date in full, in the default language', () => {
+    renderApp();
+    expect(within(panel('Tapahtuma')).getByText('K.A. 6050, Talven 1. päivä')).toBeInTheDocument();
+  });
+
+  it('FR-7 shows the date in English with the right ending', () => {
+    renderApp('/event/6050-2-003-01-split?lang=en');
+    expect(within(panel('Event')).getByText('TE 6050, 3rd of Spring')).toBeInTheDocument();
+  });
+
+  it('FR-7 the date changes with the language switch, and with stepping', () => {
+    renderApp('/event/6050-2-070-01-standalone');
+    expect(within(panel('Tapahtuma')).getByText('K.A. 6050, Kevään 70. päivä')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+    expect(within(panel('Event')).getByText('TE 6050, 70th of Spring')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(within(panel('Event')).getByText('TE 6050, 1st of Summer')).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import content from 'virtual:content';
 import { activeLanguage } from './content/language';
 import { resolveText, uiText } from './content/text';
+import { formatDate } from './content/dates';
 import { eventLocationName, eventPath, neighbours } from './content/events';
 import type { EventDef } from './content/types';
 import { EventPanel } from './EventPanel';
@@ -87,6 +88,7 @@ export function MainView({ event }: { event?: EventDef }) {
         <EventPanel
           event={event}
           locationName={eventLocationName(event, locations, lang, defaultLang)}
+          date={formatDate(campaign, lang, event)}
           label={uiText(ui, 'event', lang, defaultLang)}
           lang={lang}
           defaultLang={defaultLang}

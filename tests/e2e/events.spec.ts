@@ -166,3 +166,41 @@ test.describe('stepping (B-12)', () => {
     await expect(page).toHaveURL(/#\/event\/6050-1-001-02-second$/);
   });
 });
+
+test.describe('dates (B-9)', () => {
+  const FI = [
+    'K.A. 6050, Talven 1. päivä', 'K.A. 6050, Talven 1. päivä', 'K.A. 6050, Talven 9. päivä',
+    'K.A. 6050, Talven 10. päivä', 'K.A. 6050, Kevään 3. päivä', 'K.A. 6050, Kevään 70. päivä',
+    'K.A. 6050, Kesän 1. päivä',
+  ];
+  const EN = [
+    'TE 6050, 1st of Winter', 'TE 6050, 1st of Winter', 'TE 6050, 9th of Winter', 'TE 6050, 10th of Winter',
+    'TE 6050, 3rd of Spring', 'TE 6050, 70th of Spring', 'TE 6050, 1st of Summer',
+  ];
+  const date = (page: Page) => page.getByRole('region', { name: /^(Tapahtuma|Event)$/ }).locator('p').first();
+
+  async function stepThrough(page: Page, expected: string[], nextName: string) {
+    for (let i = 0; i < expected.length; i++) {
+      await expect(date(page)).toHaveText(expected[i]);
+      if (i < expected.length - 1) await page.getByRole('button', { name: nextName }).click();
+    }
+  }
+
+  test('FR-7 the date of every event is written in full in Finnish', async ({ page }) => {
+    await page.goto('./');
+    await stepThrough(page, FI, 'Seuraava');
+  });
+
+  test('FR-7 the date of every event is written in full in English, with the right endings', async ({ page }) => {
+    await page.goto('./#/?lang=en');
+    await stepThrough(page, EN, 'Next');
+  });
+
+  test('FR-7 the date changes when the language is switched, without changing the event', async ({ page }) => {
+    await page.goto('./#/event/6050-2-003-01-split');
+    await expect(date(page)).toHaveText('K.A. 6050, Kevään 3. päivä');
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
+    await expect(date(page)).toHaveText('TE 6050, 3rd of Spring');
+    await expect(page).toHaveURL(/#\/event\/6050-2-003-01-split\?lang=en$/);
+  });
+});

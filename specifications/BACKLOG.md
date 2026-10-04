@@ -628,7 +628,7 @@ Feedback wanted:
 
 ## B-20 Journal content
 
-Status: done
+Status: accepted
 
 Related: FR-6, FR-9, "Journal entries" and "Location entries" (file formats), "Validation rules".
 
@@ -656,7 +656,7 @@ Automated tests: unit tests for every error and warning above, for the language 
 
 ## B-21 Journal button and panel
 
-Status: done
+Status: accepted
 
 Related: FR-6, FR-9, "URLs", "Components" (JournalButton, JournalPanel), "Bad links".
 
@@ -688,7 +688,7 @@ Automated tests: component tests for the address handling (index, entry, unknown
 
 ## B-22 Journal entry view
 
-Status: done
+Status: accepted
 
 Related: FR-6, FR-9.
 

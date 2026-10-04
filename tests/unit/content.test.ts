@@ -627,3 +627,49 @@ describe('event text (B-10)', () => {
     });
   });
 });
+
+describe('events that are n/a on the main map (B-34)', () => {
+  it('FR-3 warns when an event is n/a on the main map but its showOn location has a main position, and the build continues', () => {
+    // both-places has positions on both maps.
+    const { bundle, errors, warnings } = loadModified((dir) =>
+      writeEvent(dir, '6050-4-001-01-warn.md', 'title: X\nlocation: n/a\nshowOn:\n  map: second-map\n  location: both-places'));
+    expect(errors).toEqual([]);
+    expect(bundle).not.toBeNull();
+    expect(warnings).toEqual([expect.stringMatching(
+      /6050-4-001-01-warn\.md: "location" is n\/a on the main map, but its "showOn" location "both-places" has a position on the main map\. If the event is inside the main map's region, give it "location: both-places"\./)]);
+  });
+
+  it('FR-3 does not warn when the showOn location has no main position', () => {
+    const { warnings } = loadModified((dir) =>
+      writeEvent(dir, '6050-4-001-01-fine.md', 'title: X\nlocation: n/a\nshowOn:\n  map: second-map\n  location: second-only'));
+    expect(warnings).toEqual([]);
+  });
+
+  it('FR-3 does not warn when the showOn place is a one-off position', () => {
+    const { warnings } = loadModified((dir) =>
+      writeEvent(dir, '6050-4-001-01-fine.md', 'title: X\nlocation: n/a\nshowOn:\n  map: second-map\n  position: [10, 10]'));
+    expect(warnings).toEqual([]);
+  });
+
+  it('FR-3 does not warn when the event has a main location', () => {
+    const { warnings } = loadModified((dir) =>
+      writeEvent(dir, '6050-4-001-01-fine.md', 'title: X\nlocation: both-places\nshowOn:\n  map: second-map\n  location: both-places'));
+    expect(warnings).toEqual([]);
+  });
+
+  it('FR-3 warns once for each such event', () => {
+    const { warnings } = loadModified((dir) => {
+      writeEvent(dir, '6050-4-001-01-a.md', 'title: A\nlocation: n/a\nshowOn:\n  map: second-map\n  location: both-places');
+      writeEvent(dir, '6050-4-002-01-b.md', 'title: B\nlocation: n/a\nshowOn:\n  map: second-map\n  location: both-places');
+    });
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toMatch(/6050-4-001-01-a\.md/);
+    expect(warnings[1]).toMatch(/6050-4-002-01-b\.md/);
+  });
+
+  it('FR-3 the fixture, demo and campaign events give no such warning', () => {
+    for (const dir of [FIXTURES, path.resolve(__dirname, '../../content'), path.resolve(__dirname, '../../campaign')]) {
+      expect(loadContent(dir).warnings).toEqual([]);
+    }
+  });
+});

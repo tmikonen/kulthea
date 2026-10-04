@@ -9,54 +9,91 @@ const event = (extra: Partial<EventDef> = {}): EventDef => ({
   location: null, position: null, showOn: null, track: null, newSegment: false, ...extra,
 });
 
-describe('an event\'s place on a map (B-13)', () => {
+const loc = (id: string, positions: Record<string, [number, number]>): LocationDef => ({ id, name: id, positions });
+// Locations: a is on the main map and on `other`, b is only on `other`, c is only on `third`, m is only on the main map.
+const locations: LocationDef[] = [
+  loc('a', { main: [10, 20], other: [11, 21] }),
+  loc('b', { other: [1, 2] }),
+  loc('c', { third: [7, 8] }),
+  loc('m', { main: [50, 50] }),
+];
+
+describe('an event\'s place on a map (B-13, B-34)', () => {
   it('FR-1 on the main map it is the main-map location', () => {
-    expect(eventPlaceOn(event({ location: 'a', position: [10, 20] }), 'main', 'main'))
+    expect(eventPlaceOn(event({ location: 'a', position: [10, 20] }), 'main', 'main', locations))
       .toEqual({ position: [10, 20], location: 'a' });
   });
 
   it('FR-1 on the main map a one-off position has no location', () => {
-    expect(eventPlaceOn(event({ position: [5, 6] }), 'main', 'main')).toEqual({ position: [5, 6], location: null });
+    expect(eventPlaceOn(event({ position: [5, 6] }), 'main', 'main', locations)).toEqual({ position: [5, 6], location: null });
   });
 
-  it('FR-3 on the main map an n/a event has no place', () => {
-    const e = event({ showOn: { map: 'other', location: 'b', position: [1, 2] } });
-    expect(eventPlaceOn(e, 'main', 'main')).toBeNull();
+  it('FR-3 on the main map an n/a event has no place, even if its showOn location has a main position', () => {
+    const e = event({ showOn: { map: 'other', location: 'a', position: [11, 21] } });
+    expect(eventPlaceOn(e, 'main', 'main', locations)).toBeNull();
   });
 
   it('FR-3 on the showOn map it is the showOn place', () => {
-    const e = event({ location: 'a', position: [10, 20], showOn: { map: 'other', location: 'b', position: [1, 2] } });
-    expect(eventPlaceOn(e, 'other', 'main')).toEqual({ position: [1, 2], location: 'b' });
+    const e = event({ location: 'm', position: [50, 50], showOn: { map: 'other', location: 'b', position: [1, 2] } });
+    expect(eventPlaceOn(e, 'other', 'main', locations)).toEqual({ position: [1, 2], location: 'b' });
   });
 
   it('FR-3 a one-off showOn position has no location', () => {
     const e = event({ showOn: { map: 'other', location: null, position: [3, 4] } });
-    expect(eventPlaceOn(e, 'other', 'main')).toEqual({ position: [3, 4], location: null });
+    expect(eventPlaceOn(e, 'other', 'main', locations)).toEqual({ position: [3, 4], location: null });
   });
 
-  it('FR-1 on any other map it has no place, even if its location has a position there', () => {
+  it('FR-3 the showOn place wins over a position that the event\'s own location has on that map', () => {
+    // a has a position on `other`, but the event says explicitly where it is shown there.
     const e = event({ location: 'a', position: [10, 20], showOn: { map: 'other', location: 'b', position: [1, 2] } });
-    expect(eventPlaceOn(e, 'third', 'main')).toBeNull();
+    expect(eventPlaceOn(e, 'other', 'main', locations)).toEqual({ position: [1, 2], location: 'b' });
   });
 
-  it('FR-1 an event with no showOn has no place on another map', () => {
-    expect(eventPlaceOn(event({ location: 'a', position: [10, 20] }), 'other', 'main')).toBeNull();
+  it('FR-1 on another map the place is the position of the event\'s location there', () => {
+    const e = event({ location: 'a', position: [10, 20] });
+    expect(eventPlaceOn(e, 'other', 'main', locations)).toEqual({ position: [11, 21], location: 'a' });
+  });
+
+  it('FR-1 on another map the showOn location counts too, after the main location', () => {
+    const onlyShowOn = event({ showOn: { map: 'other', location: 'c', position: [1, 1] } });
+    expect(eventPlaceOn(onlyShowOn, 'third', 'main', locations)).toEqual({ position: [7, 8], location: 'c' });
+    const both = event({ location: 'a', position: [10, 20], showOn: { map: 'third', location: 'c', position: [7, 8] } });
+    expect(eventPlaceOn(both, 'other', 'main', locations)).toEqual({ position: [11, 21], location: 'a' });
+  });
+
+  it('FR-1 on another map an event whose locations have no position there has no place', () => {
+    expect(eventPlaceOn(event({ location: 'm', position: [50, 50] }), 'other', 'main', locations)).toBeNull();
+    expect(eventPlaceOn(event({ location: 'a', position: [10, 20] }), 'third', 'main', locations)).toBeNull();
+  });
+
+  it('FR-1 a one-off position gives a place only on its own map', () => {
+    expect(eventPlaceOn(event({ position: [5, 6] }), 'other', 'main', locations)).toBeNull();
+    const e = event({ showOn: { map: 'other', location: null, position: [3, 4] } });
+    expect(eventPlaceOn(e, 'third', 'main', locations)).toBeNull();
+  });
+
+  it('FR-1 an unknown location id gives no place', () => {
+    expect(eventPlaceOn(event({ location: 'zzz', position: [1, 1] }), 'other', 'main', locations)).toBeNull();
+  });
+
+  it('FR-3 an event with no locations at all has no place on another map', () => {
+    expect(eventPlaceOn(event(), 'other', 'main', locations)).toBeNull();
   });
 });
 
 describe('the name of a place (B-13)', () => {
-  const locations: LocationDef[] = [
+  const named: LocationDef[] = [
     { id: 'a', name: { fi: 'Aa', en: 'Ay' }, positions: {} },
     { id: 'b', name: 'Bee', positions: {} },
   ];
 
   it('FR-9 is the name of the location, in the chosen language with the default as the fallback', () => {
-    expect(placeName({ position: [1, 1], location: 'a' }, locations, 'en', 'fi')).toBe('Ay');
-    expect(placeName({ position: [1, 1], location: 'b' }, locations, 'en', 'fi')).toBe('Bee');
+    expect(placeName({ position: [1, 1], location: 'a' }, named, 'en', 'fi')).toBe('Ay');
+    expect(placeName({ position: [1, 1], location: 'b' }, named, 'en', 'fi')).toBe('Bee');
   });
 
   it('FR-1 is null for a one-off position', () => {
-    expect(placeName({ position: [1, 1], location: null }, locations, 'fi', 'fi')).toBeNull();
+    expect(placeName({ position: [1, 1], location: null }, named, 'fi', 'fi')).toBeNull();
   });
 });
 
@@ -94,29 +131,29 @@ describe('visited places (B-14)', () => {
     event({ id: `other${position}`, showOn: { map: 'other', location, position }, ...extra });
 
   it('FR-1 the first event has no visited places', () => {
-    expect(visitedPlaces([at('a', [1, 1])], 0, 'main', 'main')).toEqual([]);
+    expect(visitedPlaces([at('a', [1, 1])], 0, 'main', 'main', [])).toEqual([]);
   });
 
   it('FR-1 lists the places of the earlier events in date order, and not the current or later ones', () => {
     const events = [at('a', [1, 1]), at('b', [2, 2]), at('c', [3, 3]), at('d', [4, 4])];
-    expect(visitedPlaces(events, 2, 'main', 'main').map((p) => p.location)).toEqual(['a', 'b']);
+    expect(visitedPlaces(events, 2, 'main', 'main', []).map((p) => p.location)).toEqual(['a', 'b']);
   });
 
   it('FR-1 stepping back drops the places again: the result depends only on the current event', () => {
     const events = [at('a', [1, 1]), at('b', [2, 2]), at('c', [3, 3])];
-    expect(visitedPlaces(events, 2, 'main', 'main')).toHaveLength(2);
-    expect(visitedPlaces(events, 1, 'main', 'main')).toHaveLength(1);
-    expect(visitedPlaces(events, 0, 'main', 'main')).toHaveLength(0);
+    expect(visitedPlaces(events, 2, 'main', 'main', [])).toHaveLength(2);
+    expect(visitedPlaces(events, 1, 'main', 'main', [])).toHaveLength(1);
+    expect(visitedPlaces(events, 0, 'main', 'main', [])).toHaveLength(0);
   });
 
   it('FR-1 a place visited by several events is listed once', () => {
     const events = [at('a', [1, 1]), at('b', [2, 2]), at('a', [1, 1]), at('c', [3, 3])];
-    expect(visitedPlaces(events, 3, 'main', 'main').map((p) => p.location)).toEqual(['a', 'b']);
+    expect(visitedPlaces(events, 3, 'main', 'main', []).map((p) => p.location)).toEqual(['a', 'b']);
   });
 
   it('FR-1 the place of the current event is not a dot, even when earlier events were there', () => {
     const events = [at('a', [1, 1]), at('b', [2, 2]), at('a', [1, 1])];
-    expect(visitedPlaces(events, 2, 'main', 'main').map((p) => p.location)).toEqual(['b']);
+    expect(visitedPlaces(events, 2, 'main', 'main', []).map((p) => p.location)).toEqual(['b']);
   });
 
   it('FR-8 standalone events count, and one-off positions are places of their own', () => {
@@ -127,30 +164,72 @@ describe('visited places (B-14)', () => {
       at(null, [6, 6]),
       at('z', [9, 9]),
     ];
-    expect(visitedPlaces(events, 4, 'main', 'main').map((p) => p.position)).toEqual([[1, 1], [5, 5], [6, 6]]);
+    expect(visitedPlaces(events, 4, 'main', 'main', []).map((p) => p.position)).toEqual([[1, 1], [5, 5], [6, 6]]);
   });
 
   it('FR-3 an event with no place on the map adds nothing there', () => {
     const events = [at('a', [1, 1]), other('x', [8, 8]), at('b', [2, 2])];
-    expect(visitedPlaces(events, 2, 'main', 'main').map((p) => p.location)).toEqual(['a']);
-    expect(visitedPlaces(events, 2, 'other', 'main').map((p) => p.location)).toEqual(['x']);
+    expect(visitedPlaces(events, 2, 'main', 'main', []).map((p) => p.location)).toEqual(['a']);
+    expect(visitedPlaces(events, 2, 'other', 'main', []).map((p) => p.location)).toEqual(['x']);
   });
 
   it('FR-1 on another map only the places that were on that map count', () => {
     const events = [at('a', [1, 1]), other('x', [8, 8]), other('y', [9, 9]), at('b', [2, 2])];
-    expect(visitedPlaces(events, 3, 'other', 'main').map((p) => p.location)).toEqual(['x', 'y']);
-    expect(visitedPlaces(events, 3, 'third', 'main')).toEqual([]);
+    expect(visitedPlaces(events, 3, 'other', 'main', []).map((p) => p.location)).toEqual(['x', 'y']);
+    expect(visitedPlaces(events, 3, 'third', 'main', [])).toEqual([]);
   });
 
   it('FR-1 a manually viewed map where the current event has no place still shows the earlier places', () => {
     const events = [other('x', [8, 8]), at('a', [1, 1]), other('y', [9, 9]), at('b', [2, 2])];
-    expect(visitedPlaces(events, 3, 'other', 'main').map((p) => p.location)).toEqual(['x', 'y']);
+    expect(visitedPlaces(events, 3, 'other', 'main', []).map((p) => p.location)).toEqual(['x', 'y']);
   });
 
   it('FR-1 an index outside the events gives nothing, or only what is before it', () => {
     const events = [at('a', [1, 1])];
-    expect(visitedPlaces(events, -1, 'main', 'main')).toEqual([]);
-    expect(visitedPlaces([], 0, 'main', 'main')).toEqual([]);
+    expect(visitedPlaces(events, -1, 'main', 'main', [])).toEqual([]);
+    expect(visitedPlaces([], 0, 'main', 'main', [])).toEqual([]);
+  });
+
+  describe('with places taken from locations (B-34)', () => {
+    // a is on the main map and on `other`; b only on `other`.
+    const known: LocationDef[] = [
+      { id: 'a', name: 'a', positions: { main: [1, 1], other: [11, 11] } },
+      { id: 'b', name: 'b', positions: { other: [12, 12] } },
+      { id: 'c', name: 'c', positions: { main: [3, 3], other: [13, 13] } },
+    ];
+
+    it('FR-1 a place visited by an event on the main map is also a dot on another map where its location has a position', () => {
+      const events = [at('a', [1, 1]), at('c', [3, 3]), at('a', [1, 1]), at('m', [9, 9])];
+      expect(visitedPlaces(events, 3, 'other', 'main', known).map((p) => [p.location, p.position]))
+        .toEqual([['a', [11, 11]], ['c', [13, 13]]]);
+    });
+
+    it('FR-1 the place of the current event is not a dot, whichever map it comes from', () => {
+      const events = [at('a', [1, 1]), at('c', [3, 3])];
+      expect(visitedPlaces(events, 1, 'other', 'main', known).map((p) => p.location)).toEqual(['a']);
+    });
+
+    it('FR-1 a location with no position on the map gives no dot there', () => {
+      const events = [at('a', [1, 1]), at('m', [9, 9]), at('c', [3, 3])];
+      expect(visitedPlaces(events, 2, 'other', 'main', known).map((p) => p.location)).toEqual(['a']);
+    });
+
+    it('FR-1 a place visited by an event shown on another map is a dot on the main map when it is placed there too', () => {
+      const events = [
+        event({ id: '1', location: 'a', position: [1, 1], showOn: { map: 'other', location: 'b', position: [12, 12] } }),
+        event({ id: '2', location: 'c', position: [3, 3] }),
+      ];
+      expect(visitedPlaces(events, 1, 'main', 'main', known).map((p) => p.location)).toEqual(['a']);
+      expect(visitedPlaces(events, 1, 'other', 'main', known).map((p) => p.location)).toEqual(['b']);
+    });
+
+    it('FR-3 an event that is n/a on the main map is not a dot there, though its showOn location has a main position', () => {
+      const events = [
+        event({ id: '1', showOn: { map: 'other', location: 'a', position: [11, 11] } }),
+        event({ id: '2', location: 'c', position: [3, 3] }),
+      ];
+      expect(visitedPlaces(events, 1, 'main', 'main', known)).toEqual([]);
+    });
   });
 });
 

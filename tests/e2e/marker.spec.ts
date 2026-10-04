@@ -95,16 +95,46 @@ test.describe('current event marker (B-13)', () => {
     await expect(page.locator('.leaflet-tooltip')).toHaveCount(0);
   });
 
-  test('FR-1 a map that the event is not placed on has no marker, even where its location has a position', async ({ page }) => {
-    // both-places has a position on the second map, but this event is placed only on the main map.
-    await page.goto('./#/event/6050-1-001-02-second');
+  test('FR-1 a map where the event\'s location has no position has no marker, and the event does not change', async ({ page }) => {
+    // main-only is a location with a position on the main map only.
+    await page.goto('./#/event/6050-1-001-01-first');
     await expect(current(page)).toHaveCount(1);
     await page.getByRole('button', { name: 'Second Map' }).click();
     await expect(image(page)).toHaveAttribute('src', /second-map/);
     await expect(current(page)).toHaveCount(0);
-    await expect(page.getByRole('region', { name: 'Tapahtuma' }).getByRole('heading', { level: 2 })).toHaveText('Toinen');
+    await expect(page.getByRole('region', { name: 'Tapahtuma' }).getByRole('heading', { level: 2 })).toHaveText('Ensimmäinen');
     await page.getByRole('button', { name: 'Pääkartta' }).click();
     await expect(current(page)).toHaveCount(1);
+  });
+
+  test('FR-1 a map where the event\'s location has a position has a marker there, though the event is not shown on it (B-34)', async ({ page }) => {
+    // both-places has a position on the second map, at (50, 50), so the event at it has a marker there.
+    await page.goto('./#/event/6050-1-001-02-second');
+    await expect(current(page)).toHaveCount(1);
+    await page.getByRole('button', { name: 'Second Map' }).click();
+    await expect(image(page)).toHaveAttribute('src', /second-map/);
+    await expect(current(page)).toHaveCount(1);
+    await expect.poll(async () => {
+      const p = await markerPercent(page);
+      return [Math.round(p.x), Math.round(p.y)];
+    }).toEqual([50, 50]);
+    await current(page).hover({ force: true });
+    await expect(page.locator('.leaflet-tooltip')).toHaveText('Molemmat paikat');
+    await expect(page.getByRole('region', { name: 'Tapahtuma' }).getByRole('heading', { level: 2 })).toHaveText('Toinen');
+  });
+
+  test('FR-1 an event that is n/a on the main map has no marker there', async ({ page }) => {
+    await page.goto('./#/event/6050-1-10-01-on-second-map?map=main-map');
+    await expect(image(page)).toHaveAttribute('src', /main-map/);
+    await expect(current(page)).toHaveCount(0);
+  });
+
+  test('FR-1 a one-off position has a marker only on its own map', async ({ page }) => {
+    await page.goto('./#/event/6050-3-001-01-jump');
+    await expect(current(page)).toHaveCount(1);
+    await page.getByRole('button', { name: 'Second Map' }).click();
+    await expect(image(page)).toHaveAttribute('src', /second-map/);
+    await expect(current(page)).toHaveCount(0);
   });
 
   test('FR-1 the language does not move the marker', async ({ page }) => {

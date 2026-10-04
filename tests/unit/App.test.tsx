@@ -132,8 +132,9 @@ describe('visited places (B-14)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
     }
     counts.push(dots(container).length);
-    // first, second, ninth (the first place again), on-second-map, split, standalone, jump
-    expect(counts).toEqual([0, 1, 1, 0, 1, 1, 2]);
+    // first, second, ninth (the first place again), on-second-map, split, standalone, jump. On the second map the
+    // second event's location, both-places, also has a position there, so it is a dot too (B-34).
+    expect(counts).toEqual([0, 1, 1, 1, 2, 1, 2]);
     fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
     expect(dots(container)).toHaveLength(1);
   });
@@ -149,7 +150,8 @@ describe('visited places (B-14)', () => {
 
   it('FR-1 a manual map switch shows the dots of the earlier events that were on that map', () => {
     const { container } = renderApp('/event/6050-2-003-01-split'); // on the second map, after on-second-map
-    expect(dots(container)).toHaveLength(1);
+    // The earlier places on the second map: both-places (the second event, by its location) and second-only.
+    expect(dots(container)).toHaveLength(2);
     fireEvent.click(screen.getByRole('button', { name: 'Pääkartta' }));
     // The earlier events on the main map were at two places, (80, 20) and (25, 75). The split event is also
     // placed at (80, 20) on the main map, which is its current marker, so only (25, 75) is a dot.
@@ -490,14 +492,35 @@ describe('the current event marker (B-13)', () => {
     }
   });
 
-  it('FR-1 a map that the event is not placed on has no current marker, though its location has a position there', () => {
-    // The location of this event, both-places, has a position on the second map, but the event is not placed there.
-    const { container } = renderApp('/event/6050-1-001-02-second');
+  it('FR-1 a map where the event\'s location has no position has no current marker', () => {
+    // The location of the first event, main-only, has a position only on the main map.
+    const { container } = renderApp('/event/6050-1-001-01-first');
     expect(current(container)).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
     expect(current(container)).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'Pääkartta' }));
     expect(current(container)).toHaveLength(1);
+  });
+
+  it('FR-1 a map where the event\'s location has a position has a current marker there, though the event is not shown on it (B-34)', () => {
+    // both-places has a position on the second map, so the second event has a marker there when it is viewed.
+    const { container } = renderApp('/event/6050-1-001-02-second');
+    expect(current(container)).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(current(container)).toHaveLength(1);
+    expect(screen.getByRole('region', { name: 'Tapahtuma' }).querySelector('h2')).toHaveTextContent('Toinen');
+  });
+
+  it('FR-1 an event that is n/a on the main map has no marker there, whatever its showOn location', () => {
+    const { container } = renderApp('/event/6050-1-10-01-on-second-map?map=main-map');
+    expect(current(container)).toHaveLength(0);
+  });
+
+  it('FR-1 a one-off position has a marker only on its own map', () => {
+    const { container } = renderApp('/event/6050-3-001-01-jump');
+    expect(current(container)).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(current(container)).toHaveLength(0);
   });
 
   it('FR-3 an event with no place on the main map has no marker there', () => {

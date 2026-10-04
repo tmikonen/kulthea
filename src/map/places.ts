@@ -9,16 +9,26 @@ export interface Place {
 }
 
 /**
- * An event's place on a map. An event has at most two: its main place on the main map (none for
- * n/a), and its showOn place on the showOn map. It has none on any other map, even when a named
- * location of the event has a position there.
+ * An event's place on a map. An explicit place wins: on the main map the main place (none for n/a),
+ * and on the showOn map the showOn place. On any other map the place is the position of the first
+ * of the event's named locations (location, then showOn location) that has one there, if any. A
+ * one-off position gives a place only on its own map.
  */
-export function eventPlaceOn(event: EventDef, mapId: string, mainMapId: string): Place | null {
+export function eventPlaceOn(
+  event: EventDef,
+  mapId: string,
+  mainMapId: string,
+  locations: LocationDef[],
+): Place | null {
   if (mapId === mainMapId) {
     return event.position ? { position: event.position, location: event.location } : null;
   }
   if (event.showOn && event.showOn.map === mapId) {
     return { position: event.showOn.position, location: event.showOn.location };
+  }
+  for (const id of [event.location, event.showOn?.location]) {
+    const position = id ? locations.find((location) => location.id === id)?.positions[mapId] : undefined;
+    if (position && id) return { position, location: id };
   }
   return null;
 }
@@ -47,12 +57,13 @@ export function visitedPlaces(
   currentIndex: number,
   mapId: string,
   mainMapId: string,
+  locations: LocationDef[],
 ): Place[] {
-  const current = events[currentIndex] ? eventPlaceOn(events[currentIndex], mapId, mainMapId) : null;
+  const current = events[currentIndex] ? eventPlaceOn(events[currentIndex], mapId, mainMapId, locations) : null;
   const seen = new Set<string>(current ? [placeKey(current)] : []);
   const visited: Place[] = [];
   for (const event of events.slice(0, Math.max(currentIndex, 0))) {
-    const place = eventPlaceOn(event, mapId, mainMapId);
+    const place = eventPlaceOn(event, mapId, mainMapId, locations);
     if (place && !seen.has(placeKey(place))) {
       seen.add(placeKey(place));
       visited.push(place);

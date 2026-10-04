@@ -18,14 +18,24 @@ async function dotPercents(page: Page) {
     .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
 }
 
+/** The dot whose centre is at the given percent of the image width. */
+async function dotAt(page: Page, percentX: number) {
+  const img = (await image(page).boundingBox())!;
+  for (let i = 0; i < (await dots(page).count()); i++) {
+    const box = (await dots(page).nth(i).boundingBox())!;
+    if (Math.round(((box.x + box.width / 2 - img.x) / img.width) * 100) === percentX) return dots(page).nth(i);
+  }
+  throw new Error(`no dot at ${percentX}%`);
+}
+
 test.describe('visited places (B-14)', () => {
   // The fixture events in date order: the map shown, and the dots on it (percent of the image).
   const STEPS: { map: string; dots: number[][] }[] = [
     { map: 'main-map', dots: [] },                         // first (80, 20)
     { map: 'main-map', dots: [[80, 20]] },                 // second (25, 75)
     { map: 'main-map', dots: [[25, 75]] },                 // ninth (80, 20): the first place again, so it is the marker
-    { map: 'second-map', dots: [] },                       // on-second-map (10, 90): nothing earlier on this map
-    { map: 'second-map', dots: [[10, 90]] },               // split (30, 30)
+    { map: 'second-map', dots: [[50, 50]] },               // on-second-map (10, 90): the second event's location is on this map too
+    { map: 'second-map', dots: [[10, 90], [50, 50]] },     // split (30, 30)
     { map: 'main-map', dots: [[80, 20]] },                 // standalone (25, 75): the second place is the marker
     { map: 'main-map', dots: [[25, 75], [80, 20]].sort((a, b) => a[0] - b[0]) }, // jump (10, 10)
   ];
@@ -54,9 +64,9 @@ test.describe('visited places (B-14)', () => {
     await expect(dots(page)).toHaveCount(1);
     await page.getByRole('button', { name: 'Edellinen' }).click(); // split, on the second map
     await expect(image(page)).toHaveAttribute('src', /second-map/);
-    await expect(dots(page)).toHaveCount(1);
+    await expect(dots(page)).toHaveCount(2);
     await page.getByRole('button', { name: 'Edellinen' }).click(); // on-second-map
-    await expect(dots(page)).toHaveCount(0);
+    await expect(dots(page)).toHaveCount(1);
   });
 
   test('FR-1 the dots are the same when an event is opened directly', async ({ page }) => {
@@ -76,7 +86,7 @@ test.describe('visited places (B-14)', () => {
 
   test('FR-1 a manual map switch shows the dots of the earlier events that were on that map', async ({ page }) => {
     await page.goto('./#/event/6050-2-003-01-split'); // shown on the second map
-    await expect.poll(() => dotPercents(page)).toEqual([[10, 90]]);
+    await expect.poll(() => dotPercents(page)).toEqual([[10, 90], [50, 50]]);
     await page.getByRole('button', { name: 'Pääkartta' }).click();
     await expect(image(page)).toHaveAttribute('src', /main-map/);
     // The earlier events were at (80, 20) and (25, 75). The split event is also placed at (80, 20) on the
@@ -114,33 +124,31 @@ test.describe('visited places (B-14)', () => {
     await page.goto('./#/event/6050-1-001-02-second?lang=en');
     await dots(page).first().hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Main Only');
-    await page.goto('./#/event/6050-2-003-01-split'); // on the second map: the dot is second-only, with a Finnish name
-    await dots(page).first().hover({ force: true });
+    await page.goto('./#/event/6050-2-003-01-split'); // on the second map: the dots are second-only (10, 90) and both-places (50, 50)
+    await expect(dots(page)).toHaveCount(2);
+    await (await dotAt(page, 10)).hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Vain toinen');
     await page.goto('./#/event/6050-2-003-01-split?lang=en');
-    await dots(page).first().hover({ force: true });
+    await expect(dots(page)).toHaveCount(2);
+    await (await dotAt(page, 10)).hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Second Only');
+    await page.mouse.move(0, 0);
+    await expect(page.locator('.leaflet-tooltip')).toHaveCount(0);
+    await (await dotAt(page, 50)).hover({ force: true });
+    await expect(page.locator('.leaflet-tooltip')).toHaveText('Both Places');
   });
 
   test('FR-1 a dot for a one-off position has no hover text, and one for a named place has its name', async ({ page }) => {
-    // At the jump event, viewed on the second map, the earlier places there are on-second-map (a named
-    // location, second-only, at 10, 90) and the split event (a one-off position at 30, 30).
+    // At the jump event, viewed on the second map, the earlier places there are: both-places (50, 50, by its
+    // location), on-second-map (second-only, 10, 90) and the split event (a one-off position at 30, 30).
     await page.goto('./#/event/6050-3-001-01-jump?map=second-map');
     await expect(image(page)).toHaveAttribute('src', /second-map/);
-    await expect(dots(page)).toHaveCount(2);
-    const img = (await image(page).boundingBox())!;
-    const dotAt = async (percentX: number) => {
-      for (let i = 0; i < (await dots(page).count()); i++) {
-        const box = (await dots(page).nth(i).boundingBox())!;
-        if (Math.round(((box.x + box.width / 2 - img.x) / img.width) * 100) === percentX) return dots(page).nth(i);
-      }
-      throw new Error(`no dot at ${percentX}%`);
-    };
-    await (await dotAt(10)).hover({ force: true });
+    await expect(dots(page)).toHaveCount(3);
+    await (await dotAt(page, 10)).hover({ force: true });
     await expect(page.locator('.leaflet-tooltip')).toHaveText('Vain toinen');
     await page.mouse.move(0, 0);
     await expect(page.locator('.leaflet-tooltip')).toHaveCount(0);
-    await (await dotAt(30)).hover({ force: true });
+    await (await dotAt(page, 30)).hover({ force: true });
     await page.waitForTimeout(300);
     await expect(page.locator('.leaflet-tooltip')).toHaveCount(0);
   });

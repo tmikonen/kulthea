@@ -80,7 +80,7 @@ export function loadContent(dir: string): LoadResult {
     errors,
   );
   const events = campaign && maps && locations
-    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, errors)
+    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, errors, warnings)
     : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
 
@@ -221,6 +221,7 @@ function validateEvents(
   maps: MapDef[],
   locations: LocationDef[],
   errors: string[],
+  warnings: string[],
 ): EventDef[] | null {
   if (!fs.existsSync(eventsDir)) {
     errors.push(`${rel(eventsDir)}: folder not found`);
@@ -363,6 +364,15 @@ function validateEvents(
     }
     if (main && main.position === null && front.showOn === undefined) {
       err('"location" is n/a on the main map, so the event needs "showOn" with a place on another map');
+    }
+    if (main && main.position === null && showOn?.location) {
+      const mainPosition = locationsById.get(showOn.location)?.positions[mainMap.id];
+      if (mainPosition) {
+        warnings.push(
+          `${file}: "location" is n/a on the main map, but its "showOn" location "${showOn.location}" has a position ` +
+          `on the main map. If the event is inside the main map's region, give it "location: ${showOn.location}".`,
+        );
+      }
     }
 
     if (errors.length === eventErrors && main) {

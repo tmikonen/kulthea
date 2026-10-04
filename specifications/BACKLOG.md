@@ -452,7 +452,7 @@ Feedback wanted:
 
 ## B-34 Places on every map
 
-Status: in progress
+Status: done
 
 Related: FR-1, FR-3, FR-5, DD-3, "Map markers", "Validation rules".
 
@@ -475,10 +475,10 @@ How to check by hand (with the demo content):
 5. In `content/events` set an event to `location: n/a` with a `showOn` location that has a main position. The build warns and names the file and the location. The build still works.
 
 Acceptance criteria:
-- [ ] One function gives an event's place on a map by the three rules above, and the current marker and the dots both use it.
-- [ ] An explicit place wins over a place taken from a location, `n/a` on the main map is respected, and a one-off position gives a place only on its own map.
-- [ ] The build warns, and does not fail, when an event is `n/a` on the main map and its `showOn` location has a main-map position. The warning names the file and the location. The real events and the demo events give no warning.
-- [ ] The demo event 6 has the main location Suonperä. The tests of B-13 and B-14 that depended on the old rule are updated.
+- [x] One function gives an event's place on a map by the three rules above, and the current marker and the dots both use it.
+- [x] An explicit place wins over a place taken from a location, `n/a` on the main map is respected, and a one-off position gives a place only on its own map.
+- [x] The build warns, and does not fail, when an event is `n/a` on the main map and its `showOn` location has a main-map position. The warning names the file and the location. The real events and the demo events give no warning.
+- [x] The demo event 6 has the main location Suonperä. The tests of B-13 and B-14 that depended on the old rule are updated.
 - [x] The documents give the new rule, and the open question is removed from this file (done when the item was defined).
 
 Automated tests: unit tests for the place function (each rule, the precedence, `n/a`, one-off positions, a location with no position on the map) and for the warning (given, not given, several events, the build continues); the B-13 and B-14 unit, component and Playwright tests are updated to the new rule. In the fixtures, the event at `both-places` now has a marker at its second-map position when the second map is viewed.

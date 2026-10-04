@@ -48,8 +48,8 @@ export function MainView({ event }: { event?: EventDef }) {
   };
 
   const mainMapId = maps.find((map) => map.main)!.id;
-  const place = event ? eventPlaceOn(event, current.id, mainMapId) : null;
-  const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId) : [];
+  const place = event ? eventPlaceOn(event, current.id, mainMapId, locations) : null;
+  const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId, locations) : [];
 
   const nameOf = (map: (typeof maps)[number]) => resolveText(map.name, lang, defaultLang);
   const setParam = (name: string, value: string) => {

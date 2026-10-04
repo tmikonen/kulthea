@@ -406,7 +406,7 @@ Automated tests: unit tests for the visited-places function (order, repeats, sta
 
 ## B-33 Focused view per map
 
-Status: done
+Status: accepted
 
 Related: FR-1, FR-2, DD-2, "Map markers", "File formats" (`maps.json`).
 

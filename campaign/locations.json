@@ -11,10 +11,10 @@
     "positions": { "bay-of-izar": [64.3, 39.1], "haestra": [55.6, 59.9], "bog-end": [36.8, 36.0] } },
   { "id": "lean",          "name": "Lean",
     "positions": { "bay-of-izar": [61.0, 60.7] } },
-  { "id": "ruined-tower",  "name": { "fi": "Rauniotorni", "en": "Ruined Tower" },
+  { "id": "ruined-watchtower", "name": { "fi": "Vahtitornin rauniot", "en": "Ruined Watchtower" },
     "positions": { "bay-of-izar": [59.3, 56.6] } },
   { "id": "troll-cave",    "name": { "fi": "Peikkoluola", "en": "Troll Cave" },
     "positions": { "bay-of-izar": [60.7, 52.6] } },
-  { "id": "sammals-farm", "name": "Sammal's Farm",
+  { "id": "sammals-sheep-farm", "name": { "fi": "Sammalin lammastila", "en": "Sammal's Sheep Farm" },
     "positions": { "bay-of-izar": [60.2, 58.7] } }
 ]

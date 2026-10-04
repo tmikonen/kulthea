@@ -56,8 +56,8 @@ describe('content loading (B-3)', () => {
     });
     expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' } });
     expect(bundle?.maps).toEqual([
-      { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true, focusZoom: 0 },
-      { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false, focusZoom: 0 },
+      { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true, focusZoom: 0, routes: 'history' },
+      { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false, focusZoom: 0, routes: 'visit' },
     ]);
   });
 
@@ -182,6 +182,30 @@ describe('content loading (B-3)', () => {
         editJson(dir, 'maps.json', (maps) => { maps[1].focusZoom = value; }));
       expect(bundle).toBeNull();
       expect(errors).toEqual([expect.stringMatching(/maps\.json: map "second-map": "focusZoom" must be a number of zoom steps, 0 or more/)]);
+    });
+
+    it('FR-5 a map with no routes setting keeps the whole route if it is the main map, and the current visit otherwise', () => {
+      expect(loadContent(FIXTURES).bundle?.maps.map((m) => m.routes)).toEqual(['history', 'visit']);
+    });
+
+    it('FR-5 accepts the routes setting history or visit on any map', () => {
+      const { errors, bundle } = loadModified((dir) =>
+        editJson(dir, 'maps.json', (maps) => { maps[0].routes = 'visit'; maps[1].routes = 'history'; }));
+      expect(errors).toEqual([]);
+      expect(bundle?.maps.map((m) => m.routes)).toEqual(['visit', 'history']);
+    });
+
+    it.each([
+      ['another word', 'always'],
+      ['a number', 1],
+      ['null', null],
+      ['capital letters', 'History'],
+      ['a list', ['visit']],
+    ])('FR-5 rejects a routes setting that is %s, and names the file and the map', (_, value) => {
+      const { errors, bundle } = loadModified((dir) =>
+        editJson(dir, 'maps.json', (maps) => { maps[1].routes = value; }));
+      expect(bundle).toBeNull();
+      expect(errors).toEqual([expect.stringMatching(/maps\.json: map "second-map": "routes" must be "history" or "visit"/)]);
     });
 
     it('FR-1 rejects two main maps', () => {

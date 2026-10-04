@@ -333,7 +333,7 @@ Scope note: while testing this item a defect from B-10 and B-11 was found and fi
 You will see: stepping to an event that is shown on another map switches the map by itself, and stepping on to an event on the main map switches back. A choice made with the map switcher lasts until the next step. Opening a link to such an event opens that map.
 
 How to check by hand (with the demo content):
-1. Step through the ten demo events. Event 6 ("Saapuminen Suonperään") shows the Bog End map, and event 7 ("Tiedustelijat raunioilla") stays on it. Event 8 ("Ryhmät yhdistyvät") is back on Bay of Izar, event 9 ("Keksityn hahmon synnyinpaikka") shows Haestra, and event 10 ("Teleporttaus Ton-Boriin") is back on Bay of Izar.
+1. Step through the demo events (there were ten when this item was done, and B-17 added three). Event 6 ("Saapuminen Suonperään") shows the Bog End map, and event 7 ("Tiedustelijat raunioilla") and the next, "Seurue raunioilla", stay on it. "Ryhmät yhdistyvät" is back on Bay of Izar, "Keksityn hahmon synnyinpaikka" shows Haestra, and "Takaisin Izarin satamassa" and "Teleporttaus Ton-Boriin" are on Bay of Izar.
 2. Switch to another map with the switcher, then press Next. The map follows the next event, not your choice. The event itself never changes when you switch maps.
 3. Open the address of event 6 directly. Bog End opens. Add `?map=haestra`. Haestra opens, with the same event. Reload. It stays.
 4. Add `?map=nowhere`. The event's own map opens.
@@ -443,7 +443,7 @@ Automated tests: unit tests for the validation (valid, 0, negative, text, omitte
 
 A checkpoint for a longer manual test, with your feedback before the routes start. Stepping through the events, the map switches itself, the marker moves, the view follows it, and the trail of visited places grows.
 
-What to try: step through all ten demo events and through the five real events (`CONTENT_DIR=campaign npm run dev`), forwards and backwards, with and without zooming in, switching maps by hand in between, and opening addresses directly.
+What to try: step through all the demo events and through the five real events (`CONTENT_DIR=campaign npm run dev`), forwards and backwards, with and without zooming in, switching maps by hand in between, and opening addresses directly.
 
 Feedback wanted:
 - the look and size of the marker and the dots;
@@ -471,7 +471,7 @@ How to check by hand (with the demo content):
 1. Step to event 6 (Suonperä, shown on Bog End). Switch to Bay of Izar and to Haestra. The marker is at Suonperä on both.
 2. Step on to event 7, the ruins. On Bay of Izar the dot for Suonperä is there, and the marker is at the ruins.
 3. Switch to Haestra at event 1 (Port of Izar). The marker is at the Port of Izar.
-4. At event 9, which is `n/a` on the main map and shown on Haestra, Bay of Izar has no marker for it.
+4. At "Keksityn hahmon synnyinpaikka", which is `n/a` on the main map and shown on Haestra, Bay of Izar has no marker for it.
 5. In `content/events` set an event to `location: n/a` with a `showOn` location that has a main position. The build warns and names the file and the location. The build still works.
 
 Acceptance criteria:
@@ -522,31 +522,31 @@ Automated tests: the unit tests of the worked examples, plus tests that a segmen
 
 ## B-17 Drawing the party route
 
-Status: in progress
+Status: done
 
 Related: FR-5.
 
 Depends on: B-16 (the route logic) and B-14 (the dots and marker that the line goes under).
 
-Scope note: a map gets a setting `routes` in `maps.json`, `"history"` or `"visit"`: a history map keeps the whole route up to the current event, and a visit map shows only the current visit of each track. The main map is `history` and every other map is `visit` unless the setting says otherwise, so Haestra can be changed to `history` if wanted. The fixtures and the demo events are extended where the routes need it, for example a party event after the standalone event (9), a party event after the new segment (10), and a second party event on Bog End so that a visit has a line. Only invented events are changed, never the real campaign, and I will list the changes in the commit. Tests that count or list the fixture events are updated. Accepted together with B-16.
+Scope note: a map gets a setting `routes` in `maps.json`, `"history"` or `"visit"`: a history map keeps the whole route up to the current event, and a visit map shows only the current visit of each track. The main map is `history` and every other map is `visit` unless the setting says otherwise, so Haestra can be changed to `history` if wanted. The demo events are extended where the routes need it, and that is done: a party event after the standalone event, "Takaisin Izarin satamassa" (11); a party event after the new segment, "Ton-Borin portilla" (13); and a second party event on Bog End, "Seurue raunioilla" (8), so that a visit has a line. The extra fixture events for the route tests are in a set of their own, `tests/fixtures-routes/`, built into a third test site, so that the other browser tests keep their fixtures. Only invented events are changed, never the real campaign. The demo events are now 1 "Lähtö Izarin satamasta", 2 Lean, 3 the watchtower, 4 the camp, 5 the market in Bentara, 6 "Saapuminen Suonperään", 7 "Tiedustelijat raunioilla" (a group), 8 "Seurue raunioilla", 9 "Ryhmät yhdistyvät", 10 "Keksityn hahmon synnyinpaikka" (standalone, Haestra), 11, 12 "Teleporttaus Ton-Boriin" (new segment) and 13. Accepted together with B-16.
 
 You will see: a blue solid line joining the places of the party's events, up to the current event, on the displayed map. The line grows as you step forward and shortens as you step back. A jump leaves a gap, a standalone event is not part of the line, and a visit to another map has its own line there.
 
 How to check by hand (with the demo content):
 1. Step through the demo events on Bay of Izar. The line follows the party from place to place.
-2. The standalone event (9) is not part of the line: the line goes straight from the party event before it to the one after it.
-3. At the event with the new segment (10) there is no line from the previous place to it, and the line goes on from it.
-4. Step to Bog End. The line there shows only the current visit. The main map keeps the whole route, and the party's visits to Suonperä are part of it.
+2. The standalone event (10, the birthplace on Haestra) is not part of the line: the line goes straight from the party's last event before it, Bentara, to the one after it, the Port of Izar (11).
+3. At the event with the new segment (12, the teleport to Ton-Bor) there is no line from the Port of Izar to it, and the line goes on from it to the next event (13).
+4. Step to Bog End (events 6 to 8). The line there shows only the current visit, from Suonperä to the ruins. The main map keeps the whole route, and the party's visits to Suonperä and the ruins are part of it.
 5. When the party has left Bog End, switch to it by hand. The visited places are there as dots and there is no line.
 6. Step back. The line shortens.
 
 Acceptance criteria:
-- [ ] The segments are worked out once when the app loads, and each step only clips them.
-- [ ] The displayed map shows the party's lines up to the current event, and nothing from later events. A history map shows all of them, and a visit map shows only the current visit.
-- [ ] A map may have `routes`, `"history"` or `"visit"`. The build rejects another value with an error that names the file and the map, and an omitted value means history for the main map and visit for the others.
-- [ ] The line is solid, blue and clearly thinner than the current marker, and is drawn below the dots and the marker.
-- [ ] A segment of one event draws no line, a new segment leaves a gap, and the lines are the same however you arrived at an event.
-- [ ] After a manual map switch, the lines of that map are shown by the same rule.
+- [x] The segments are worked out once when the app loads, and each step only clips them.
+- [x] The displayed map shows the party's lines up to the current event, and nothing from later events. A history map shows all of them, and a visit map shows only the current visit.
+- [x] A map may have `routes`, `"history"` or `"visit"`. The build rejects another value with an error that names the file and the map, and an omitted value means history for the main map and visit for the others.
+- [x] The line is solid, blue and clearly thinner than the current marker, and is drawn below the dots and the marker.
+- [x] A segment of one event draws no line, a new segment leaves a gap, and the lines are the same however you arrived at an event.
+- [x] After a manual map switch, the lines of that map are shown by the same rule.
 
 Automated tests: component tests that the right number of lines is drawn for a given event; Playwright tests that step through the extended fixtures and check the line's ends against the markers at each step, the gap at a new segment, the separate line on the second map, and stepping back.
 

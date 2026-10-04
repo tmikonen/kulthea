@@ -1,0 +1,5 @@
+[
+  { "id": "main-map",   "name": { "fi": "Pääkartta", "en": "Main Map" }, "image": "../fixtures/maps/main-map.png",   "width": 3000, "height": 1500, "main": true },
+  { "id": "second-map", "name": "Second Map",                            "image": "../fixtures/maps/second-map.png", "width": 120, "height": 80 },
+  { "id": "third-map",  "name": "Third Map",                             "image": "../fixtures/maps/second-map.png", "width": 120, "height": 80, "routes": "history" }
+]

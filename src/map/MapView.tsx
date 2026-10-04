@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { CRS, latLng } from 'leaflet';
-import { CircleMarker, ImageOverlay, MapContainer, Pane, Tooltip, useMap } from 'react-leaflet';
+import { CircleMarker, ImageOverlay, MapContainer, Pane, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ContentMap } from '../content/types';
 import { imageBounds, toLeaflet, type Position } from './coords';
@@ -130,6 +130,8 @@ interface MapViewProps {
   label: string;
   /** Called when the map image has loaded, that is, when the map is shown. */
   onImageLoad?: () => void;
+  /** Lines of the party's route on this map, each a list of positions in order. A line of one point is not drawn. */
+  routes?: Position[][];
   /** Small dots for the places visited so far on this map. */
   markers?: MapMarker[];
   /** The current event's marker, drawn above the others, or none when the event is not on this map. */
@@ -140,7 +142,7 @@ interface MapViewProps {
   children?: ReactNode;
 }
 
-export function MapView({ map: def, label, onImageLoad, markers = [], current, eventId, children }: MapViewProps) {
+export function MapView({ map: def, label, onImageLoad, routes = [], markers = [], current, eventId, children }: MapViewProps) {
   const bounds = imageBounds(def);
   return (
     <div className={styles.map} role="region" aria-label={label}>
@@ -159,17 +161,33 @@ export function MapView({ map: def, label, onImageLoad, markers = [], current, e
         className={styles.container}
       >
         <ImageOverlay url={def.imageUrl} bounds={bounds} eventHandlers={{ load: () => onImageLoad?.() }} />
-        {markers.map((marker) => (
-          <CircleMarker
-            key={marker.id}
-            center={toLeaflet(marker.position, def)}
-            radius={5}
-            className="visited-dot"
-            pathOptions={{ color: '#ffffff', weight: 1, fillColor: '#8f2d24', fillOpacity: 0.9 }}
-          >
-            {marker.label && <Tooltip>{marker.label}</Tooltip>}
-          </CircleMarker>
-        ))}
+        {/* Panes, from the bottom: the map image (400), the route lines, the visited places, the current marker. */}
+        <Pane name="routes" style={{ zIndex: 410 }}>
+          {routes
+            .filter((points) => points.length >= 2)
+            .map((points, i) => (
+              <Polyline
+                key={`${i}:${points.map((p) => p.join(',')).join(' ')}`}
+                positions={points.map((point) => toLeaflet(point, def))}
+                className="route-line route-party"
+                interactive={false}
+                pathOptions={{ color: '#1f4e8c', weight: 4, opacity: 0.85, lineJoin: 'round' }}
+              />
+            ))}
+        </Pane>
+        <Pane name="visited-places" style={{ zIndex: 420 }}>
+          {markers.map((marker) => (
+            <CircleMarker
+              key={marker.id}
+              center={toLeaflet(marker.position, def)}
+              radius={5}
+              className="visited-dot"
+              pathOptions={{ color: '#ffffff', weight: 1, fillColor: '#8f2d24', fillOpacity: 0.9 }}
+            >
+              {marker.label && <Tooltip>{marker.label}</Tooltip>}
+            </CircleMarker>
+          ))}
+        </Pane>
         {current && (
           <Pane name="current-event" style={{ zIndex: 650 }}>
             <CircleMarker

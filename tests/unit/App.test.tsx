@@ -534,3 +534,54 @@ describe('the current event marker (B-13)', () => {
     expect(current(container)).toHaveLength(1);
   });
 });
+
+describe('the party route (B-17)', () => {
+  const lines = (container: HTMLElement) => container.querySelectorAll('path.route-line');
+
+  it('FR-5 the number of lines at each step: the main map keeps the route, the second map shows the visit', () => {
+    const { container } = renderApp('/event/6050-1-001-01-first');
+    const counts = [];
+    for (let i = 0; i < 7; i++) {
+      counts.push(lines(container).length);
+      if (i < 6) fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    }
+    // first (one point), second and ninth (a line through the three), on-second-map and split (the party is
+    // on the second map with one point, and the split event is a group's), standalone (the line again), jump
+    // (a new segment of one point, the earlier line stays).
+    expect(counts).toEqual([0, 1, 1, 0, 0, 1, 1]);
+  });
+
+  it('FR-5 stepping back removes the line again', () => {
+    const { container } = renderApp('/event/6050-1-9-01-ninth');
+    expect(lines(container)).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
+    expect(lines(container)).toHaveLength(1); // second: first-second
+    fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
+    expect(lines(container)).toHaveLength(0); // first alone
+  });
+
+  it('FR-5 the same lines are drawn however the event is reached', () => {
+    const direct = renderApp('/event/6050-2-070-01-standalone');
+    const count = lines(direct.container).length;
+    direct.unmount();
+    const stepped = renderApp('/event/6050-1-001-01-first');
+    for (let i = 0; i < 5; i++) fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
+    expect(lines(stepped.container)).toHaveLength(count);
+    expect(count).toBe(1);
+  });
+
+  it('FR-5 a manual map switch shows the lines of that map by its own rule', () => {
+    const { container } = renderApp('/event/6050-1-9-01-ninth');
+    expect(lines(container)).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(lines(container)).toHaveLength(0); // the party's latest event is not on the second map
+    fireEvent.click(screen.getByRole('button', { name: 'Pääkartta' }));
+    expect(lines(container)).toHaveLength(1);
+  });
+
+  it('FR-5 the lines are not interactive, so they do not take the pointer from the dots', () => {
+    const { container } = renderApp('/event/6050-1-9-01-ninth');
+    expect(lines(container)).toHaveLength(1);
+    expect(container.querySelectorAll('path.route-line.leaflet-interactive')).toHaveLength(0);
+  });
+});

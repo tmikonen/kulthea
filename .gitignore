@@ -8,3 +8,4 @@ playwright-report
 .playwright-browsers
 gm-notes
 dist-e2e-focus
+dist-e2e-routes

@@ -3,7 +3,7 @@ import type { ContentMap } from '../../src/content/types';
 import { displayedMap } from '../../src/map/mapParam';
 
 const map = (id: string, main = false): ContentMap =>
-  ({ id, name: id, image: `${id}.png`, imageUrl: `/${id}.png`, width: 10, height: 10, main, focusZoom: 0 });
+  ({ id, name: id, image: `${id}.png`, imageUrl: `/${id}.png`, width: 10, height: 10, main, focusZoom: 0, routes: 'visit' });
 const maps = [map('a'), map('b', true), map('c')];
 
 const onMap = (id: string) => ({ showOn: { map: id, location: null, position: [1, 1] as [number, number] } });

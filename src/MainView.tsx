@@ -11,11 +11,20 @@ import { LanguageSwitch } from './LanguageSwitch';
 import { displayedMap } from './map/mapParam';
 import { MapSwitcher } from './map/MapSwitcher';
 import { dotsFor } from './map/markers';
+import { buildRoutes, visibleRoutes } from './map/routes';
 import { eventPlaceOn, placeName, visitedPlaces } from './map/places';
 import { MapView } from './map/MapView';
 import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './MainView.module.css';
+
+/** The route segments of every map, worked out once when the app loads. */
+const routeSegments = buildRoutes(
+  content.events,
+  content.maps.map((map) => map.id),
+  content.maps.find((map) => map.main)!.id,
+  content.locations,
+);
 
 /** The state that a redirect from an unknown event id leaves in the history entry. */
 interface NoticeState {
@@ -49,6 +58,10 @@ export function MainView({ event }: { event?: EventDef }) {
 
   const mainMapId = maps.find((map) => map.main)!.id;
   const place = event ? eventPlaceOn(event, current.id, mainMapId, locations) : null;
+  const lines = event
+    ? visibleRoutes(routeSegments, content.events, content.events.indexOf(event), current.id, current.routes)
+        .map((segment) => segment.points.map((point) => point.position))
+    : [];
   const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId, locations) : [];
 
   const nameOf = (map: (typeof maps)[number]) => resolveText(map.name, lang, defaultLang);
@@ -72,6 +85,7 @@ export function MainView({ event }: { event?: EventDef }) {
       <MapView
         map={current}
         label={nameOf(current)}
+        routes={lines}
         markers={dotsFor(visited, locations, lang, defaultLang)}
         eventId={event?.id}
         current={place ? { position: place.position, label: placeName(place, locations, lang, defaultLang) } : undefined}

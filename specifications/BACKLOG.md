@@ -532,7 +532,7 @@ Depends on: B-16 (the route logic) and B-14 (the dots and marker that the line g
 
 Scope note: a map gets a setting `routes` in `maps.json`, `"history"`, `"visit"` or (added for BUG-6) `"overview"`: a history map keeps the whole route up to the current event, a visit map shows only the current visit of each track, and an overview map keeps the whole route but skips events at places that are not on the map instead of breaking the route, which is right for a map that covers the whole region, such as Haestra. The main map is `history` and every other map is `visit` unless the setting says otherwise, and Haestra is set to `overview`. The demo events are extended where the routes need it, and that is done: a party event after the standalone event, "Takaisin Izarin satamassa" (11); a party event after the new segment, "Ton-Borin portilla" (13); and a second party event on Bog End, "Seurue raunioilla" (8), so that a visit has a line. The extra fixture events for the route tests are in a set of their own, `tests/fixtures-routes/`, built into a third test site, so that the other browser tests keep their fixtures. Only invented events are changed, never the real campaign. The demo events are now 1 "Lähtö Izarin satamasta", 2 Lean, 3 the watchtower, 4 the camp, 5 the market in Bentara, 6 "Saapuminen Suonperään", 7 "Tiedustelijat raunioilla" (a group), 8 "Seurue raunioilla", 9 "Ryhmät yhdistyvät", 10 "Keksityn hahmon synnyinpaikka" (standalone, Haestra), 11, 12 "Teleporttaus Ton-Boriin" (new segment) and 13. Accepted together with B-16.
 
-You will see: a blue solid line joining the places of the party's events, up to the current event, on the displayed map. The line grows as you step forward and shortens as you step back. A jump leaves a gap, a standalone event is not part of the line, and a visit to another map has its own line there.
+You will see: a solid line, in a warm brown that goes with the red marker and dots, joining the places of the party's events, up to the current event, on the displayed map. The line grows as you step forward and shortens as you step back. A jump leaves a gap, a standalone event is not part of the line, and a visit to another map has its own line there.
 
 How to check by hand (with the demo content):
 1. Step through the demo events on Bay of Izar. The line follows the party from place to place.
@@ -546,7 +546,7 @@ Acceptance criteria:
 - [x] The segments are worked out once when the app loads, and each step only clips them.
 - [x] The displayed map shows the party's lines up to the current event, and nothing from later events. A history map shows all of them, and a visit map shows only the current visit.
 - [x] A map may have `routes`, `"history"`, `"visit"` or `"overview"`. The build rejects another value with an error that names the file and the map, and an omitted value means history for the main map and visit for the others.
-- [x] The line is solid, blue and clearly thinner than the current marker, and is drawn below the dots and the marker.
+- [x] The line is solid, a warm sienna brown (`#a0522d`) that goes with the red marker, and clearly thinner than the current marker, and is drawn below the dots and the marker.
 - [x] A segment of one event draws no line, a new segment leaves a gap, and the lines are the same however you arrived at an event.
 - [x] After a manual map switch, the lines of that map are shown by the same rule.
 
@@ -605,7 +605,7 @@ How to check by hand (with the demo content):
 4. Open the real events. There is no group, so only the party's line is shown.
 
 Acceptance criteria:
-- [ ] Each group is drawn with a dashed line in its own colour from a fixed palette, taken in the order the groups first appear. The party's line stays solid blue.
+- [ ] Each group is drawn with a dashed line in its own colour from a fixed palette, taken in the order the groups first appear. The party's line stays solid brown. The colours of the groups are taken from earth tones that go with the markers, and not from blue.
 - [ ] The line grows with the current event, starts at the split place, and reaches the rejoin place only when the current event is the rejoin event or a later one.
 - [ ] Group lines are drawn below the party line and below the dots and marker.
 - [ ] On each map only the segments that have places on that map are shown, and the map's `routes` setting decides whether a group's earlier visits stay (history, overview) or only its current visit is shown (visit).

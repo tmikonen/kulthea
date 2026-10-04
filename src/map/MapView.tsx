@@ -84,6 +84,9 @@ function PanToMarker({ map: def, marker }: { map: ContentMap; marker: CurrentMar
   return null;
 }
 
+/** The party's line: a warm sienna brown, from the same family as the red marker and the dots, but quieter. */
+const ROUTE_COLOR = '#a0522d';
+
 /** How long the view takes to move to the focused view of the next event on the same map, in seconds. */
 const FOCUS_SECONDS = 0.6;
 
@@ -171,7 +174,7 @@ export function MapView({ map: def, label, onImageLoad, routes = [], markers = [
                 positions={points.map((point) => toLeaflet(point, def))}
                 className="route-line route-party"
                 interactive={false}
-                pathOptions={{ color: '#1f4e8c', weight: 4, opacity: 0.85, lineJoin: 'round' }}
+                pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85, lineJoin: 'round' }}
               />
             ))}
         </Pane>

@@ -176,7 +176,7 @@ test.describe('the party route (B-17)', () => {
     await expectLines(page, [[P.p1, P.p2, P.p3, P.p4]]);
   });
 
-  test('FR-5 the line is solid and blue, thinner than the current marker, and below the dots and the marker', async ({ page }) => {
+  test('FR-5 the line is solid and brown, thinner than the current marker, and below the dots and the marker', async ({ page }) => {
     await open(page, ID.p4);
     await expectLines(page, [[P.p1, P.p2, P.p3, P.p4]]);
     const style = await page.evaluate(() => {
@@ -188,7 +188,7 @@ test.describe('the party route (B-17)', () => {
         routePane: z('path.route-line'), dotPane: z('path.visited-dot'), markerPane: z('path.current-marker'),
       };
     });
-    expect(style.stroke).toBe('rgb(31, 78, 140)');
+    expect(style.stroke).toBe('rgb(160, 82, 45)');
     expect(style.dash).toBeNull();
     const marker = (await page.locator('path.current-marker').boundingBox())!;
     expect(style.width).toBeLessThan(marker.width / 2);
@@ -254,6 +254,6 @@ test.describe('an overview map (BUG-6)', () => {
     await open(page, ID.o2, '?map=fourth-map');
     await expectLines(page, [[P.o1, P.o2]]);
     const stroke = await page.evaluate(() => getComputedStyle(document.querySelector('path.route-line')!).stroke);
-    expect(stroke).toBe('rgb(31, 78, 140)');
+    expect(stroke).toBe('rgb(160, 82, 45)');
   });
 });

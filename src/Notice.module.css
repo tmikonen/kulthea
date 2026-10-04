@@ -1,0 +1,19 @@
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 1rem;
+  background: #fff4cc;
+  border-top: 1px solid #e0c870;
+  font-size: 0.9rem;
+}
+
+.dismiss {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}

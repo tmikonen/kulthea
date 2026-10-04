@@ -265,7 +265,7 @@ Map loading: the main map loads first. Once it and the first event are shown, th
 
 Routes are worked out at runtime, once when the app loads. A plain function builds all segments per map and track from the ordered events, and stepping shows the segments up to the current event. This is cheap for about 300 events, easy to unit-test, and keeps the route rules in the app code rather than the build plugin.
 
-Bad links: if the URL names an event that doesn't exist, the app shows the first event with a dismissible notice. If it names a journal entry that doesn't exist, the entry is ignored and the event is shown. The app never shows a blank screen.
+Bad links: if the URL names an event that doesn't exist, the app shows the first event with a dismissible notice. The address is replaced with the first event's, and the notice is carried in the history entry's state, so dismissing it does not change the address and it does not come back on reload after being dismissed. If it names a journal entry that doesn't exist, the entry is ignored and the event is shown. The app never shows a blank screen.
 
 ## Deployment
 

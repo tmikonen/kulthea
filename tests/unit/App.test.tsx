@@ -1,10 +1,15 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { App } from '../../src/App';
 
 function Location() {
-  const { search } = useLocation();
-  return <output data-testid="search">{search}</output>;
+  const { pathname, search } = useLocation();
+  return (
+    <>
+      <span data-testid="search">{search}</span>
+      <span data-testid="pathname">{pathname}</span>
+    </>
+  );
 }
 
 function renderApp(entry = '/') {
@@ -127,22 +132,89 @@ describe('location markers (B-7)', () => {
   });
 });
 
-describe('event list (B-8)', () => {
-  const titles = () => screen.getAllByRole('listitem').map((item) => item.textContent);
+const FIRST = '/event/6050-1-001-01-first';
 
-  it('FR-2 lists the events in date order under the map, with the titles in the default language', () => {
-    renderApp();
-    expect(screen.getByRole('navigation', { name: 'Tapahtumat' })).toBeInTheDocument();
-    expect(titles()).toEqual([
-      'Ensimmäinen', 'Toinen', 'Yhdeksäs', 'Toisella kartalla', 'Eroon', 'Yksin', 'Hyppy',
-    ]);
+describe('event view and routing (B-11)', () => {
+  const path = () => screen.getByTestId('pathname').textContent;
+
+  it('FR-2 an address with no event goes to the first event, keeping map and language', () => {
+    renderApp('/?map=second-map&lang=en');
+    expect(path()).toBe(FIRST);
+    expect(screen.getByTestId('search')).toHaveTextContent('?map=second-map&lang=en');
   });
 
-  it('FR-9 shows English titles where they exist, and the default language where they do not', () => {
-    renderApp('/?lang=en');
-    expect(screen.getByRole('navigation', { name: 'Events' })).toBeInTheDocument();
-    expect(titles()).toEqual([
-      'First', 'Toinen', 'Yhdeksäs', 'On the second map', 'Split', 'Yksin', 'Hyppy',
-    ]);
+  it('FR-2 any other unknown path also goes to the first event', () => {
+    renderApp('/journal/nowhere');
+    expect(path()).toBe(FIRST);
+  });
+
+  it('FR-3 the panel shows the title and the location name of the event in the address', () => {
+    renderApp('/event/6050-1-001-02-second');
+    expect(path()).toBe('/event/6050-1-001-02-second');
+    const panel = screen.getByRole('region', { name: 'Tapahtuma' });
+    expect(within(panel).getByRole('heading', { level: 2, name: 'Toinen' })).toBeInTheDocument();
+    expect(within(panel).getByText('Molemmat paikat')).toBeInTheDocument();
+  });
+
+  it('FR-9 the panel follows the language, with the default language where there is no translation', () => {
+    renderApp(`${FIRST}?lang=en`);
+    const panel = screen.getByRole('region', { name: 'Event' });
+    expect(within(panel).getByRole('heading', { level: 2, name: 'First' })).toBeInTheDocument();
+    expect(within(panel).getByText('Main Only')).toBeInTheDocument();
+  });
+
+  it('FR-3 an event that is n/a on the main map shows the location it has on the other map', () => {
+    renderApp('/event/6050-1-10-01-on-second-map');
+    const panel = screen.getByRole('region', { name: 'Tapahtuma' });
+    expect(within(panel).getByRole('heading', { level: 2, name: 'Toisella kartalla' })).toBeInTheDocument();
+    expect(within(panel).getByText('Vain toinen')).toBeInTheDocument();
+  });
+
+  it('FR-3 an event at a one-off position shows no location line', () => {
+    renderApp('/event/6050-3-001-01-jump');
+    const panel = screen.getByRole('region', { name: 'Tapahtuma' });
+    expect(within(panel).getByRole('heading', { level: 2, name: 'Hyppy' })).toBeInTheDocument();
+    expect(panel.querySelector('p')).toBeNull();
+  });
+
+  it('FR-2 an unknown event shows the first event with a notice, and the address names the first event', () => {
+    renderApp('/event/nowhere?lang=en&map=second-map');
+    expect(path()).toBe(FIRST);
+    expect(screen.getByTestId('search')).toHaveTextContent('?lang=en&map=second-map');
+    expect(screen.getByRole('heading', { level: 2, name: 'First' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('That event was not found, so the first event is shown.');
+  });
+
+  it('FR-2 the notice can be dismissed, and the event stays', () => {
+    renderApp('/event/nowhere');
+    expect(screen.getByRole('status')).toHaveTextContent('Tapahtumaa ei löytynyt');
+    fireEvent.click(screen.getByRole('button', { name: 'Sulje' }));
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(path()).toBe(FIRST);
+    expect(screen.getByRole('heading', { level: 2, name: 'Ensimmäinen' })).toBeInTheDocument();
+  });
+
+  it('FR-2 a known event, or a redirect from no event, shows no notice', () => {
+    const { unmount } = renderApp('/event/6050-1-001-02-second');
+    expect(screen.queryByRole('status')).toBeNull();
+    unmount();
+    renderApp('/');
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('FR-1 switching the map or the language keeps the event', () => {
+    renderApp('/event/6050-1-001-02-second');
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(path()).toBe('/event/6050-1-001-02-second');
+    fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+    expect(path()).toBe('/event/6050-1-001-02-second');
+    expect(screen.getByRole('heading', { level: 2, name: 'Toinen' })).toBeInTheDocument();
+    expect(screen.getByTestId('search')).toHaveTextContent('?map=second-map&lang=en');
+  });
+
+  it('FR-2 the temporary event list is gone', () => {
+    renderApp();
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
   });
 });

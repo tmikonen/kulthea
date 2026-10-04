@@ -54,7 +54,7 @@ describe('content loading (B-3)', () => {
       name: { fi: 'Molemmat paikat', en: 'Both Places' },
       positions: { 'main-map': [25, 75], 'second-map': [50, 50] },
     });
-    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, events: { fi: 'Tapahtumat', en: 'Events' } });
+    expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' } });
     expect(bundle?.maps).toEqual([
       { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true },
       { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false },

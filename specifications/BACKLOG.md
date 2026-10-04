@@ -222,7 +222,7 @@ Automated tests: unit tests for the file name parser, the sort order and each va
 
 ## B-11 Event view and routing
 
-Status: in progress
+Status: done
 
 Related: FR-2, FR-3, DD-4, "URLs", "Bad links", "Application architecture" (layout).
 
@@ -237,12 +237,12 @@ How to check by hand:
 4. Open `/#/?map=haestra`. It redirects to the first event with that map.
 
 Acceptance criteria:
-- [ ] The current event comes only from the URL (`/event/<id>`), with no second copy of that state.
-- [ ] `/#/` and any other unknown path redirect to the first event, keeping `map` and `lang`.
-- [ ] An unknown event id redirects to the first event and shows a dismissible notice. The notice and the dismiss button texts come from `ui.json`.
-- [ ] The event panel shows the title in the chosen language and the location name, falling back to the `showOn` location when the main one is `n/a`. A one-off position shows no location line.
-- [ ] Switching map or language keeps the event. The temporary list from B-8 is removed. The layout is the map above and the panel below, and the map is still fitted.
-- [ ] With no events, the map and header still show and there is no panel.
+- [x] The current event comes only from the URL (`/event/<id>`), with no second copy of that state.
+- [x] `/#/` and any other unknown path redirect to the first event, keeping `map` and `lang`.
+- [x] An unknown event id redirects to the first event and shows a dismissible notice. The notice and the dismiss button texts come from `ui.json`.
+- [x] The event panel shows the title in the chosen language and the location name, falling back to the `showOn` location when the main one is `n/a`. A one-off position shows no location line.
+- [x] Switching map or language keeps the event. The temporary list from B-8 is removed. The layout is the map above and the panel below, and the map is still fitted.
+- [x] With no events, the map and header still show and there is no panel.
 
 Automated tests: unit tests for finding the current event from an id; component tests for the panel in both languages and for the notice and its dismissal; Playwright tests for opening `./` (redirect), a direct link, an unknown id with the notice, map and language keeping the event, and reload and back. The existing map and location Playwright tests that use `#/?map=...` are updated to the new routes.
 

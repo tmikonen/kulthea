@@ -136,7 +136,7 @@ test.describe('switching maps (B-5)', () => {
     expect(await imageSrc(page)).toMatch(/main-map/);
 
     await page.getByRole('button', { name: 'Second Map' }).click();
-    await expect(page).toHaveURL(/#\/\?map=second-map$/);
+    await expect(page).toHaveURL(/#\/event\/[^?]+\?map=second-map$/);
     await expect.poll(() => imageSrc(page)).toMatch(/second-map/);
     await expect(page.getByRole('button', { name: 'Second Map' })).toHaveAttribute('aria-pressed', 'true');
 

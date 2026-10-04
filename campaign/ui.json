@@ -1,5 +1,7 @@
 {
   "maps": {"fi": "Kartta", "en": "Map"},
   "language": {"fi": "Kieli", "en": "Language"},
-  "events": {"fi": "Tapahtumat", "en": "Events"}
+  "event": {"fi": "Tapahtuma", "en": "Event"},
+  "unknownEvent": {"fi": "Tapahtumaa ei löytynyt, joten näytetään ensimmäinen tapahtuma.", "en": "That event was not found, so the first event is shown."},
+  "dismiss": {"fi": "Sulje", "en": "Close"}
 }

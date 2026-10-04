@@ -482,6 +482,11 @@ function validateMaps(
       warnings.push(`${file}: ${where}: image "${entry.image}" is over ${MAP_MAX_WIDTH} px wide (${dims.width} px)`);
     }
 
+    const focusZoom = entry.focusZoom === undefined ? 0 : entry.focusZoom;
+    if (typeof focusZoom !== 'number' || !Number.isFinite(focusZoom) || focusZoom < 0) {
+      err(`${where}: "focusZoom" must be a number of zoom steps, 0 or more`);
+    }
+
     maps.push({
       id,
       name: entry.name as MapDef['name'],
@@ -489,6 +494,7 @@ function validateMaps(
       width: entry.width as number,
       height: entry.height as number,
       main: entry.main === true,
+      focusZoom: typeof focusZoom === 'number' ? focusZoom : 0,
     });
   });
 

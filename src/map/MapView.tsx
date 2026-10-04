@@ -1,11 +1,11 @@
-import { useEffect, type ReactNode } from 'react';
-import { CRS } from 'leaflet';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { CRS, latLng } from 'leaflet';
 import { CircleMarker, ImageOverlay, MapContainer, Pane, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ContentMap } from '../content/types';
 import { imageBounds, toLeaflet, type Position } from './coords';
 import type { MapMarker } from './markers';
-import { isInView } from './view';
+import { focusCenter, focusLevel, isInView } from './view';
 import styles from './MapView.module.css';
 
 /**
@@ -65,12 +65,15 @@ export interface CurrentMarker {
   label: string | null;
 }
 
-/** Pans to the current marker when it is outside the visible area. The zoom is never changed. */
+/**
+ * On a map without a focus zoom, pans to the current marker when it is outside the visible area.
+ * The zoom is never changed.
+ */
 function PanToMarker({ map: def, marker }: { map: ContentMap; marker: CurrentMarker | undefined }) {
   const map = useMap();
   const [x, y] = marker?.position ?? [];
   useEffect(() => {
-    if (x === undefined || y === undefined) return;
+    if (def.focusZoom > 0 || x === undefined || y === undefined) return;
     const target = toLeaflet([x, y], def);
     const size = map.getSize();
     if (size.x === 0 || size.y === 0) return;
@@ -78,6 +81,47 @@ function PanToMarker({ map: def, marker }: { map: ContentMap; marker: CurrentMar
       map.panTo(target, { animate: true, duration: 0.3 });
     }
   }, [map, def, x, y]);
+  return null;
+}
+
+/** How long the view takes to move to the focused view of the next event on the same map, in seconds. */
+const FOCUS_SECONDS = 0.6;
+
+/**
+ * On a map with a focus zoom, shows the current event in a focused view: centred on its marker (as
+ * far as the image allows), zoomed in by the map's number of steps from the whole map. It runs for
+ * every event, so the user's own zooming and panning last until the next step. The first focus on a
+ * map is immediate, and the move to the next event on the same map is animated.
+ */
+function FocusOnMarker({ map: def, marker, eventId }: { map: ContentMap; marker: CurrentMarker | undefined; eventId: string | undefined }) {
+  const map = useMap();
+  const focused = useRef<string | undefined>(undefined);
+  const [x, y] = marker?.position ?? [];
+  useEffect(() => {
+    if (def.focusZoom <= 0 || x === undefined || y === undefined) return;
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+    // FitToImage runs first, and has set the minimum zoom to the fitted zoom.
+    const zoom = focusLevel(map.getMinZoom(), def.focusZoom, map.options.zoomDelta ?? 1, map.getMaxZoom());
+    const [[south, west], [north, east]] = imageBounds(def);
+    const corner = map.project(latLng(south, west), zoom);
+    const opposite = map.project(latLng(north, east), zoom);
+    const centre = focusCenter(
+      map.project(toLeaflet([x, y], def), zoom),
+      {
+        minX: Math.min(corner.x, opposite.x),
+        maxX: Math.max(corner.x, opposite.x),
+        minY: Math.min(corner.y, opposite.y),
+        maxY: Math.max(corner.y, opposite.y),
+      },
+      size,
+    );
+    const target = map.unproject([centre.x, centre.y], zoom);
+    const animate = focused.current !== undefined && focused.current !== eventId;
+    focused.current = eventId;
+    if (animate) map.flyTo(target, zoom, { duration: FOCUS_SECONDS });
+    else map.setView(target, zoom, { animate: false });
+  }, [map, def, eventId, x, y]);
   return null;
 }
 
@@ -90,11 +134,13 @@ interface MapViewProps {
   markers?: MapMarker[];
   /** The current event's marker, drawn above the others, or none when the event is not on this map. */
   current?: CurrentMarker;
+  /** The current event, so that the focused view is applied again at every event. */
+  eventId?: string;
   /** Controls drawn over the map area. */
   children?: ReactNode;
 }
 
-export function MapView({ map: def, label, onImageLoad, markers = [], current, children }: MapViewProps) {
+export function MapView({ map: def, label, onImageLoad, markers = [], current, eventId, children }: MapViewProps) {
   const bounds = imageBounds(def);
   return (
     <div className={styles.map} role="region" aria-label={label}>
@@ -136,8 +182,9 @@ export function MapView({ map: def, label, onImageLoad, markers = [], current, c
             </CircleMarker>
           </Pane>
         )}
-        <PanToMarker map={def} marker={current} />
         <FitToImage map={def} />
+        <FocusOnMarker map={def} marker={current} eventId={eventId} />
+        <PanToMarker map={def} marker={current} />
       </MapContainer>
     </div>
   );

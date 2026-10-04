@@ -406,7 +406,7 @@ Automated tests: unit tests for the visited-places function (order, repeats, sta
 
 ## B-33 Focused view per map
 
-Status: in progress
+Status: done
 
 Related: FR-1, FR-2, DD-2, "Map markers", "File formats" (`maps.json`).
 
@@ -429,15 +429,15 @@ How to check by hand (with the demo content, then with `CONTENT_DIR=campaign`):
 5. In `content/maps.json` change `focusZoom` to 4. The zoom is stronger. Remove it. The whole map is shown. Set it to -1 or to text. The build reports an error that names the file and the map.
 
 Acceptance criteria:
-- [ ] A map in `maps.json` may have `focusZoom`, a number of at least 0. The build rejects another value with an error that names the file and the map. An omitted value means 0.
-- [ ] When the displayed map has a focus zoom above 0 and the current event has a place on it, the view is centred on the marker, at the fitted zoom plus that many zoom steps, and not beyond the map's maximum zoom. This holds on every step, when the map is switched automatically or manually, and when an event is opened from an address or after a reload.
-- [ ] When the event stays on the same map, the view moves with a smooth animation of about 0.6 s. When the map changes, the new map starts focused, with no animation.
-- [ ] When the event has no place on the displayed map, the whole map is shown.
-- [ ] A map with no focus zoom behaves as in B-13. The user can still zoom out to the whole map, and a window resize keeps the zoom.
-- [ ] The tests for BUG-1 to BUG-4 (fitting and refitting) still pass.
-- [ ] `content/maps.json` and `campaign/maps.json` give Bay of Izar `focusZoom: 2`, and Haestra and Bog End none. In the fixtures the second map has a focus zoom and the main map has none, so the earlier tests stay valid.
+- [x] A map in `maps.json` may have `focusZoom`, a number of at least 0. The build rejects another value with an error that names the file and the map. An omitted value means 0.
+- [x] When the displayed map has a focus zoom above 0 and the current event has a place on it, the view is centred on the marker, at the fitted zoom plus that many zoom steps, and not beyond the map's maximum zoom. This holds on every step, when the map is switched automatically or manually, and when an event is opened from an address or after a reload.
+- [x] When the event stays on the same map, the view moves with a smooth animation of about 0.6 s. When the map changes, the new map starts focused, with no animation.
+- [x] When the event has no place on the displayed map, the whole map is shown.
+- [x] A map with no focus zoom behaves as in B-13. The user can still zoom out to the whole map, and a window resize keeps the zoom.
+- [x] The tests for BUG-1 to BUG-4 (fitting and refitting) still pass.
+- [x] `content/maps.json` and `campaign/maps.json` give Bay of Izar `focusZoom: 2`, and Haestra and Bog End none. The focus tests run on a site of their own, built from `tests/fixtures-focus/` (the main map has a focus zoom there, and the second map has none), so the earlier tests on `tests/fixtures/` stay valid.
 
-Automated tests: unit tests for the validation (valid, 0, negative, text, omitted) and for the zoom worked out from the fitted zoom, the steps and the maximum; Playwright tests, with the second fixture map, that stepping focuses and centres the marker, that stepping again returns to the focused view after the user has zoomed, that a map without a focus zoom is unchanged, that a manual switch focuses only when the event has a place there, that the first view after an address or a reload is focused, and that a window resize keeps the zoom.
+Automated tests: unit tests for the validation (valid, 0, negative, text, omitted) and for the zoom worked out from the fitted zoom, the steps and the maximum; Playwright tests, on the `tests/fixtures-focus/` site, that stepping focuses and centres the marker, that stepping again returns to the focused view after the user has zoomed, that a map without a focus zoom is unchanged, that a manual switch focuses only when the event has a place there, that the first view after an address or a reload is focused, and that a window resize keeps the zoom.
 
 ### Milestone 1: the map follows the story (after B-14 and B-33)
 

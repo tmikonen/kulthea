@@ -1,5 +1,5 @@
 [
-  { "id": "bay-of-izar", "name": { "fi": "Izarinlahti", "en": "Bay of Izar" }, "image": "../content/maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true },
+  { "id": "bay-of-izar", "name": { "fi": "Izarinlahti", "en": "Bay of Izar" }, "image": "../content/maps/bay-of-izar.jpg", "width": 2930, "height": 1858, "main": true, "focusZoom": 2 },
   { "id": "bog-end",     "name": { "fi": "Suonperä", "en": "Bog End" }, "image": "../content/maps/bog-end.jpg",     "width": 4042, "height": 2611 },
   { "id": "haestra",     "name": { "fi": "Haestra", "en": "Haestra" }, "image": "../content/maps/haestra.jpg",     "width": 4503, "height": 3147 }
 ]

@@ -288,7 +288,7 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 - Performance: the 200 ms stepping target is measured in Playwright. The 3 s first-load target depends on the real maps, so it is checked by hand against the deployed site.
 - The validator is tested too, with cases for each error and warning in the validation rules.
 - The tests run in the publishing workflow before the build is deployed.
-- Test content: the content folder is configurable (the environment variable `CONTENT_DIR`, default `content`), so the browser tests build the site from the fixtures in `tests/fixtures/` instead of the demo content.
+- Test content: the content folder is configurable (the environment variable `CONTENT_DIR`, default `content`), so the browser tests build the site from the fixtures in `tests/fixtures/` instead of the demo content. The focus-zoom tests have a small fixture set of their own, `tests/fixtures-focus/`, built into a second site, so that the other browser tests keep a main map without a focus zoom.
 
 ## Technology stack
 

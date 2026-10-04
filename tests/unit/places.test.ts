@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { EventDef, LocationDef } from '../../src/content/types';
 import { dotsFor } from '../../src/map/markers';
 import { eventPlaceOn, placeName, visitedPlaces } from '../../src/map/places';
-import { isInView, VIEW_MARGIN } from '../../src/map/view';
+import { focusCenter, focusLevel, isInView, VIEW_MARGIN } from '../../src/map/view';
 
 const event = (extra: Partial<EventDef> = {}): EventDef => ({
   id: 'e', year: 6050, month: 1, day: 1, order: 1, title: 'E', text: {},
@@ -163,5 +163,49 @@ describe('dots for visited places (B-14)', () => {
       { id: '1,1', label: 'Ay', position: [1, 1] },
       { id: '2,2', label: null, position: [2, 2] },
     ]);
+  });
+});
+
+describe('the focused view (B-33)', () => {
+  it('FR-1 is the fitted zoom plus the steps of zoom, each a zoom delta', () => {
+    expect(focusLevel(-1.5, 2, 0.5, 2)).toBe(-0.5);
+    expect(focusLevel(3, 4, 0.5, 8)).toBe(5);
+    expect(focusLevel(0, 1, 1, 8)).toBe(1);
+  });
+
+  it('FR-1 does not go beyond the maximum zoom', () => {
+    expect(focusLevel(1, 10, 0.5, 2)).toBe(2);
+  });
+
+  it('FR-1 with no steps it is the fitted zoom', () => {
+    expect(focusLevel(-1.5, 0, 0.5, 2)).toBe(-1.5);
+  });
+
+  const image = { minX: 0, minY: 0, maxX: 2000, maxY: 1000 };
+  const view = { x: 400, y: 200 };
+
+  it('FR-1 centres the view on the target when the image allows it', () => {
+    expect(focusCenter({ x: 1000, y: 500 }, image, view)).toEqual({ x: 1000, y: 500 });
+  });
+
+  it('FR-1 keeps the view inside the image when the target is near an edge', () => {
+    expect(focusCenter({ x: 20, y: 30 }, image, view)).toEqual({ x: 200, y: 100 });
+    expect(focusCenter({ x: 1990, y: 990 }, image, view)).toEqual({ x: 1800, y: 900 });
+  });
+
+  it('FR-1 keeps a target that is at an edge inside the view', () => {
+    const centre = focusCenter({ x: 0, y: 1000 }, image, view);
+    expect(Math.abs(centre.x - 0)).toBeLessThanOrEqual(view.x / 2);
+    expect(Math.abs(centre.y - 1000)).toBeLessThanOrEqual(view.y / 2);
+  });
+
+  it('FR-1 centres an image that is smaller than the view, in that direction', () => {
+    expect(focusCenter({ x: 10, y: 500 }, { minX: 0, minY: 0, maxX: 300, maxY: 1000 }, view)).toEqual({ x: 150, y: 500 });
+    expect(focusCenter({ x: 1000, y: 5 }, { minX: 0, minY: 0, maxX: 2000, maxY: 100 }, view)).toEqual({ x: 1000, y: 50 });
+  });
+
+  it('FR-1 works with an image that does not start at zero', () => {
+    expect(focusCenter({ x: -500, y: -300 }, { minX: -1000, minY: -600, maxX: 1000, maxY: 600 }, view))
+      .toEqual({ x: -500, y: -300 });
   });
 });

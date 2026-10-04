@@ -1,0 +1,4 @@
+[
+  { "id": "main-map",   "name": { "fi": "Pääkartta", "en": "Main Map" }, "image": "../fixtures/maps/main-map.png",   "width": 3000, "height": 1500, "main": true, "focusZoom": 2 },
+  { "id": "second-map", "name": "Second Map",                            "image": "../fixtures/maps/second-map.png", "width": 120, "height": 80 }
+]

@@ -56,8 +56,8 @@ describe('content loading (B-3)', () => {
     });
     expect(bundle?.ui).toEqual({ maps: { fi: 'Kartta', en: 'Map' }, language: { fi: 'Kieli', en: 'Language' }, event: { fi: 'Tapahtuma', en: 'Event' }, previous: { fi: 'Edellinen', en: 'Previous' }, next: { fi: 'Seuraava', en: 'Next' }, notTranslated: expect.any(Object), unknownEvent: expect.any(Object), dismiss: { fi: 'Sulje', en: 'Close' } });
     expect(bundle?.maps).toEqual([
-      { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true },
-      { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false },
+      { id: 'main-map', name: { fi: 'Pääkartta', en: 'Main Map' }, image: 'maps/main-map.png', width: 3000, height: 1500, main: true, focusZoom: 0 },
+      { id: 'second-map', name: 'Second Map', image: 'maps/second-map.png', width: 120, height: 80, main: false, focusZoom: 0 },
     ]);
   });
 
@@ -156,6 +156,32 @@ describe('content loading (B-3)', () => {
       const { errors } = loadModified((dir) =>
         editJson(dir, 'locations.json', (l) => { delete l[1].positions; }));
       expect(errors).toEqual([expect.stringMatching(/location "main-only": "positions" must be an object/)]);
+    });
+
+    it('FR-1 accepts a focus zoom of 0 and of more steps, also a fraction', () => {
+      for (const value of [0, 1, 2, 4, 0.5]) {
+        const { errors, bundle } = loadModified((dir) =>
+          editJson(dir, 'maps.json', (maps) => { maps[0].focusZoom = value; }));
+        expect(errors).toEqual([]);
+        expect(bundle?.maps[0].focusZoom).toBe(value);
+      }
+    });
+
+    it('FR-1 a map with no focus zoom has 0, which shows the whole map', () => {
+      expect(loadContent(FIXTURES).bundle?.maps.map((m) => m.focusZoom)).toEqual([0, 0]);
+    });
+
+    it.each([
+      ['a negative number', -1],
+      ['text', 'two'],
+      ['a list', [2]],
+      ['null', null],
+      ['a boolean', true],
+    ])('FR-1 rejects a focus zoom that is %s, and names the file and the map', (_, value) => {
+      const { errors, bundle } = loadModified((dir) =>
+        editJson(dir, 'maps.json', (maps) => { maps[1].focusZoom = value; }));
+      expect(bundle).toBeNull();
+      expect(errors).toEqual([expect.stringMatching(/maps\.json: map "second-map": "focusZoom" must be a number of zoom steps, 0 or more/)]);
     });
 
     it('FR-1 rejects two main maps', () => {

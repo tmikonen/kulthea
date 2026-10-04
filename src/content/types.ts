@@ -23,6 +23,8 @@ export interface MapDef {
   width: number;
   height: number;
   main: boolean;
+  /** Zoom-in steps from the whole map at which an event is shown on this map; 0 shows the whole map. */
+  focusZoom: number;
 }
 
 /** A named place with a position, `[x, y]` in percent of the image, on each map it appears on. */

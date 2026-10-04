@@ -7,3 +7,4 @@ playwright-report
 *.tsbuildinfo
 .playwright-browsers
 gm-notes
+dist-e2e-focus

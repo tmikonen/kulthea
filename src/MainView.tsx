@@ -73,6 +73,7 @@ export function MainView({ event }: { event?: EventDef }) {
         map={current}
         label={nameOf(current)}
         markers={dotsFor(visited, locations, lang, defaultLang)}
+        eventId={event?.id}
         current={place ? { position: place.position, label: placeName(place, locations, lang, defaultLang) } : undefined}
         onImageLoad={() => setShown(true)}
       >

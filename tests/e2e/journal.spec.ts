@@ -255,6 +255,8 @@ test.describe('journal entry view (B-22)', () => {
     // Directly under the entry there is only the motto: no note, because the text is in English.
     await expect(entry(page).locator(':scope > p')).toHaveCount(1);
     await panel(page).getByRole('link', { name: /Journal/ }).click();
+    // Wait for the index: the entry has links to the same name, and a locator would find them while the entry is still shown.
+    await expect(panel(page).getByRole('heading', { level: 3 })).toHaveCount(5);
     await panel(page).getByRole('link', { name: 'Tiedustelija' }).click();
     await expect(entry(page)).toContainText('Vain suomeksi kirjoitettu tausta.');
     await expect(entry(page).locator(':scope > p')).toHaveText('Not available in this language');

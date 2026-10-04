@@ -322,13 +322,13 @@ Automated tests: unit tests for the section splitter, the language rules and the
 
 ## B-15 Events on another map
 
-Status: in progress
+Status: done
 
 Related: FR-1, FR-3, DD-3, "Data flow" (step 5), "Map switching".
 
 Depends on: B-12 (stepping).
 
-Scope note: this item comes before B-13 and B-14, because it fixes the displayed map that they draw on. The displayed map is the `map` URL parameter when it names a map, otherwise the map of the event's `showOn`, otherwise the main map. This changes the rule from B-5, where a missing or unknown `map` meant the main map: it now means "the event's own map". B-12 already drops a manual `map` choice when stepping, so after this item stepping always shows the new event on its own map. The B-7 location markers stay as they are, and the event's own marker comes in B-13.
+Scope note: while testing this item a defect from B-10 and B-11 was found and fixed (BUG-4 in `BUGS.md`): the map area changed size with the event text and the map was not refitted. The map now follows the size of its own area, and the event panel has a fixed height. This item comes before B-13 and B-14, because it fixes the displayed map that they draw on. The displayed map is the `map` URL parameter when it names a map, otherwise the map of the event's `showOn`, otherwise the main map. This changes the rule from B-5, where a missing or unknown `map` meant the main map: it now means "the event's own map". B-12 already drops a manual `map` choice when stepping, so after this item stepping always shows the new event on its own map. The B-7 location markers stay as they are, and the event's own marker comes in B-13.
 
 You will see: stepping to an event that is shown on another map switches the map by itself, and stepping on to an event on the main map switches back. A choice made with the map switcher lasts until the next step. Opening a link to such an event opens that map.
 
@@ -339,12 +339,12 @@ How to check by hand (with the demo content):
 4. Add `?map=nowhere`. The event's own map opens.
 
 Acceptance criteria:
-- [ ] One function gives the displayed map from the maps, the `map` parameter and the current event, with the rule above.
-- [ ] The map switcher marks the displayed map, and choosing a map keeps the event.
-- [ ] Stepping to an event with `showOn` shows that map, and stepping on to an event without it shows the main map. Stepping back works the same way.
-- [ ] After a manual map choice, stepping shows the next event on its own map.
-- [ ] The `map` parameter wins over the event's own map, and an unknown one is ignored.
-- [ ] The shown map starts fitted to the window after an automatic switch, and the maps are still downloaded in the background.
+- [x] One function gives the displayed map from the maps, the `map` parameter and the current event, with the rule above.
+- [x] The map switcher marks the displayed map, and choosing a map keeps the event.
+- [x] Stepping to an event with `showOn` shows that map, and stepping on to an event without it shows the main map. Stepping back works the same way.
+- [x] After a manual map choice, stepping shows the next event on its own map.
+- [x] The `map` parameter wins over the event's own map, and an unknown one is ignored.
+- [x] The shown map starts fitted to the window after an automatic switch, and the maps are still downloaded in the background.
 
 Automated tests: unit tests for the displayed-map function (known, unknown and missing `map`; with and without `showOn`); component tests for the switcher marking the displayed map; Playwright tests that step through the fixture events and check the map each time, a manual choice followed by a step, a direct link, a link with `map`, an unknown `map`, and reload. The B-5 tests that say an unknown `map` means the main map are updated.
 

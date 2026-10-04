@@ -17,6 +17,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-1 | Large map is not fitted to the window on load | fixed | B-4 |
 | BUG-2 | Map is not refitted when the window is resized | fixed | B-4 |
 | BUG-3 | Quick shrink then enlarge of the window loses the refit | fixed | B-4 |
+| BUG-4 | The map is not refitted when its area changes size, and the area changes with the event text | fixed | B-15 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -50,3 +51,13 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Fix: the view is moved first, while the zoom limits are still wide, and the new limits are set afterwards, so the clamping animation never starts. Commit `e244098`.
 - Verified by: `tests/e2e/map.spec.ts`, "FR-1 the map is refitted after the window is dragged smaller and larger again", run with 0, 5, 16 and 40 ms between window sizes. It reproduced the bug before the fix (the final view was too small or larger than the area) and passes now.
 - Also confirmed by hand by the product owner.
+
+## BUG-4: The map is not refitted when its area changes size, and the area changes with the event text
+
+- Status: fixed
+- Related item: B-15 (FR-1, FR-2); caused by B-10 and B-11
+- Found: by Claude, in a browser test written for B-15 that checks that the map is fitted after every step. Not seen by the product owner yet.
+- Description: stepping from event to event made the map area change height (for example 539 px, then 504 px, then 539 px, then 562 px), so the map jumped at each step. When the area became shorter, the image was not refitted and ran past the bottom of the area. The same happened when the notice for an unknown event was shown or dismissed.
+- Root cause: two parts. First, the event panel below the map had a maximum height but no fixed one, so its height followed the length of the event text, and the map area, which takes the rest of the window, changed with it. Second, the fit code listened only to Leaflet's `resize` event, which Leaflet fires for window resizes. A layout change around the map did not refit it. The earlier tests all used one window size and the same panel contents, so they did not notice.
+- Fix: the map watches the size of its own container with a `ResizeObserver` and lets Leaflet recompute its size, which refits the image through the existing `resize` handler. The event panel also has a fixed height (30% of the window, with its own scrolling), so the map keeps its size as the text changes.
+- Verified by: `tests/e2e/map.spec.ts`, "FR-1 the map is refitted when its area changes size without the window resizing" and "FR-2 the map area keeps its size while stepping between events with short and long texts" (both failed before the fix and pass now), and "FR-1 stepping through the events shows each one on its own map, fitted to the window", which found it.

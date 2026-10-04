@@ -177,3 +177,103 @@ test.describe('switching maps (B-5)', () => {
     expect(await imageSrc(page)).toMatch(/main-map/);
   });
 });
+
+test.describe('the map follows the event (B-15)', () => {
+  const src = (page: Page) => page.locator('img.leaflet-image-layer').getAttribute('src');
+  const next = (page: Page) => page.getByRole('button', { name: 'Seuraava' });
+  // The fixture events in date order, and the map each one is shown on.
+  const MAPS = ['main-map', 'main-map', 'main-map', 'second-map', 'second-map', 'main-map', 'main-map'];
+
+  test('FR-1 stepping through the events shows each one on its own map, fitted to the window', async ({ page }) => {
+    await page.goto('./');
+    for (let i = 0; i < MAPS.length; i++) {
+      await expect.poll(() => src(page)).toMatch(new RegExp(MAPS[i]));
+      await expectFitted(page);
+      if (i < MAPS.length - 1) await next(page).click();
+    }
+  });
+
+  test('FR-1 stepping back switches the map back, and the switcher marks the displayed map', async ({ page }) => {
+    await page.goto('./#/event/6050-2-070-01-standalone');
+    await expect(page.getByRole('button', { name: 'Pääkartta' })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Edellinen' }).click();
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+    await expect(page.getByRole('button', { name: 'Second Map' })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Edellinen' }).click();
+    await page.getByRole('button', { name: 'Edellinen' }).click();
+    await expect.poll(() => src(page)).toMatch(/main-map/);
+  });
+
+  test('FR-1 a manual map choice lasts until the next step, and the event does not change', async ({ page }) => {
+    await page.goto('./#/event/6050-1-001-02-second');
+    await page.getByRole('button', { name: 'Second Map' }).click();
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+    await expect(page.getByRole('region', { name: 'Tapahtuma' }).getByRole('heading', { level: 2 })).toHaveText('Toinen');
+    await next(page).click(); // ninth, on the main map
+    await expect.poll(() => src(page)).toMatch(/main-map/);
+    await next(page).click(); // on the second map
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+    await page.getByRole('button', { name: 'Pääkartta' }).click();
+    await expect.poll(() => src(page)).toMatch(/main-map/);
+    await next(page).click(); // the split event, on the second map again
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+  });
+
+  test('FR-1 a link opens the event on its own map, and survives a reload', async ({ page }) => {
+    await page.goto('./#/event/6050-1-10-01-on-second-map');
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+    await page.reload();
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+    await expectFitted(page);
+  });
+
+  test('FR-1 a map in the address wins over the event\'s own map, and an unknown one is ignored', async ({ page }) => {
+    await page.goto('./#/event/6050-1-10-01-on-second-map?map=main-map');
+    await expect.poll(() => src(page)).toMatch(/main-map/);
+    await page.reload();
+    await expect.poll(() => src(page)).toMatch(/main-map/);
+    await page.goto('./#/event/6050-1-10-01-on-second-map?map=nowhere');
+    await expect.poll(() => src(page)).toMatch(/second-map/);
+  });
+
+  test('FR-1 the other maps are still downloaded in the background after an automatic switch', async ({ page }) => {
+    const requested: string[] = [];
+    page.on('request', (request) => {
+      const match = request.url().match(/(main-map|second-map)[^/]*\.png$/);
+      if (match) requested.push(match[1]);
+    });
+    await page.goto('./#/event/6050-1-10-01-on-second-map');
+    await expect.poll(() => requested.includes('main-map')).toBe(true);
+    expect(requested[0]).toBe('second-map');
+  });
+});
+
+test.describe('the map follows the size of its area (BUG-4)', () => {
+  const area = async (page: Page) => (await page.locator('.leaflet-container').boundingBox())!;
+
+  test('FR-1 the map is refitted when its area changes size without the window resizing', async ({ page }) => {
+    // The notice above the event panel makes the map area shorter, and dismissing it makes it taller.
+    await page.goto('./#/event/nowhere');
+    await expect(page.getByRole('status')).toBeVisible();
+    await expectFitted(page);
+    const withNotice = (await area(page)).height;
+    await page.getByRole('button', { name: 'Sulje' }).click();
+    await expect.poll(async () => (await area(page)).height).toBeGreaterThan(withNotice + 10);
+    await expectFitted(page);
+  });
+
+  test('FR-2 the map area keeps its size while stepping between events with short and long texts', async ({ page }) => {
+    await page.goto('./');
+    await expect(page.locator('img.leaflet-image-layer')).toBeVisible();
+    const first = await area(page);
+    for (let i = 0; i < 6; i++) {
+      await page.getByRole('button', { name: 'Seuraava' }).click();
+      await expect(page.getByRole('region', { name: 'Tapahtuma' })).toBeVisible();
+      // The map is created anew when the event is on another map, so wait for its container.
+      await expect.poll(async () => {
+        const box = await page.locator('.leaflet-container').boundingBox();
+        return box ? [Math.round(box.width), Math.round(box.height)] : null;
+      }).toEqual([Math.round(first.width), Math.round(first.height)]);
+    }
+  });
+});

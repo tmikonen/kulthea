@@ -373,3 +373,62 @@ describe('event text (B-10)', () => {
     expect(within(panel('Tapahtuma')).queryByText('Ei saatavilla tällä kielellä')).toBeNull();
   });
 });
+
+describe('the displayed map follows the event (B-15)', () => {
+  const path = () => screen.getByTestId('pathname').textContent;
+  const shown = (container: HTMLElement) => container.querySelector('img.leaflet-image-layer')!.getAttribute('src');
+  const pressed = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-pressed');
+
+  it('FR-1 stepping to an event shown on the second map switches to it, and stepping on switches back', () => {
+    const { container } = renderApp('/event/6050-1-9-01-ninth');
+    expect(shown(container)).toMatch(/main-map/);
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' })); // on-second-map
+    expect(shown(container)).toMatch(/second-map/);
+    expect(pressed('Second Map')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' })); // split, shown on the second map
+    expect(shown(container)).toMatch(/second-map/);
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' })); // standalone, main map
+    expect(shown(container)).toMatch(/main-map/);
+    expect(pressed('Pääkartta')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edellinen' }));
+    expect(path()).toBe('/event/6050-1-10-01-on-second-map');
+    expect(shown(container)).toMatch(/second-map/);
+  });
+
+  it('FR-1 a link to an event shown on the second map opens that map', () => {
+    const { container } = renderApp('/event/6050-1-10-01-on-second-map');
+    expect(shown(container)).toMatch(/second-map/);
+    expect(screen.getByRole('region', { name: 'Second Map' })).toBeInTheDocument();
+  });
+
+  it('FR-1 a map in the address wins over the event\'s own map, and an unknown one is ignored', () => {
+    const { container, unmount } = renderApp('/event/6050-1-10-01-on-second-map?map=main-map');
+    expect(shown(container)).toMatch(/main-map/);
+    unmount();
+    const unknown = renderApp('/event/6050-1-10-01-on-second-map?map=nowhere');
+    expect(shown(unknown.container)).toMatch(/second-map/);
+  });
+
+  it('FR-1 a manual choice keeps the event, and the next step shows the next event on its own map', () => {
+    const { container } = renderApp('/event/6050-1-001-02-second');
+    fireEvent.click(screen.getByRole('button', { name: 'Second Map' }));
+    expect(shown(container)).toMatch(/second-map/);
+    expect(path()).toBe('/event/6050-1-001-02-second');
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' })); // ninth: main map
+    expect(shown(container)).toMatch(/main-map/);
+    // A manual choice of the main map on a second-map event lasts until the next step as well.
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' })); // on-second-map
+    fireEvent.click(screen.getByRole('button', { name: 'Pääkartta' }));
+    expect(shown(container)).toMatch(/main-map/);
+    expect(path()).toBe('/event/6050-1-10-01-on-second-map');
+    fireEvent.click(screen.getByRole('button', { name: 'Seuraava' })); // split: second map again
+    expect(shown(container)).toMatch(/second-map/);
+  });
+
+  it('FR-1 the switcher marks the displayed map even when it is the event\'s own and not chosen', () => {
+    renderApp('/event/6050-2-003-01-split');
+    expect(pressed('Second Map')).toBe('true');
+    expect(pressed('Pääkartta')).toBe('false');
+  });
+});

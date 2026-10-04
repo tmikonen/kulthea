@@ -8,7 +8,7 @@ import { eventLocationName, eventPath, eventText, neighbours } from './content/e
 import type { EventDef } from './content/types';
 import { EventPanel } from './EventPanel';
 import { LanguageSwitch } from './LanguageSwitch';
-import { activeMap } from './map/mapParam';
+import { displayedMap } from './map/mapParam';
 import { MapSwitcher } from './map/MapSwitcher';
 import { markersFor } from './map/markers';
 import { MapView } from './map/MapView';
@@ -33,7 +33,7 @@ export function MainView({ event }: { event?: EventDef }) {
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
-  const current = activeMap(maps, params.get('map'));
+  const current = displayedMap(maps, params.get('map'), event);
   const [shown, setShown] = useState(false);
   usePreloadMaps(maps, shown);
 

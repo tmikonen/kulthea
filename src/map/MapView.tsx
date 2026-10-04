@@ -46,7 +46,12 @@ function FitToImage({ map: def }: { map: ContentMap }) {
     map.invalidateSize();
     fit();
     map.on('resize', fit);
+    // Leaflet only notices window resizes. The area also changes size with the layout around it
+    // (the event panel, a notice), so watch the container itself and let Leaflet refit on change.
+    const observer = new ResizeObserver(() => map.invalidateSize({ debounceMoveend: true }));
+    observer.observe(map.getContainer());
     return () => {
+      observer.disconnect();
       map.off('resize', fit);
     };
   }, [map, def]);

@@ -356,7 +356,7 @@ Related: FR-1, FR-2, FR-3, FR-8, "Map markers".
 
 Depends on: B-15 (the displayed map).
 
-Scope note: an event has at most two places, its main-map place and, when it has `showOn`, its place on one other map. The event's place on a map is: on the main map its main place (none for `n/a`), on the `showOn` map its `showOn` place, and on any other map none. A named location that merely has a position on another map does not give the event a place there. This is also the rule for the dots in B-14 and the routes in B-16 and B-18. It is written into `DESIGN.md` and `REQUIREMENTS.md` (FR-1), and an unresolved question about it is recorded under "Open questions" at the end of this file. The B-7 markers for all locations stay until B-14, and the current marker is drawn above them.
+Scope note: an event has at most two places, its main-map place and, when it has `showOn`, its place on one other map. The event's place on a map is: on the main map its main place (none for `n/a`), on the `showOn` map its `showOn` place, and on any other map none. A named location that merely has a position on another map did not give the event a place there. B-34 later changed this: a named location also gives the event a place on any other map where it has a position. The B-7 markers for all locations stay until B-14, and the current marker is drawn above them.
 
 You will see: a large marker on the map at the current event's place. It moves as you step. A standalone event has one too. An event shown on another map has its marker on that map. When you have zoomed in and the marker is outside the visible area, the map pans to it, and the zoom does not change.
 
@@ -384,7 +384,7 @@ Related: FR-1, FR-8, "Map markers".
 
 Depends on: B-13 (an event's place on a map and the current marker).
 
-Scope note: this item replaces the B-7 markers for all locations, so the map now shows only where the story has been. The dots on a map are the places of the earlier events, in date order, that have a place on that map (the rule from B-13). Standalone events count. A place that was visited several times is one dot, and a place that is the current marker has no dot. Locations that have a position on a map but were not visited are not shown. A named place visited by an event on one map is not shown on another map where it also happens to have a position. That is an open question (see "Open questions" at the end of this file).
+Scope note: this item replaces the B-7 markers for all locations, so the map now shows only where the story has been. The dots on a map are the places of the earlier events, in date order, that have a place on that map (the rule from B-13). Standalone events count. A place that was visited several times is one dot, and a place that is the current marker has no dot. Locations that have a position on a map but were not visited are not shown. A named place visited by an event on one map was not shown on another map where it also happens to have a position. B-34 later changed this: it is shown there too.
 
 You will see: at the first event there is only the current marker. Each step adds a small dot for the place you came from, and stepping back takes dots away. Several events at one place make one dot.
 
@@ -448,7 +448,40 @@ What to try: step through all ten demo events and through the five real events (
 Feedback wanted:
 - the look and size of the marker and the dots;
 - whether the map moving to the marker feels right, or should be more or less eager, and how the focused view on Bay of Izar (B-33) feels;
-- whether the rule that an event only has places on its own maps is what you want. It means that a visited place does not appear on a map where the event was not placed, even if the place has a position there.
+- whether the rule that an event only has places on its own maps is what you want. (This was changed in B-34: a visited place is also shown on every map where its location has a position.)
+
+## B-34 Places on every map
+
+Status: defined
+
+Related: FR-1, FR-3, FR-5, DD-3, "Map markers", "Validation rules".
+
+Depends on: B-33 (the end of Milestone 1). It revises the place rule of B-13 and B-14, which are accepted, and it comes before the route items because they use the same rule.
+
+Scope note: after testing Milestone 1 the product owner decided that a place visited anywhere is shown on every map where its location has a position, so that the positions in `locations.json` are used. The rule for an event's place on a map `M` is now:
+1. On the main map: the event's main place, its `location` or `position`. `n/a` means none, and it is respected.
+2. On the `showOn` map: the `showOn` place, its `location` or `position`.
+3. On any other map: the first of the event's named locations (`location`, then `showOn.location`) that has a position on `M`, or none. A one-off position never counts on another map.
+
+An explicit place always wins over a position taken from a location. The current marker, the dots for visited places and, from B-16, the routes all use this one rule. So a visit to Suonperä appears on Bay of Izar and on Haestra too, and an event at the Port of Izar has a marker on Haestra when Haestra is viewed. An event that is `n/a` on the main map still has no place there, so `n/a` should be used only for events outside the main map's region (such as the Haestra backgrounds). An event inside it gets a main location, and `showOn` chooses the map it is displayed on. To help with that the build warns when an event is `n/a` on the main map but its `showOn` location has a main-map position. The demo event 6 (Bog End) is changed from `n/a` to the main location Suonperä, and the `n/a` demo case stays with event 9. This closes the open question about locations on several maps.
+
+You will see: on Bay of Izar, the dots and the marker for places the story visited on Bog End, such as Suonperä. When you switch by hand to a map that the current event is not placed on, its marker is shown if the event's location has a position there.
+
+How to check by hand (with the demo content):
+1. Step to event 6 (Suonperä, shown on Bog End). Switch to Bay of Izar and to Haestra. The marker is at Suonperä on both.
+2. Step on to event 7, the ruins. On Bay of Izar the dot for Suonperä is there, and the marker is at the ruins.
+3. Switch to Haestra at event 1 (Port of Izar). The marker is at the Port of Izar.
+4. At event 9, which is `n/a` on the main map and shown on Haestra, Bay of Izar has no marker for it.
+5. In `content/events` set an event to `location: n/a` with a `showOn` location that has a main position. The build warns and names the file and the location. The build still works.
+
+Acceptance criteria:
+- [ ] One function gives an event's place on a map by the three rules above, and the current marker and the dots both use it.
+- [ ] An explicit place wins over a place taken from a location, `n/a` on the main map is respected, and a one-off position gives a place only on its own map.
+- [ ] The build warns, and does not fail, when an event is `n/a` on the main map and its `showOn` location has a main-map position. The warning names the file and the location. The real events and the demo events give no warning.
+- [ ] The demo event 6 has the main location Suonperä. The tests of B-13 and B-14 that depended on the old rule are updated.
+- [ ] The documents give the new rule, and the open question is removed from this file.
+
+Automated tests: unit tests for the place function (each rule, the precedence, `n/a`, one-off positions, a location with no position on the map) and for the warning (given, not given, several events, the build continues); the B-13 and B-14 unit, component and Playwright tests are updated to the new rule. In the fixtures, the event at `both-places` now has a marker at its second-map position when the second map is viewed.
 
 ## B-16 Party route logic
 
@@ -456,9 +489,9 @@ Status: defined
 
 Related: FR-5, FR-8, DD-3, "Data flow" (routes), "Shared logic without UI".
 
-Depends on: B-13 (an event's place on a map).
+Depends on: B-34 (an event's place on a map).
 
-Scope note: a plain function, worked out once at load, that turns the events in date order into route segments per map, and a second one that clips them to the events up to the current one. It has no screen of its own, so this item is accepted together with B-17. It covers the party track (events with no `track`), the places of B-13, standalone events (`track: none`, ignored), the breaks at `n/a`, one segment for each visit to another map, and `newSegment`. Events of named groups are ignored here, and B-18 adds them. There is no debug view, since B-17 draws the routes straight away.
+Scope note: a plain function, worked out once at load, that turns the events in date order into route segments per map, a second one that clips them to the events up to the current one, and a third that says which lines to show on a map for the current event. It has no screen of its own, so this item is accepted together with B-17. It covers the party track (events with no `track`), the places of B-34, standalone events (`track: none`, ignored), the breaks where an event has no place on the map, one segment for each visit to another map, and `newSegment`. The lines to show follow the product owner's rule: on the main map the whole route up to the current event stays, and on any other map only the current visit of each track is shown, that is, the route of a track begins when it enters the map and is no longer shown once it has left, while the visited places stay as dots. Whether a map keeps its whole history or only the current visit is a setting of the map (`routes`, B-17). Events of named groups are ignored here, and B-18 adds them. There is no debug view, since B-17 draws the routes straight away.
 
 You will see: nothing new on the screen yet. The behaviour is defined by the worked examples below, which become the unit tests word for word, and which I would like you to read and confirm.
 
@@ -472,12 +505,16 @@ Worked examples (A, B, C, D are party events on the main map, in date order):
 7. Two events at the same position in a row give no zero-length line, and the route goes on from that point.
 8. Events of a named group between A and B do not change the party's line A-B.
 9. Clipping: with the current event C in A-B-C-D, the line is A-B-C. With the current event B it is A-B.
+10. A place from a location: an event E at Suonperä, with no `showOn`, has a place on Bog End as well as on the main map, because the location has a position on both. Consecutive party events at places with a Bog End position are one visit there.
+11. A visit map shows only the current visit. A, S1, S2, S3, B, S4, where S1 to S4 are at places on Bog End and A and B are only on the main map. On Bog End, at S3 the line is S1-S2-S3. At B the party has left, so there is no line, and S1, S2 and S3 stay as dots. At S4 the line is S4 alone, with no line from the earlier visit.
+12. Tracks are separate: the party is on Bog End (P1, P2) and the current event is an event of a group on the main map. Bog End still shows the party's line P1-P2, because the party's latest event is on Bog End, and shows no line for the group.
+13. A history map shows everything: on the main map at S4 in example 11, the lines of the whole route up to S4 are shown, however many times the party has been to Bog End.
 
 How to check by hand: read the worked examples and tell me if any is not how you want routes to behave. Run `npm test` to see them pass.
 
 Acceptance criteria:
 - [ ] A route function returns the segments per map for the party track, with each point tied to its event, following the worked examples above.
-- [ ] A second function clips the segments to the events up to a given event in date order, so stepping needs no recomputation.
+- [ ] A second function clips the segments to the events up to a given event in date order, so stepping needs no recomputation. A third gives the lines to show on a map for the current event: all the clipped segments on a history map, and on a visit map for each track only the clipped segment that holds the track's latest event up to the current one, if that event has a place on the map.
 - [ ] Standalone events and named-group events are ignored, an `n/a` or other-map event breaks the route on the maps it has no place on, and `newSegment` starts a new segment on every map.
 - [ ] Every worked example is a unit test, with the event order and places written out as in the example.
 
@@ -491,7 +528,7 @@ Related: FR-5.
 
 Depends on: B-16 (the route logic) and B-14 (the dots and marker that the line goes under).
 
-Scope note: the fixtures and the demo events are extended where the routes need it. Today the demo's main-map line would be 1-2-3-4-5 and then only single points, so I would add a party event after the standalone event (9), a party event after the new segment (10), and a second party event on Bog End. Only invented events are changed, never the real campaign, and I will list the changes in the commit. Tests that count or list the fixture events are updated. Accepted together with B-16.
+Scope note: a map gets a setting `routes` in `maps.json`, `"history"` or `"visit"`: a history map keeps the whole route up to the current event, and a visit map shows only the current visit of each track. The main map is `history` and every other map is `visit` unless the setting says otherwise, so Haestra can be changed to `history` if wanted. The fixtures and the demo events are extended where the routes need it, for example a party event after the standalone event (9), a party event after the new segment (10), and a second party event on Bog End so that a visit has a line. Only invented events are changed, never the real campaign, and I will list the changes in the commit. Tests that count or list the fixture events are updated. Accepted together with B-16.
 
 You will see: a blue solid line joining the places of the party's events, up to the current event, on the displayed map. The line grows as you step forward and shortens as you step back. A jump leaves a gap, a standalone event is not part of the line, and a visit to another map has its own line there.
 
@@ -499,15 +536,17 @@ How to check by hand (with the demo content):
 1. Step through the demo events on Bay of Izar. The line follows the party from place to place.
 2. The standalone event (9) is not part of the line: the line goes straight from the party event before it to the one after it.
 3. At the event with the new segment (10) there is no line from the previous place to it, and the line goes on from it.
-4. Step to Bog End. The party's line there is separate from the line on the main map, and the main map's line has a gap where the party was only on Bog End (event 6).
-5. Step back. The line shortens.
+4. Step to Bog End. The line there shows only the current visit. The main map keeps the whole route, and the party's visits to Suonperä are part of it.
+5. When the party has left Bog End, switch to it by hand. The visited places are there as dots and there is no line.
+6. Step back. The line shortens.
 
 Acceptance criteria:
 - [ ] The segments are worked out once when the app loads, and each step only clips them.
-- [ ] The displayed map shows the party's lines up to the current event, and nothing from later events.
+- [ ] The displayed map shows the party's lines up to the current event, and nothing from later events. A history map shows all of them, and a visit map shows only the current visit.
+- [ ] A map may have `routes`, `"history"` or `"visit"`. The build rejects another value with an error that names the file and the map, and an omitted value means history for the main map and visit for the others.
 - [ ] The line is solid, blue and clearly thinner than the current marker, and is drawn below the dots and the marker.
 - [ ] A segment of one event draws no line, a new segment leaves a gap, and the lines are the same however you arrived at an event.
-- [ ] After a manual map switch, the lines of the earlier events on that map are shown.
+- [ ] After a manual map switch, the lines of that map are shown by the same rule.
 
 Automated tests: component tests that the right number of lines is drawn for a given event; Playwright tests that step through the extended fixtures and check the line's ends against the markers at each step, the gap at a new segment, the separate line on the second map, and stepping back.
 
@@ -567,7 +606,7 @@ Acceptance criteria:
 - [ ] Each group is drawn with a dashed line in its own colour from a fixed palette, taken in the order the groups first appear. The party's line stays solid blue.
 - [ ] The line grows with the current event, starts at the split place, and reaches the rejoin place only when the current event is the rejoin event or a later one.
 - [ ] Group lines are drawn below the party line and below the dots and marker.
-- [ ] On each map only the segments that have places on that map are shown.
+- [ ] On each map only the segments that have places on that map are shown, and the map's `routes` setting decides whether a group's earlier visits stay (history) or only its current visit is shown (visit).
 - [ ] There is no legend. (A legend could be added after the first version.)
 
 Automated tests: component tests for the number and style of the lines; Playwright tests that step through the extended fixtures and check the group's line ends at each step against the markers, that two groups have different colours, and that stepping back shortens the line.
@@ -581,7 +620,8 @@ What to try: step through the demo events and the real events forwards and backw
 Feedback wanted:
 - the look of the lines: colours, the thickness, solid and dashed, and the lack of arrowheads and of a legend;
 - whether the way a split group starts and ends feels right, and what happens when the party continues at the same time;
-- whether the routes help the story or crowd the map, especially with many events.
+- whether the routes help the story or crowd the map, especially with many events. The main map keeps the whole route, and fading or limiting the old lines is an option if it gets crowded;
+- whether showing only the current visit on the fine maps feels right, and whether Haestra should keep its history.
 
 ---
 
@@ -616,7 +656,7 @@ The `:::journal{for="..."}` block, hidden in the event and shown only in the nam
 Images in event and journal text with captions, a full-size viewer, lazy loading, and build warnings for large or missing alt text. You will see pictures with captions in events and entries, and click one to open it large. FR-3, FR-4, FR-6.
 
 ## B-28 Build summary and warnings
-The summary per language of missing translations, and warnings for unused images, locations and entries, and tracks that never return to the party. You will see the warnings and the per-language summary in the terminal when you build. "Validation rules".
+The summary per language of missing translations, and warnings for unused images, locations and entries, and tracks that never return to the party. (The warning for an event that is `n/a` on the main map although its `showOn` location has a main position is in B-34.) You will see the warnings and the per-language summary in the terminal when you build. "Validation rules".
 
 ## B-29 Phone layout
 A layout that works on a phone: the event panel, the map and a full-screen journal panel. You will see the site working in the browser's phone view and on your own phone. FR-6, "Devices".
@@ -631,10 +671,6 @@ A generated stress content set of 300 events, 50 locations and 30 entries, a tes
 A short guide for replacing the demo content in `content/` with the real campaign content, which is drafted in `campaign/` meanwhile (see `campaign/README.md`), and a final check of the documents against the finished system. You will see your own first real events running on the site.
 
 ---
-
-# Open questions
-
-- **Locations and routes on several maps.** The rule from B-13 is that an event has a place only on the maps it is placed on: its main place on the main map and its `showOn` place on one other map. The dots (B-14) and the routes (B-16 to B-19) follow it. It is unresolved whether a visited named place should also be shown on the other maps where its location has a position (for example Bentara on Haestra when the event is placed only on Bay of Izar), and, if so, whether routes should also be drawn between such places there. Showing them would make the extra positions in `locations.json` useful on every map. It would also change FR-3 and FR-5, where an event is placed on at most two maps and a route on a map joins the events placed on it, and it needs a rule for what a route on a map means when only some of the visited places are placed there. To be decided with the product owner after Milestone 1, when the current rule can be seen in use.
 
 # After the first version (not scheduled)
 

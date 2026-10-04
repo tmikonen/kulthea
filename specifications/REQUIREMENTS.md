@@ -18,7 +18,7 @@ Several independent map images of different scales: a main campaign map (Bay of 
 - AC: the main map is shown first; the other maps download in the background once the main map and first event are visible.
 - AC: 50 markers stay responsive.
 - AC: the map shows the current event's marker prominently, small dots for the places of earlier events that have a place on that map (standalone events included), and nothing for places the story has not reached.
-- AC: the user can switch maps manually from a map switcher.
+- AC: a place visited by an event is shown on every map where its location has a position, and the current event's marker is shown on any map where the event has a place.
 - AC: a map can be set to show an event in a focused view: when the displayed map has a focus zoom and the event has a place on it, the view is centred on the marker, zoomed in by that many zoom steps from the whole map. A map with no focus zoom shows the whole map.
 - AC: stepping to an event whose displayed map differs from the current one switches maps automatically.
 - AC: switching maps does not change the current event.
@@ -35,7 +35,9 @@ An event is a scene or moment at one location on one date, with a Markdown descr
 - AC: details show the date in the chosen language's format (see FR-7), the location, the text and the images.
 - AC: clicking an image opens it at full size in a viewer that can be closed.
 
-Every event defines a location on the main map, which may be "N/A". An event may also define a location on at most one other map. If it does, that other map is the one displayed for the event, and otherwise the main map is displayed. An event with "N/A" on the main map must define a location on another map.
+Every event defines a location on the main map, which may be "N/A". An event may also define a location on at most one other map. If it does, that other map is the one displayed for the event, and otherwise the main map is displayed. An event with "N/A" on the main map must define a location on another map. "N/A" means that the event is outside the main map's region, so an event inside it should have a main location, and "show on" chooses the map it is displayed on.
+
+An event's place on a map is: on the main map its main place (none for "N/A"), on the map of its "show on" its place there, and on any other map the first of its named locations that has a position on that map (a one-off position counts only on its own map). So a place visited anywhere is also shown on every map where its location has a position.
 - AC: an event with a location on another map is displayed on that map.
 - AC: the build rejects an event that has "N/A" on the main map and no location on another map.
 
@@ -48,6 +50,8 @@ The party is one group by default. A character or sub-group gets its own route o
 
 Routes are derived from event order, so the DM writes no route data. A route is drawn per map, and connects consecutive events of the same track that both have a location on that map. An event without a location on the map ("N/A") breaks the route on that map. Events that took place on another map still have main-map locations, so they stay part of the main route when the user returns to the main map. Each separate visit to another map is its own route segment.
 
+Which routes are shown: the main map keeps the whole route up to the current event. On any other map only the current visit of each track is shown: a track's route starts when it enters the map and is no longer shown once it has left (its next event is at a place with no position on that map), while the visited places stay as dots. A track is on a map while its latest event up to the current one has a place there. Whether a map keeps its whole route or only the current visit is a setting of the map.
+
 Tracks: the party is one track by default. A character or sub-group gets its own track only while split from the party, and its route ends at the event where the group rejoins and merges back into the main route. The group's route starts at the party's last event before the group's first event and ends at the first party event after the group's last event (the rejoin). The party's own events in between do not end the split, and a start or an end is drawn on a map only if that event has a place on it. Standalone events (see FR-8) belong to no track and are ignored by every route.
 
 An event may carry an optional "new segment" flag. It means no line is drawn from the previous event of its track to this one, for jumps such as teleporting.
@@ -57,6 +61,7 @@ An event may carry an optional "new segment" flag. It means no line is drawn fro
 - AC: the main route connects party events on either side of a standalone event as if it were absent.
 - AC: an event placed only on another map (main location N/A) adds no line to the main map, and the main route breaks there.
 - AC: a "new segment" flag suppresses the line into that event on every map.
+- AC: the main map shows the whole route up to the current event, and another map shows only the current visit of each track, and no route once the track has left it.
 
 ### FR-6 Journal
 Journal entries (player characters, major NPCs, items, locations and free-form notes) are mostly images plus text, written in Markdown. They open in a panel that slides in over the main view from the side, so the map and the current event stay in place underneath. The journal is visually distinct from the main view.
@@ -119,6 +124,6 @@ The site can be shown in Finnish or English. Finnish is the default language, th
 
 ## 5. Open items
 
-- Locations and routes on several maps: an event has a place only on the maps it is placed on (FR-3), so the dots and routes of FR-1 and FR-5 follow that. It is unresolved whether a visited named place should also be shown on other maps where its location has a position, and whether routes should then be drawn between such places. To be decided after the map-and-marker work has been seen in use (`BACKLOG.md`, "Open questions").
+None.
 
 Future ideas such as route waypoints along roads are not in scope.

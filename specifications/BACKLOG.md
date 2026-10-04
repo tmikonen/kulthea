@@ -322,7 +322,7 @@ Automated tests: unit tests for the section splitter, the language rules and the
 
 ## B-15 Events on another map
 
-Status: defined
+Status: in progress
 
 Related: FR-1, FR-3, DD-3, "Data flow" (step 5), "Map switching".
 

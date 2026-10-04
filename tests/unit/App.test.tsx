@@ -545,10 +545,10 @@ describe('the party route (B-17)', () => {
       counts.push(lines(container).length);
       if (i < 6) fireEvent.click(screen.getByRole('button', { name: 'Seuraava' }));
     }
-    // first (one point), second and ninth (a line through the three), on-second-map and split (the party is
-    // on the second map with one point, and the split event is a group's), standalone (the line again), jump
-    // (a new segment of one point, the earlier line stays).
-    expect(counts).toEqual([0, 1, 1, 0, 0, 1, 1]);
+    // first (one point), second and ninth (a line through the three), on-second-map (the party is on the
+    // second map with one point), split (the group's line from the party's place, B-19), standalone (the
+    // party's line again), jump (a new segment of one point, so the party's line and the group's stay).
+    expect(counts).toEqual([0, 1, 1, 0, 1, 1, 2]);
   });
 
   it('FR-5 stepping back removes the line again', () => {

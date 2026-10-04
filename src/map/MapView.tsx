@@ -87,6 +87,18 @@ function PanToMarker({ map: def, marker }: { map: ContentMap; marker: CurrentMar
 /** The party's line: a warm sienna brown, from the same family as the red marker and the dots, but quieter. */
 const ROUTE_COLOR = '#a0522d';
 
+/**
+ * The colours of the split groups' lines, in the order the groups first appear: earth tones that go with
+ * the markers, and none of them blue. After the last one the colours start again.
+ */
+export const GROUP_COLORS = ['#6b7f2a', '#b8860b', '#7a3e5a', '#3f6b5c'];
+
+/** A line of a route on a map. `group` is the index of a split group in the order the groups first appear, or null for the party. */
+export interface RouteLine {
+  group: number | null;
+  points: Position[];
+}
+
 /** How long the view takes to move to the focused view of the next event on the same map, in seconds. */
 const FOCUS_SECONDS = 0.6;
 
@@ -141,8 +153,8 @@ interface MapViewProps {
   label: string;
   /** Called when the map image has loaded, that is, when the map is shown. */
   onImageLoad?: () => void;
-  /** Lines of the party's route on this map, each a list of positions in order. A line of one point is not drawn. */
-  routes?: Position[][];
+  /** Lines of the routes on this map, each a list of positions in order. A line of one point is not drawn. */
+  routes?: RouteLine[];
   /** Small dots for the places visited so far on this map. */
   markers?: MapMarker[];
   /** The current event's marker, drawn above the others, or none when the event is not on this map. */
@@ -155,6 +167,20 @@ interface MapViewProps {
 
 export function MapView({ map: def, label, onImageLoad, routes = [], markers = [], current, eventId, children }: MapViewProps) {
   const bounds = imageBounds(def);
+  const drawn = routes.filter((line) => line.points.length >= 2);
+  const renderLine = (line: RouteLine, i: number) => (
+    <Polyline
+      key={`${line.group}:${i}:${line.points.map((p) => p.join(',')).join(' ')}`}
+      positions={line.points.map((point) => toLeaflet(point, def))}
+      className={line.group === null ? 'route-line route-party' : 'route-line route-group'}
+      interactive={false}
+      pathOptions={
+        line.group === null
+          ? { color: ROUTE_COLOR, weight: 4, opacity: 0.85, lineJoin: 'round' }
+          : { color: GROUP_COLORS[line.group % GROUP_COLORS.length], weight: 3, opacity: 0.9, dashArray: '8 8', lineJoin: 'round' }
+      }
+    />
+  );
   return (
     <div className={styles.map} role="region" aria-label={label}>
       {children}
@@ -172,19 +198,13 @@ export function MapView({ map: def, label, onImageLoad, routes = [], markers = [
         className={styles.container}
       >
         <ImageOverlay url={def.imageUrl} bounds={bounds} eventHandlers={{ load: () => onImageLoad?.() }} />
-        {/* Panes, from the bottom: the map image (400), the route lines, the visited places, the current marker. */}
+        {/* Panes, from the bottom: the map image (400), the group lines, the party's line, the visited places, the current marker. */}
+        {/* The groups' lines are under the party's. */}
+        <Pane name="group-routes" style={{ zIndex: 405 }}>
+          {drawn.filter((line) => line.group !== null).map(renderLine)}
+        </Pane>
         <Pane name="routes" style={{ zIndex: 410 }}>
-          {routes
-            .filter((points) => points.length >= 2)
-            .map((points, i) => (
-              <Polyline
-                key={`${i}:${points.map((p) => p.join(',')).join(' ')}`}
-                positions={points.map((point) => toLeaflet(point, def))}
-                className="route-line route-party"
-                interactive={false}
-                pathOptions={{ color: ROUTE_COLOR, weight: 4, opacity: 0.85, lineJoin: 'round' }}
-              />
-            ))}
+          {drawn.filter((line) => line.group === null).map(renderLine)}
         </Pane>
         <Pane name="visited-places" style={{ zIndex: 420 }}>
           {markers.map((marker) => (

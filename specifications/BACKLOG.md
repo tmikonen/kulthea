@@ -589,28 +589,28 @@ Automated tests: the unit tests of the worked examples, plus tests that two grou
 
 ## B-19 Drawing split routes
 
-Status: defined
+Status: done
 
 Related: FR-5.
 
 Depends on: B-18 (the split-group logic) and B-17 (drawing routes).
 
-Scope note: the fixtures and the demo events get a group that splits, travels and rejoins (the demo already has a group on Bog End). Accepted together with B-18.
+Scope note: the fixtures and the demo events get a group that splits, travels and rejoins (the demo already had a group on Bog End, and got a second event for it, so that the group's line is not hidden under the party's). Accepted together with B-18.
 
 You will see: a dashed line for each group, in a colour of its own, from where it split from the party to where it rejoins, growing as you step. While the group is split, the party's solid line goes on separately. Where the group rejoins, its line meets the party's.
 
 How to check by hand (with the demo content):
 1. Step to event 7 ("Tiedustelijat raunioilla"), the first event of the group. On Bog End a dashed line appears from the party's place at event 6 to it.
-2. Step on. The party's solid line and the group's dashed line are clearly different, and the group's line stops growing when the group's events end.
-3. At the rejoin event the dashed line ends at the party's place and the line is complete. Step back to see it shorten.
+2. Step on to event 8 ("Tiedustelijat suolla"). The dashed line grows to the marsh. Event 9 ("Seurue raunioilla") is the party's: the party's solid line runs from Suonperä to the ruins, and the group's dashed line ends at the ruins too, where the party is. The solid and the dashed lines are clearly different.
+3. The group's last event is the marsh, and its rejoin is the party's first event after it, "Seurue raunioilla", so the dashed line ends at the ruins only from event 9 on. Step back to event 8 and the last dashed stretch goes. On Bay of Izar the group has a short dashed line between Suonperä and the ruins, near the party's own.
 4. Open the real events. There is no group, so only the party's line is shown.
 
 Acceptance criteria:
-- [ ] Each group is drawn with a dashed line in its own colour from a fixed palette, taken in the order the groups first appear. The party's line stays solid brown. The colours of the groups are taken from earth tones that go with the markers, and not from blue.
-- [ ] The line grows with the current event, starts at the split place, and reaches the rejoin place only when the current event is the rejoin event or a later one.
-- [ ] Group lines are drawn below the party line and below the dots and marker.
-- [ ] On each map only the segments that have places on that map are shown, and the map's `routes` setting decides whether a group's earlier visits stay (history, overview) or only its current visit is shown (visit).
-- [ ] There is no legend. (A legend could be added after the first version.)
+- [x] Each group is drawn with a dashed line in its own colour from a fixed palette, taken in the order the groups first appear. The party's line stays solid brown. The colours of the groups are taken from earth tones that go with the markers, and not from blue.
+- [x] The line grows with the current event, starts at the split place, and reaches the rejoin place only when the current event is the rejoin event or a later one.
+- [x] Group lines are drawn below the party line and below the dots and marker.
+- [x] On each map only the segments that have places on that map are shown, and the map's `routes` setting decides whether a group's earlier visits stay (history, overview) or only its current visit is shown (visit).
+- [x] There is no legend. (A legend could be added after the first version.)
 
 Automated tests: component tests for the number and style of the lines; Playwright tests that step through the extended fixtures and check the group's line ends at each step against the markers, that two groups have different colours, and that stepping back shortens the line.
 

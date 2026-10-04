@@ -15,17 +15,20 @@ const ID = {
   p4: '6050-1-005-01-p4', n1: '6050-1-006-01-n1', n2: '6050-1-007-01-n2', p5: '6050-1-008-01-p5',
   jump: '6050-1-009-01-jump', p6: '6050-1-010-01-p6', n3: '6050-1-011-01-n3', h1: '6050-1-012-01-h1',
   h2: '6050-1-013-01-h2', p7: '6050-1-014-01-p7', h3: '6050-1-015-01-h3', h4: '6050-1-016-01-h4',
-  o1: '6050-1-017-01-o1', p8: '6050-1-018-01-p8', o2: '6050-1-019-01-o2', j2: '6050-1-020-01-j2', o3: '6050-1-021-01-o3',
+  o1: '6050-1-017-01-o1', p9: '6050-1-022-01-p9', g1: '6050-1-023-01-g1', m1: '6050-1-024-01-m1',
+  p10: '6050-1-025-01-p10', g2: '6050-1-026-01-g2', p11: '6050-1-027-01-p11', p8: '6050-1-018-01-p8', o2: '6050-1-019-01-o2', j2: '6050-1-020-01-j2', o3: '6050-1-021-01-o3',
 };
 
 type Point = [number, number];
 const P: Record<string, Point> = {
+  p9: [10, 90], g1: [30, 80], m1: [60, 90], p10: [50, 70], g2: [40, 60], p11: [70, 70],
   p1: [10, 10], p2: [30, 20], p3: [50, 60], p4: [70, 30], p5: [40, 40], jump: [60, 70], p6: [80, 80],
   n1: [20, 20], n2: [80, 60], n3: [50, 10], h1: [20, 20], h2: [60, 60], h3: [80, 20], h4: [90, 90],
   o1: [20, 20], o2: [60, 60], j2: [80, 20], o3: [90, 50],
 };
 
 const routeLines = (page: Page) => page.locator('path.route-line');
+const groupLines = (page: Page) => page.locator('path.route-group');
 const image = (page: Page) => page.locator('img.leaflet-image-layer');
 const next = (page: Page) => page.getByRole('button', { name: 'Seuraava' });
 const previous = (page: Page) => page.getByRole('button', { name: 'Edellinen' });
@@ -56,13 +59,13 @@ async function expectedBox(page: Page, points: Point[]): Promise<Box | null> {
 const sortBoxes = (boxes: Box[]) => [...boxes].sort((a, b) => a.x - b.x || a.y - b.y || a.width - b.width);
 
 /** Waits until the lines on the map are exactly the lines through the given points, each at its place. */
-async function expectLines(page: Page, expected: Point[][]) {
+async function expectLines(page: Page, expected: Point[][], lines = routeLines) {
   await expect.poll(async () => {
-    const count = await routeLines(page).count();
+    const count = await lines(page).count();
     if (count !== expected.length) return `${count} lines, not ${expected.length}`;
     const actual: Box[] = [];
     for (let i = 0; i < count; i++) {
-      const box = await routeLines(page).nth(i).boundingBox();
+      const box = await lines(page).nth(i).boundingBox();
       if (!box) return 'a line is not drawn yet';
       actual.push(box);
     }
@@ -255,5 +258,55 @@ test.describe('an overview map (BUG-6)', () => {
     await expectLines(page, [[P.o1, P.o2]]);
     const stroke = await page.evaluate(() => getComputedStyle(document.querySelector('path.route-line')!).stroke);
     expect(stroke).toBe('rgb(160, 82, 45)');
+  });
+});
+
+test.describe('split group routes (B-19)', () => {
+  // On the main map: p9, then the group scout goes g1 (the party's last event before it is p9), the group
+  // mage goes m1, the party goes p10, scout goes g2, and the party p11. Scout rejoins at p11, mage at p10.
+  const scout = (page: Page) => page.locator('path.route-group[stroke="#6b7f2a"]');
+  const mage = (page: Page) => page.locator('path.route-group[stroke="#b8860b"]');
+
+  test('FR-5 a group\'s line starts at the party\'s place where it split, grows with its events and meets the party where it rejoins', async ({ page }) => {
+    await open(page, ID.p9);
+    await expectLines(page, [], groupLines);
+    await next(page).click();
+    await expectLines(page, [[P.p9, P.g1]], scout);
+    await next(page).click(); // m1: the second group
+    await expectLines(page, [[P.p9, P.g1]], scout);
+    await expectLines(page, [[P.p9, P.m1]], mage);
+    await next(page).click(); // p10: mage rejoins, scout goes on
+    await expectLines(page, [[P.p9, P.m1, P.p10]], mage);
+    await expectLines(page, [[P.p9, P.g1]], scout);
+    await next(page).click(); // g2
+    await expectLines(page, [[P.p9, P.g1, P.g2]], scout);
+    await next(page).click(); // p11: scout rejoins
+    await expectLines(page, [[P.p9, P.g1, P.g2, P.p11]], scout);
+    await previous(page).click();
+    await expectLines(page, [[P.p9, P.g1, P.g2]], scout);
+  });
+
+  test('FR-5 a group\'s line is dashed, in its own colour, and the party\'s is solid brown', async ({ page }) => {
+    await open(page, ID.p11);
+    await expectLines(page, [[P.p9, P.g1, P.g2, P.p11], [P.p9, P.m1, P.p10]], groupLines);
+    await expect(scout(page)).toHaveAttribute('stroke-dasharray', /\d/);
+    await expect(mage(page)).toHaveAttribute('stroke-dasharray', /\d/);
+    const party = page.locator('path.route-party').last();
+    await expect(party).toHaveAttribute('stroke', '#a0522d');
+    await expect(party).not.toHaveAttribute('stroke-dasharray', /\d/);
+  });
+
+  test('FR-5 the group lines are drawn below the party line and below the dots', async ({ page }) => {
+    await open(page, ID.p11);
+    await expectLines(page, [[P.p9, P.g1, P.g2, P.p11], [P.p9, P.m1, P.p10]], groupLines);
+    const z = (name: string) => page.locator(`.leaflet-${name}-pane`).evaluate((el) => Number(getComputedStyle(el).zIndex));
+    expect(await z('group-routes')).toBeLessThan(await z('routes'));
+    expect(await z('routes')).toBeLessThan(await z('visited-places'));
+  });
+
+  test('FR-5 on the second map, where the party is not, no group line is shown', async ({ page }) => {
+    await open(page, ID.p11, '?map=second-map');
+    await expect(image(page)).toHaveAttribute('src', /second-map/);
+    await expectLines(page, [], groupLines);
   });
 });

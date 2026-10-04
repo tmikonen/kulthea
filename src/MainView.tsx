@@ -18,6 +18,11 @@ import { Notice } from './Notice';
 import { usePreloadMaps } from './map/usePreloadMaps';
 import styles from './MainView.module.css';
 
+/** The names of the split groups in the order they first appear, which decides their colours. */
+const groupNames = [
+  ...new Set(content.events.map((event) => event.track).filter((track): track is string => !!track && track !== 'none')),
+];
+
 /** The route segments of every map, worked out once when the app loads. */
 const routeSegments = buildRoutes(
   content.events,
@@ -60,8 +65,10 @@ export function MainView({ event }: { event?: EventDef }) {
   const place = event ? eventPlaceOn(event, current.id, mainMapId, locations) : null;
   const lines = event
     ? visibleRoutes(routeSegments, content.events, content.events.indexOf(event), current.id, current.routes)
-        .filter((segment) => segment.track === null)
-        .map((segment) => segment.points.map((point) => point.position))
+        .map((segment) => ({
+          group: segment.track === null ? null : groupNames.indexOf(segment.track),
+          points: segment.points.map((point) => point.position),
+        }))
     : [];
   const visited = event ? visitedPlaces(content.events, content.events.indexOf(event), current.id, mainMapId, locations) : [];
 

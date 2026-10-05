@@ -22,6 +22,8 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-6 | A regional map's route is broken by events at places that are not on it | fixed | B-17 |
 | BUG-7 | Markers and route lines are drawn at wrong places and snap into place when stepping quickly | fixed | B-33 |
 | BUG-8 | The whole page shifts sideways, with a scroll bar, while the journal panel slides in | fixed | B-21 |
+| BUG-9 | Markers and route lines are misplaced after quick stepping on an iPhone | open | B-33 |
+| BUG-10 | The map switcher buttons cover the journal panel's heading on a phone | open | B-21 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -109,3 +111,27 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Fix: the area that holds the map, the event panel and the journal panel clips what is outside it, so the sliding panel cannot widen the page, and the focus is moved into the panel without scrolling. Each of the two alone was shown not to be enough for the test.
 - Verified by: `tests/e2e/journal.spec.ts`, "FR-6 while the panel slides in, the page under it does not move and does not get a horizontal scroll bar (BUG-8)" (it samples every animation frame of the opening: it failed before the fix with a sideways scroll of 416 px, and passes now).
 - Also confirmed by hand by the product owner.
+
+## BUG-9: Markers and route lines are misplaced after quick stepping on an iPhone
+
+- Status: open
+- Related item: B-33 (the animated move to the focused view), B-13, B-14 and B-17 (the markers and lines). The symptoms look like those of BUG-7, which was found and fixed on a desktop browser; it is not known yet whether this is the same cause.
+- Found: the product owner, on the deployed site (GitHub Pages) with an iPhone 13 mini, iOS 26.6.2, Safari, in English.
+- Description: when the events are stepped quickly, the markers and the route lines are drawn at wrong places. It happens in both directions.
+  - Forwards, from the first event quickly to "Demo: The market in Bentara": the current (red) marker is at the far right edge of the map, away from Bentara, and the route lines do not meet the dots they should join (screenshot `po-attachments/IMG_9204.PNG`).
+  - Backwards, quickly back to the first event: the red marker is left of the Port of Izar, not on it (screenshot `po-attachments/IMG_9205.PNG`).
+- Root cause: not investigated yet.
+- Fix: to be written.
+- Verified by: to be written. A failing test is to be written first where possible, and the bug is to be reproduced with the product owner.
+- Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshots are only in the product owner's working copy.
+
+## BUG-10: The map switcher buttons cover the journal panel's heading on a phone
+
+- Status: open
+- Related item: B-21 (the journal panel). The phone layout, in which the journal panel covers the screen, is planned in B-29.
+- Found: the product owner, on the deployed site (GitHub Pages) with an iPhone 13 mini, iOS 26.6.2, Safari, in English.
+- Description: with the journal panel open on a phone, the map switcher buttons ("Bay of Izar", "Bog End", "Haestra") stay drawn over the panel and cover its title bar, so the heading "Journal" is partly hidden (screenshot `po-attachments/IMG_9206.PNG`). The panel is as wide as 90% of the narrow window, so it reaches under the switcher.
+- Root cause: not investigated yet.
+- Fix: to be written.
+- Verified by: to be written. A failing test is to be written first where possible, and the bug is to be reproduced with the product owner.
+- Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshot is only in the product owner's working copy.

@@ -126,6 +126,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Fix: the layout effect that stops a flight before the markers and lines change no longer calls `map.stop()`. It resets the view where the flight has got to (`setView` with `reset: true`), which stops the flight at once, without any animation, and projects every layer again.
 - Verified by: `tests/e2e/focus.spec.ts`, "FR-1 on every frame, also when the next click comes 300, 400 and 500 ms into a move, markers, dots and lines are where their places are (BUG-9)". It runs at a phone size on the focus fixtures, whose main map now has the size of the real one and which have a series of short hops, and it runs in Chromium and in WebKit with the iPhone 13 mini profile (`focus-webkit`). It failed before the fix (the worst displacement was about 20 to 33 px) and passes now. The BUG-7 frame tests also run in WebKit now, and they failed with the old code there too. The fix was also checked on the demo content in WebKit with the iPhone profile, stepping every 25 to 525 ms forwards and backwards: before, up to 33 px for up to 16 frames; after, at most 2 px.
 - Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshots are only in the product owner's working copy.
+- Also confirmed by hand by the product owner, on the deployed site, on the iPhone where it was found.
 
 ## BUG-10: The map switcher buttons cover the journal panel's heading on a phone
 

@@ -44,7 +44,7 @@ If code and documents disagree, stop and sort it out with the product owner. Nev
 - Node.js current LTS and npm. Use `npm`, not pnpm or yarn.
 - Dev server: `npm run dev`, then `http://localhost:5173/kulthea/`. The base path is `/kulthea/`.
 - Commands (they exist once item B-1 is done): `npm test` (Vitest), `npm run test:e2e` (Playwright against the built site), `npm run typecheck`, `npm run lint`, `npm run build`, and `npm run test:all`, which runs the tests, typecheck, lint and browser tests in turn.
-- The browser tests need Chromium, kept in `.playwright-browsers/` (git-ignored) through `PLAYWRIGHT_BROWSERS_PATH` in `.claude/settings.json`. If it is missing, install it with `npx playwright install chromium`.
+- The browser tests need Chromium and WebKit (Safari's engine, for the iPhone checks), kept in `.playwright-browsers/` (git-ignored) through `PLAYWRIGHT_BROWSERS_PATH` in `.claude/settings.json`. If they are missing, install them with `npx playwright install chromium webkit`. On a Linux machine WebKit also needs system libraries, installed once by an administrator with `sudo env "PATH=$PATH" npx playwright install-deps webkit`.
 
 ## Conventions
 

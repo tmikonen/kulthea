@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
-import { CRS, latLng } from 'leaflet';
+import { CRS, latLng, type ZoomPanOptions } from 'leaflet';
 import { CircleMarker, ImageOverlay, MapContainer, Pane, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ContentMap } from '../content/types';
@@ -115,10 +115,17 @@ function FocusOnMarker({ map: def, marker, eventId }: { map: ContentMap; marker:
   // The markers and lines are added or moved in effects that run after this one. A layer that is added
   // or moved while a flight is in progress is projected at the zoom of that moment, and then the layer
   // is scaled again, so it is drawn displaced until the move ends. So stop the flight before the layers
-  // change. Stopping also redraws the layers at the zoom the flight has reached, and the next flight
-  // starts from there.
+  // change, and reset the view where the flight has got to, which also projects every layer again, so
+  // the next flight starts from a view that all the layers agree with.
+  // Leaflet's own `map.stop()` is not used: it also pans the map to its own centre, which is an animation
+  // of a quarter of a second when the centre is a pixel off, as it is part way through a flight. That
+  // animation ends with a `moveend` in the middle of the next flight, and the lines and markers, which
+  // are only projected again at the end of a flight, are then drawn displaced until the flight ends.
   useLayoutEffect(() => {
-    if (def.focusZoom > 0 && focused.current !== undefined && focused.current !== eventId) map.stop();
+    if (def.focusZoom > 0 && focused.current !== undefined && focused.current !== eventId) {
+      // `reset` is a documented option of Leaflet that its type definitions leave out.
+      map.setView(map.getCenter(), map.getZoom(), { reset: true } as ZoomPanOptions);
+    }
   }, [map, def, eventId]);
   useEffect(() => {
     if (def.focusZoom <= 0 || x === undefined || y === undefined) return;

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { settled } from './helpers';
 
-// These tests run on a site built from tests/fixtures-focus, where the main map (3000 x 1500) has a
+// These tests run on a site built from tests/fixtures-focus, where the main map (2930 x 1858, the size of the real Bay of Izar map) has a
 // focus zoom of 2 steps, that is, twice the size of the whole map, and the second map (120 x 80) has none.
 
 const image = (page: Page) => page.locator('img.leaflet-image-layer');
@@ -18,8 +18,11 @@ const ON_BOTH = '6050-1-003-01-on-both';     // main (30, 70), second (60, 40); 
 const SECOND_ONLY = '6050-1-004-01-second-only'; // n/a on the main map, second (20, 70)
 const CORNER = '6050-1-005-01-corner';       // (3, 4)
 const SAME = '6050-1-006-01-same-place';     // (3, 4)
+const HOP_11 = '6050-1-011-01-hop-11';       // (45.3, 79), the first of six short hops
 
 /** The width of the whole map in the area, for a map with this width to height ratio. */
+/** The width to height ratio of the main map, and of the second map. */
+const MAIN_RATIO = 2930 / 1858;
 const fittedWidth = (a: { width: number; height: number }, ratio: number) => Math.min(a.width, a.height * ratio);
 
 /**
@@ -51,7 +54,7 @@ async function expectFocused(page: Page, at: [number, number]) {
   await expect.poll(async () => {
     const a = await area(page);
     const img = (await image(page).boundingBox())!;
-    if (Math.abs(img.width - 2 * fittedWidth(a, 2)) > 3) return `width ${Math.round(img.width)}`;
+    if (Math.abs(img.width - 2 * fittedWidth(a, MAIN_RATIO)) > 3) return `width ${Math.round(img.width)}`;
     const want = await expectedMarker(page, at);
     const got = await markerCentre(page);
     return Math.abs(got.x - want.x) <= 3 && Math.abs(got.y - want.y) <= 3 ? 'focused' : `marker ${Math.round(got.x)},${Math.round(got.y)} not ${Math.round(want.x)},${Math.round(want.y)}`;
@@ -121,7 +124,7 @@ test.describe('focused view (B-33)', () => {
     await page.goto(`./#/event/${CENTRE}`);
     await expectFocused(page, [50, 50]);
     await zoomOut(page, 2);
-    await expectWholeMap(page, 2);
+    await expectWholeMap(page, MAIN_RATIO);
     await next(page).click();
     await expectFocused(page, [80, 30]);
   });
@@ -132,7 +135,7 @@ test.describe('focused view (B-33)', () => {
     await page.locator('.leaflet-control-zoom-in').click();
     await settled(image(page));
     const a = await area(page);
-    expect((await image(page).boundingBox())!.width).toBeGreaterThan(2 * fittedWidth(a, 2) + 10);
+    expect((await image(page).boundingBox())!.width).toBeGreaterThan(2 * fittedWidth(a, MAIN_RATIO) + 10);
     await next(page).click();
     await expectFocused(page, [80, 30]);
   });
@@ -178,7 +181,7 @@ test.describe('focused view (B-33)', () => {
     await expect.poll(() => src(page)).toMatch(/second-map/);
     await page.getByRole('button', { name: 'Pääkartta' }).click();
     await expect.poll(() => src(page)).toMatch(/main-map/);
-    await expectWholeMap(page, 2);
+    await expectWholeMap(page, MAIN_RATIO);
     await expect(current(page)).toHaveCount(0);
   });
 
@@ -236,6 +239,9 @@ test.describe('focused view (B-33)', () => {
     expect(Math.abs(after.width - before.width)).toBeLessThan(2);
   });
 });
+
+/** The places of the short hops, which are close to each other, as the steps of a real story are. */
+const HOPS: [number, number][] = [[45.3, 79], [61, 60.7], [59.3, 56.6], [50, 62], [75.4, 57.7], [71.3, 38.8]];
 
 test.describe('markers and lines during the move (BUG-7)', () => {
   // Every place that an event has on the main map, in percent. A marker, a dot or a line that is drawn
@@ -318,4 +324,41 @@ test.describe('markers and lines during the move (BUG-7)', () => {
     }), { places: PLACES });
     expect(worst).toBeLessThan(4);
   });
+
+  // BUG-9: a click that comes late in a move (more than half way) left the markers, dots and lines displaced
+  // for the rest of that move.
+  for (const gap of [300, 400, 500]) {
+    test(`FR-1 on every frame, also when the next click comes ${gap} ms into a move, markers, dots and lines are where their places are (BUG-9)`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 700 }); // a phone
+      await page.goto(`./#/event/${HOP_11}`);
+      await expectFocused(page, [45.3, 79]);
+      const result = await page.evaluate(({ places, gap }) => new Promise<{ worst: number; frames: number; at: string }>((resolve) => {
+        let worst = 0;
+        let at = '';
+        let frames = 0;
+        const start = performance.now();
+        const nextButton = Array.from(document.querySelectorAll('button')).find((b) => b.textContent === 'Seuraava')!;
+        const check = () => {
+          const img = document.querySelector('img.leaflet-image-layer')!.getBoundingClientRect();
+          const known = places.map(([x, y]) => ({ x: img.left + (img.width * x) / 100, y: img.top + (img.height * y) / 100 }));
+          for (const el of document.querySelectorAll('path.current-marker, path.visited-dot')) {
+            const r = el.getBoundingClientRect();
+            if (r.width === 0 || r.width > 40) continue;
+            const d = Math.min(...known.map((k) => Math.hypot(k.x - (r.x + r.width / 2), k.y - (r.y + r.height / 2))));
+            if (d > worst) { worst = d; at = `${el.getAttribute('class')} at ${Math.round(performance.now() - start)} ms`; }
+          }
+          frames += 1;
+        };
+        [0, gap, 2 * gap].forEach((delay) => setTimeout(() => nextButton.click(), delay));
+        const tick = () => {
+          check();
+          if (performance.now() - start < 3 * gap + 1500) requestAnimationFrame(tick);
+          else resolve({ worst, frames, at });
+        };
+        requestAnimationFrame(tick);
+      }), { places: [...PLACES, ...HOPS], gap });
+      expect(result.frames).toBeGreaterThan(60);
+      expect(result.worst, `the worst place was ${result.at}`).toBeLessThan(4);
+    });
+  }
 });

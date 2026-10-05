@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 // Three sites are built from fixtures: the ordinary one, one whose main map has a focus zoom, and
 // one with a longer route to draw.
@@ -19,6 +19,14 @@ export default defineConfig({
   projects: [
     { name: 'fixtures', testIgnore: /(focus|routes)\.spec\.ts/, use: { baseURL: `http://localhost:${port}/kulthea/` } },
     { name: 'focus', testMatch: /focus\.spec\.ts/, use: { baseURL: `http://localhost:${focusPort}/kulthea/` } },
+    // Safari's engine on an iPhone, for the checks that markers and lines stay where they should during a move
+    // (BUG-7 and BUG-9, which showed on a phone).
+    {
+      name: 'focus-webkit',
+      testMatch: /focus\.spec\.ts/,
+      grep: /BUG-[79]/,
+      use: { ...devices['iPhone 13 Mini'], baseURL: `http://localhost:${focusPort}/kulthea/` },
+    },
     { name: 'routes', testMatch: /routes\.spec\.ts/, use: { baseURL: `http://localhost:${routesPort}/kulthea/` } },
   ],
   webServer: [

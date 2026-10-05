@@ -28,7 +28,7 @@ jobs:
       - run: npm test
       # Builds the real content: content validation errors stop the workflow here.
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3
         with:

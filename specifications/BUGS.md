@@ -22,7 +22,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-6 | A regional map's route is broken by events at places that are not on it | fixed | B-17 |
 | BUG-7 | Markers and route lines are drawn at wrong places and snap into place when stepping quickly | fixed | B-33 |
 | BUG-8 | The whole page shifts sideways, with a scroll bar, while the journal panel slides in | fixed | B-21 |
-| BUG-9 | Markers and route lines are misplaced after quick stepping on an iPhone | open | B-33 |
+| BUG-9 | Markers and route lines are misplaced after quick stepping on an iPhone | fixed | B-33 |
 | BUG-10 | The map switcher buttons cover the journal panel's heading on a phone | open | B-21 |
 
 ## BUG-1: Large map is not fitted to the window on load
@@ -97,7 +97,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Found: the product owner, when clicking Next or Previous in quick succession.
 - Description: the route lines and the location markers first appear at wrong places. They move with the panning motion, but displaced, and when the motion stops they shift to their correct places.
 - Root cause: confirmed by reproduction. The move to the next event is an animated flight, which also changes the zoom on the way. Leaflet draws markers and lines in an SVG layer that is placed relative to the zoom at its last redraw. A marker or line that is added or updated while a flight is in progress is projected at the in-flight zoom, and then the layer's own scaling is applied on top, so it is displaced until the move ends and the layer is redrawn. Quick clicks start the next step while the previous flight is still running. A browser test shows it: with four quick steps a dot was drawn about 285 px from any place, while a single step, which adds its layers before the flight starts, was always right.
-- Fix: when the event changes on a map with a focus zoom, a layout effect stops the flight that is running, before the markers and lines are updated in the effects that follow. Stopping redraws the layers at the zoom that the flight has reached, and the next flight starts from there, so an interrupted move continues smoothly to the new event.
+- Fix: when the event changes on a map with a focus zoom, a layout effect stops the flight that is running, before the markers and lines are updated in the effects that follow (BUG-9 later changed how it stops it, from `map.stop()` to a reset of the view). Stopping redraws the layers at the zoom that the flight has reached, and the next flight starts from there, so an interrupted move continues smoothly to the new event.
 - Verified by: `tests/e2e/focus.spec.ts`, "FR-1 on every frame of the move, also when stepping quickly, markers, dots and lines are where their places are" (it clicks Next four times, 100 ms apart, and checks every animation frame; it failed before the fix with a worst displacement of about 285 px, and passes now), and "FR-1 a single step also keeps everything at its place on every frame".
 - Also confirmed by hand by the product owner.
 
@@ -114,18 +114,17 @@ Bugs found by the product owner while testing. This is not the list of planned w
 
 ## BUG-9: Markers and route lines are misplaced after quick stepping on an iPhone
 
-- Status: open
+- Status: fixed
 - Related item: B-33 (the animated move to the focused view), B-13, B-14 and B-17 (the markers and lines). The symptoms look like those of BUG-7, which was found and fixed on a desktop browser; it is not known yet whether this is the same cause.
 - Found: the product owner, on the deployed site (GitHub Pages) with an iPhone 13 mini, iOS 26.6.2, Safari, in English.
 - Description: when the events are stepped quickly, the markers and the route lines are drawn at wrong places. It happens in both directions.
   - Forwards, from the first event quickly to "Demo: The market in Bentara": the current (red) marker is at the far right edge of the map, away from Bentara, and the route lines do not meet the dots they should join (screenshot `po-attachments/IMG_9204.PNG`).
   - Backwards, quickly back to the first event: the red marker is left of the Port of Izar, not on it (screenshot `po-attachments/IMG_9205.PNG`).
-- Root cause: not found yet. The bug has not been reproduced here (see "Reproduction attempts").
-- Reproduction attempts (the demo content on the real Bay of Izar map, stepping quickly with Next and Previous, every frame checked against the places):
-  - Chromium emulating an iPhone 13 mini (375 x 629 px, touch, 3x pixel ratio), with the processor slowed down 1x, 4x and 8x, and 4 steps every 0, 50, 150 and 300 ms, forwards and backwards. Every run ended with every marker and dot at its place (at most 1 px off). Only one thing was seen: at 300 ms between steps, two frames in a row (about 16 ms) showed a few dots 12 to 21 px away from their places, in the middle of a move, and it corrected itself.
-  - The browser of the report, Safari on iOS (WebKit), cannot be run in this session: the Playwright WebKit build downloads, but it cannot start because the machine lacks about 30 system libraries (GTK 4, ICU 78, GStreamer and others) that only an administrator can install.
-- Fix: to be written.
-- Verified by: to be written. A failing test is to be written first where possible, and the bug is to be reproduced with the product owner.
+- Root cause: confirmed by reproduction in WebKit 26.6, the engine of the phone's Safari, with the iPhone 13 mini profile, and in Chromium. Two things were needed.
+  - The map is a narrow, tall window on a phone, and the real Bay of Izar map has a different shape from the one that the tests used (2930 x 1858 against 3000 x 1500). With the real shape, part way through a flight the map's centre is a pixel away from the pixel grid. Leaflet's `map.stop()`, which the fix of BUG-7 used, first sets the zoom again, and that pans the map by that pixel with an animation of a quarter of a second. When the next click came late in a flight (about 300 to 550 ms into the 600 ms move), the animation ended in the middle of the next flight and fired a `moveend`. A `moveend` makes the layer of lines and markers take the view of that moment as its reference without projecting its lines and markers again, and Leaflet projects them again only when a flight ends. So from then on until the end of the flight they were drawn displaced by as much as the map had moved since (up to 33 px in the test, for 95 frames, about 1.5 s, when the clicks were 300 ms apart; backwards stepping was worse). On a slow phone the move is longer, and the displacement shows more.
+  - The tests did not show it: they ran at a desktop size, with a map of another shape, and with clicks 100 ms apart. The BUG-7 test failed in WebKit once the shape was right, with the old code.
+- Fix: the layout effect that stops a flight before the markers and lines change no longer calls `map.stop()`. It resets the view where the flight has got to (`setView` with `reset: true`), which stops the flight at once, without any animation, and projects every layer again.
+- Verified by: `tests/e2e/focus.spec.ts`, "FR-1 on every frame, also when the next click comes 300, 400 and 500 ms into a move, markers, dots and lines are where their places are (BUG-9)". It runs at a phone size on the focus fixtures, whose main map now has the size of the real one and which have a series of short hops, and it runs in Chromium and in WebKit with the iPhone 13 mini profile (`focus-webkit`). It failed before the fix (the worst displacement was about 20 to 33 px) and passes now. The BUG-7 frame tests also run in WebKit now, and they failed with the old code there too. The fix was also checked on the demo content in WebKit with the iPhone profile, stepping every 25 to 525 ms forwards and backwards: before, up to 33 px for up to 16 frames; after, at most 2 px.
 - Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshots are only in the product owner's working copy.
 
 ## BUG-10: The map switcher buttons cover the journal panel's heading on a phone

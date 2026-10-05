@@ -27,6 +27,13 @@ export default defineConfig({
       grep: /BUG-[79]/,
       use: { ...devices['iPhone 13 Mini'], baseURL: `http://localhost:${focusPort}/kulthea/` },
     },
+    // The journal panel on an iPhone (BUG-10).
+    {
+      name: 'journal-webkit',
+      testMatch: /journal\.spec\.ts/,
+      grep: /BUG-10/,
+      use: { ...devices['iPhone 13 Mini'], baseURL: `http://localhost:${port}/kulthea/` },
+    },
     { name: 'routes', testMatch: /routes\.spec\.ts/, use: { baseURL: `http://localhost:${routesPort}/kulthea/` } },
   ],
   webServer: [

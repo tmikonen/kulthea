@@ -570,3 +570,38 @@ test.describe('images in text and the viewer (B-27)', () => {
     await expect(page).toHaveURL(new RegExp(`#/event/${FIRST}$`));
   });
 });
+
+test.describe('the journal panel on a phone (BUG-10)', () => {
+  test('FR-6 on a phone the panel is above the map buttons: nothing of the map is drawn over its heading and its close button', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 700 });
+    await open(page, '?journal=index');
+    await settled(panel(page)); // the slide has ended
+    // The element at the middle of each part of the panel's title bar, and of every map button that is
+    // under the panel, must be in the panel.
+    const covered = await page.evaluate(() => {
+      const aside = document.querySelector('aside')!;
+      const box = aside.getBoundingClientRect();
+      const targets = [
+        ...aside.querySelectorAll('h2, button'),
+        ...Array.from(document.querySelectorAll('[role="group"] button')).filter((b) => {
+          const r = b.getBoundingClientRect();
+          return r.right > box.left && r.left < box.right && r.bottom > box.top && r.top < box.bottom;
+        }),
+      ];
+      return targets.flatMap((el) => {
+        const r = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return hit && aside.contains(hit) ? [] : [`${el.tagName} "${el.textContent}" is covered by ${hit?.tagName} "${hit?.textContent?.slice(0, 20)}"`];
+      });
+    });
+    expect(covered).toEqual([]);
+  });
+
+  test('FR-6 on a phone the close button of the panel can be tapped', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 700 });
+    await open(page, '?journal=index');
+    await settled(panel(page));
+    await page.getByRole('button', { name: 'Sulje päiväkirja' }).click({ timeout: 3000 });
+    await expect(panel(page)).toHaveCount(0);
+  });
+});

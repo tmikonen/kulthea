@@ -23,7 +23,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-7 | Markers and route lines are drawn at wrong places and snap into place when stepping quickly | fixed | B-33 |
 | BUG-8 | The whole page shifts sideways, with a scroll bar, while the journal panel slides in | fixed | B-21 |
 | BUG-9 | Markers and route lines are misplaced after quick stepping on an iPhone | fixed | B-33 |
-| BUG-10 | The map switcher buttons cover the journal panel's heading on a phone | open | B-21 |
+| BUG-10 | The map switcher buttons cover the journal panel's heading on a phone | fixed | B-21 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -130,11 +130,11 @@ Bugs found by the product owner while testing. This is not the list of planned w
 
 ## BUG-10: The map switcher buttons cover the journal panel's heading on a phone
 
-- Status: open
+- Status: fixed
 - Related item: B-21 (the journal panel). The phone layout, in which the journal panel covers the screen, is planned in B-29.
 - Found: the product owner, on the deployed site (GitHub Pages) with an iPhone 13 mini, iOS 26.6.2, Safari, in English.
 - Description: with the journal panel open on a phone, the map switcher buttons ("Bay of Izar", "Bog End", "Haestra") stay drawn over the panel and cover its title bar, so the heading "Journal" is partly hidden (screenshot `po-attachments/IMG_9206.PNG`). The panel is as wide as 90% of the narrow window, so it reaches under the switcher.
-- Root cause: not investigated yet.
-- Fix: to be written.
-- Verified by: to be written. A failing test is to be written first where possible, and the bug is to be reproduced with the product owner.
+- Root cause: confirmed by reproduction, in WebKit with the iPhone 13 mini profile and in Chromium at a phone size. The map switcher buttons, like Leaflet's own zoom buttons, are drawn at a stacking level of 1000, and the journal panel was at 800, so the buttons were drawn over the panel wherever they overlapped it. On a desktop the panel is narrower than the space to the right of the buttons, so they never overlapped, but on a phone the panel is 90% of the width and reaches under them. The tests ran at a desktop size.
+- Fix: the journal panel is at stacking level 1100, above the map's controls and still below the image viewer (2000). The map switcher stays under the panel while the panel is open. The phone layout of B-29 may arrange this differently.
+- Verified by: `tests/e2e/journal.spec.ts`, "FR-6 on a phone the panel is above the map buttons: nothing of the map is drawn over its heading and its close button (BUG-10)". It opens the panel at a phone size and checks, for the heading, the close button and every map button that is under the panel, that the element at its middle is in the panel. It failed before the fix (the heading was covered by the button "Pääkartta") in Chromium and in WebKit with the iPhone profile (`journal-webkit`), and passes now. A second test, "the close button of the panel can be tapped", guards the other control of the title bar.
 - Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshot is only in the product owner's working copy.

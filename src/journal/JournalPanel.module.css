@@ -3,7 +3,8 @@
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: 800;
+  /* Above the map's own controls: Leaflet's buttons and the map switcher, which are at 1000. */
+  z-index: 1100;
   width: min(26rem, 90vw);
   box-sizing: border-box;
   display: flex;

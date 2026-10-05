@@ -26,7 +26,7 @@ The next item may start once the previous one is done. Problems found at accepta
 ## Notes for all items
 
 - Manual checks use the local dev server: `npm run dev`, then open `http://localhost:5173/kulthea/` (the `/kulthea/` part is the site's base path).
-- The app's demo content in `content/` is invented placeholder material on the real maps, to be replaced by the real campaign later. Tests use their own fixtures in `tests/fixtures/` and never depend on the demo content.
+- The app's demo content (in `content/` until B-32 moves it to `demo/`) is invented placeholder material on the real maps, to be replaced by the real campaign later. Tests use their own fixtures in `tests/fixtures/` and never depend on the demo content.
 - Demo content is written in Finnish (the default language), with English added to some items so that both languages can be checked.
 
 ---
@@ -884,26 +884,301 @@ Feedback wanted:
 - the pictures: the size in the event panel, the captions, the viewer;
 - how it is to write content: the `[[...]]` links, the image syntax, and the error messages.
 
+## B-28 Checks for mistakes in the content
+
+Status: defined
+
+Related: FR-9, "Languages", "Validation rules", "File formats".
+
+Depends on: B-27.
+
+Scope note: three checks that help the author find slips, found in the review of the documents after B-27. (1) A language map in a short text field that names a language that is not configured is an error, as it already is for an `@` section in a body. Short text fields are an event's `title`, an entry's `name` and `motto`, the names of locations and maps, `campaign.json` (`title`, the era's `name` and `abbreviation`, the months' `name` and `inDate`, `dateFormat`) and the texts of `ui.json`. Today such a text is silently ignored. (2) A field that the design does not list is a warning, not an error, so that a mistyped name (`mottto`, `focusZom`) is not silently ignored. It covers the front matter of events and entries (and `showOn`) and the JSON files (`campaign.json` with its `era`, `months` and `dateFormat`, each map, each location). The warning names the field and, when a listed field is within two typing mistakes of it, suggests that one. (3) A split group whose last event has no later party event is a warning, because a mistyped `track` name starts a new group and the group "never returns". Warnings do not stop the build.
+
+You will see: messages in the terminal when you break a content file.
+
+How to check by hand (with the demo content):
+1. In `content/journal/demo-kaarlo.md` change `motto:` to `mottto:`. The build warns: the field "mottto" is not used, did you mean "motto". Change it back.
+2. In `content/maps.json` write `"focusZom": 2` on a map. The same kind of warning, naming the file.
+3. In the `title` of a demo event add the line `de: Hallo`. The build fails, naming the file, the field and the language "de". Remove it.
+4. Give the last demo event the line `track: demo-extra`. The build warns that the group "demo-extra" has no later party event. Remove it.
+
+Acceptance criteria:
+- [ ] A language map with an unconfigured language is an error in every short text field listed above, naming the file, the field and the language. A plain value and a map with only configured languages are as before.
+- [ ] An unlisted field is a warning in the front matter of events and entries, in `showOn`, and in `campaign.json`, `maps.json` and `locations.json` (also inside `era`, `months` and `dateFormat`). It names the file and the field, and suggests a listed field within two typing mistakes. A warning does not fail the build, and the files in `content/`, `campaign/` and the fixtures have none.
+- [ ] A named group (a `track` that is not empty and not `none`) whose last event has no later party event gives a warning that names the last event's file and the group. A group that rejoins, a standalone event and the party give none.
+- [ ] The warnings appear in the terminal in the dev server and in the build, as the other warnings do.
+
+Automated tests: unit tests, with their own fixtures, for each of the three checks (an error for each kind of field, plain values and valid maps still passing, a warning for each kind of unlisted field with and without a suggestion, groups that rejoin and groups that do not), and that `content/`, `campaign/` and the fixtures give no new warning.
+
+## B-35 Build summary and unused items
+
+Status: defined
+
+Related: FR-9, "Validation rules" (warnings).
+
+Depends on: B-28.
+
+Scope note: the rest of the warnings that the design lists, plus the summary of translations. An unused item is one that nothing refers to. An image is unused when no text and no entry's lead image uses it (the map images are used by `maps.json`). A location is unused when no event has it as `location` or `showOn.location` and no location entry has its id. An entry is unused when no `[[link]]` in any event or entry text and no journal-only passage names it and, for a location entry, no event is held at it; so an entry that other entries link to counts as used. The summary is one line per language other than the default, in the terminal, in the dev server (also after every change of a content file) and in the build. It is not a warning. It counts, for the language, the events with no text (no `@xx` section) and with no title in it, the entries with no text and, for entries that have a name of their own, with no name, the locations and maps with no name in it, and the interface texts that are missing; only what is missing is listed, and a language with nothing missing is "complete". The language name is written in English with `Intl.DisplayNames`.
+
+You will see: after the build a short list of what is unused, and a line for English such as "English: events 8 of 14 without text, 8 without title; entries 3 of 8 without text; interface texts complete".
+
+How to check by hand (with the demo content):
+1. Run `npm run build`. The terminal ends with the summary line for English, and the numbers match what you know of the demo (several events and entries are Finnish only).
+2. Put a picture in `content/images/` that no text uses. The build warns that it is unused. Delete it.
+3. Add a location to `content/locations.json` that no event uses. The build warns. Remove it.
+4. Add `content/journal/demo-orpo.md` (an NPC, with a name and a line of text) that nothing links to. The build warns that it is unused. Add `[[demo-orpo]]` to a demo event: the warning goes.
+5. Add the English text to a Finnish-only demo event. The count of events without text goes down by one.
+
+Acceptance criteria:
+- [ ] An unused image, location and entry, by the definitions above, each give a warning that names the file (or `locations.json` and the id) and says what is unused. Items that are used give none, and the files in `content/`, `campaign/` and the fixtures have no such warnings.
+- [ ] The summary has one line for each language other than the default, as above, with the counts of what is missing for that language, "complete" when nothing is missing, and the language's name.
+- [ ] The summary is printed in the dev server and in the build, and it never fails the build or counts as a warning. A site with only the default language prints no summary line.
+- [ ] The counts follow the fallback rules: a text counts as missing exactly when the app would show the default language's text with the note.
+
+Automated tests: unit tests for each unused kind (used by an event, by a link, by a lead image, by a passage; unused), for the counts of the summary with and without missing parts and for the complete case, and for the line text.
+
+### Milestone 6: the build speaks up (after B-35)
+
+A checkpoint for the author's side of the site. The content files are the product owner's main tool, so this one is about how it feels to write and to make mistakes.
+
+What to try: do the "how to check by hand" steps of B-28 and B-35 in one go, and then make mistakes of your own in the real events in `campaign/` (a wrong place id, a mistyped field, a link to nobody) and in new demo entries, in `npm run dev` and in `npm run build`.
+
+Feedback wanted:
+- whether the messages say what is wrong in words that help you fix it, and whether the file and the field are always named;
+- whether any warning is noise that you would not want (the unused entries and the unlisted fields are the likely ones), or any slip is not caught;
+- whether the English summary line tells you what you want to know about the translation, and whether it is in the right place in a long terminal log.
+
+## B-29 Phone layout
+
+Status: defined
+
+Related: FR-1, FR-4, FR-6, "Devices", "Layout on desktop", BUG-9 and BUG-10.
+
+Depends on: B-27.
+
+Scope note: the layout for a phone, decided with the product owner after the first test on an iPhone. "Narrow" is a window up to 700 px wide (one shared setting, in the stylesheets and in a small hook that the code can ask). Above that nothing changes. On a narrow window the header gets compact (the title in one line, shortened with an ellipsis, with the full title as its tooltip), the journal panel covers the whole area below the header (as `DESIGN.md` says), and the controls are large enough to touch. The map switcher and Leaflet's zoom buttons are hidden by the panel while it is open (they are under it), and the header, with the journal button, stays in view. This item also replaces the stopgap of BUG-10, where the panel was only 90% wide and the map's buttons showed beside it. The orientation is portrait first; in landscape (short windows) the site has to work, not be pretty.
+
+You will see: on the phone, a one-line header; the event panel, the map and the buttons that fit and can be hit with a thumb; the journal as a full screen with entries, pictures and lists that fit its width, and the picture viewer with its close button always on the screen.
+
+How to check by hand (on your phone, from the deployed site, and in a desktop browser's phone view):
+1. Open the site. The header is one line: the title (shortened if needed), the journal button and FI | EN. Nothing scrolls sideways.
+2. Step with Previous and Next with your thumb. The buttons are easy to hit and the event panel's text scrolls inside it.
+3. Open the journal. It covers the whole screen under the header. Open an entry with a picture, and a long list of events. The picture and the text fit the width. Close it with the ✕ and with the journal button.
+4. Tap a picture in an event or an entry. The viewer shows it with the close button inside the screen. Close it.
+5. Turn the phone to landscape and repeat 1 to 4. Everything is reachable, though the map is small.
+6. Open the site on a desktop. It looks as it did.
+
+Acceptance criteria:
+- [ ] At widths 320, 375, 390 and 430 px (portrait) and in a 700 x 390 px window, the page has no horizontal scrolling, in the main view and with the journal open, and the header is one line, at most 52 px high.
+- [ ] On a narrow window the journal panel covers the area below the header completely (the whole width and height of the map and the event panel), without the side border, and the map's own controls are not visible and cannot be reached while it is open. It opens and closes with the ✕, Escape, the back button and the journal button, as before, and without the slide when the user prefers reduced motion.
+- [ ] On a narrow window these controls are at least 44 x 44 px: the journal button, FI and EN, the map switcher's buttons, Leaflet's zoom buttons, Previous and Next, the panel's ✕ and its link back to the index, the close button of the image viewer, the notice's button, and each row of the index and of the lists of events (a link inside running text is not included).
+- [ ] The event panel's height uses the dynamic viewport height (with the plain one as a fallback) and a margin for the device's bottom edge, so that the buttons are not hidden by the browser's toolbar or the home bar; the map keeps its size from event to event, as on a desktop.
+- [ ] Pictures, long words and the lists in an event and in an entry fit the width at 320 px without sideways scrolling in the panel, and the image viewer's picture and its close button are fully inside the screen.
+- [ ] Above 700 px the layout, and all the earlier browser tests, are as before.
+- [ ] A tap does what a click does: stepping, opening and closing the journal, switching the map and language, opening a picture.
+
+Automated tests: Playwright tests in Chromium at each of the widths and in the landscape window (no horizontal scrolling, header height, the panel's box against the area, the sizes of the controls, the viewer's close button inside the screen), and the same tap flow in WebKit with the iPhone 13 mini profile (stepping, journal open and close, viewer) with real touch taps; a unit test of the narrow-window hook. The DESIGN.md layout section is updated.
+
+### Milestone 7: the phone (after B-29)
+
+A checkpoint for the phone, on your own iPhone from the deployed site, since the phone has already shown things that a desktop does not.
+
+What to try: use the whole site on the phone for a while as a player would: read the events, step quickly, switch maps, read the journal, follow links, open pictures, turn the phone, and change the language. Try it in Safari and, if you can, in another browser.
+
+Feedback wanted:
+- whether the header, the panels and the map feel right in size and proportion, in particular the share of the screen that the map gets;
+- whether the controls are easy to hit and nothing is hidden by the browser's bars;
+- whether the full-screen journal works as you expected, and how you get back to the story from it;
+- anything on the phone that behaves differently from the desktop.
+
+## B-30 Keyboard and focus
+
+Status: defined
+
+Related: "Non-functional requirements" (accessibility, back button), FR-6.
+
+Depends on: B-29 (it uses the narrow-window hook).
+
+Scope note: the whole site can be used with the keyboard alone, in a sensible order, and the user can always see where the focus is. Decided with the product owner: the journal panel traps focus only when it covers the screen (a narrow window), where it hides the page; on a wider window the page beside it stays usable and Tab may leave the panel. The image viewer is always modal. The Leaflet map already takes the arrow keys, `+` and `-` when it has focus, and that stays. A link "Skip to the event" at the very start of the page leads past the map's controls to the event panel. Screen-reader work (announcements, landmarks, contrast) is B-36.
+
+You will see: a clear outline on whatever has the focus, a natural Tab order, and a panel that does not let Tab wander into the hidden page on a phone-sized window.
+
+How to check by hand:
+1. Reload the page and press Tab. A skip link appears first. Press Enter: the focus goes to the event panel. Press Tab from the start again and go through the page: skip link, the journal button, FI, EN, the map's switcher and zoom buttons, the map, Previous, Next, and the links and pictures in the text. The focus is always visible.
+2. With the focus on the map press the arrow keys and `+` and `-`: the map pans and zooms.
+3. Step with the keys: focus on the event panel and press the left and right arrows. The focus stays where it was.
+4. Open the journal with the keyboard. The focus moves into it. Press Tab through the index, then Shift+Tab. In a narrow window it cycles inside the panel; in a wide window it can leave it. Press Escape: the panel closes and the focus is on the journal button.
+5. Open a picture with Enter. Tab stays on the viewer's close button. Escape closes it and the focus returns to the picture.
+
+Acceptance criteria:
+- [ ] Every control can be reached and used with the keyboard in this order: the skip link, the journal button, FI, EN, the map switcher's buttons, Leaflet's zoom buttons, the map, Previous, Next, the notice's button (when there is one), and then the links, lists and pictures of the text. With the journal open, the order inside it is the ✕, the link back, then the content.
+- [ ] A visible focus mark (an outline of at least 2 px, with a contrast of at least 3:1 to what is next to it) is on every control, link and picture that can have the focus, in the main view, the panel and the viewer.
+- [ ] The skip link is the first control, is visible when it has the focus (and only then), and moves the focus to the event panel.
+- [ ] On a narrow window, with the journal panel open, Tab and Shift+Tab cycle inside the panel and the page under it is inert (not reachable, not read). On a wide window the panel does not trap focus. When the panel closes, the focus returns to the control that opened it, or stays where the user put it.
+- [ ] The image viewer is modal in all windows: Tab and Shift+Tab stay in it and the page under it is inert; Escape closes only the viewer; the focus returns to the picture.
+- [ ] Stepping with the arrow keys or the buttons keeps the focus on the control that was used (it does not jump to the page start or to the map); switching the map or the language does the same.
+- [ ] The map takes the arrow keys, `+` and `-` when it has the focus, and does not take them anywhere else.
+
+Automated tests: Playwright tests that go through the page with Tab and compare the order, check the focus mark on every control (outline width and a computed contrast), the skip link, the focus cycle and the inert page on a narrow window and the free Tab on a wide one, the viewer's trap, the return of focus, and keyboard stepping that keeps the focus; the same for the narrow case in WebKit.
+
+## B-36 Screen readers and readability
+
+Status: defined
+
+Related: "Non-functional requirements" (accessibility), FR-4, FR-6, FR-9.
+
+Depends on: B-30. It adds one development-only library, `@axe-core/playwright`, which the product owner has approved (it scans pages in the browser tests and is not part of the site); `DESIGN.md`'s stack list gets a line for it.
+
+Scope note: the practical basics in the requirements, with no formal claim. The structure is made right: landmarks (header, main, the event region, the journal as a complementary region), one `h1`, headings in order, lists as lists, names for the controls. The change of event is announced to a screen reader (a polite status line with the title, the date and the place), and a text shown in the default language because it has no translation is marked with its language. The map's lines, dots and markers are decoration for a screen reader (the event panel says where the event is), and the map itself has a name and a short instruction. Colours: text 4.5:1 and large text and controls 3:1, and information is never only a colour (the routes differ in line style too). The text can be enlarged to 200% (the browser's zoom) without losing anything or scrolling sideways. Decided with the product owner: only the journal panel follows the setting "reduce motion"; the map's flights and zooms stay as they are.
+
+You will see: nothing new on the screen for most readers, apart from contrast fixes if the scan finds any; with a screen reader, the page is named and structured and the steps are announced.
+
+How to check by hand:
+1. Turn on a screen reader (VoiceOver on the iPhone, Narrator or NVDA on Windows). Move through the page by headings and landmarks. You hear the title, the event region, the map and the journal in a sensible order.
+2. Press Next. The new event's title, date and place are read out without moving the focus.
+3. Choose English on an event with no English text. The note is read, and the text is read in Finnish.
+4. Zoom the browser to 200%. Everything is still there and nothing scrolls sideways.
+5. Open the journal, an entry and a picture. Each is named and the entry's headings are in order.
+
+Acceptance criteria:
+- [ ] The page has the landmarks and names listed above, one `h1` (the site title), the event title as an `h2`, and in the journal panel the headings in order without gaps (the panel `h2`, an entry's name `h3`, its sections `h4`, each event of the excerpts `h5`).
+- [ ] A polite status region announces the title, the date and the place of the event after each step, after a map switch only the map's name, and not at the first load; it is not shown on the screen.
+- [ ] A text that falls back to the default language (an event, an entry, an excerpt) has the `lang` attribute of the default language on it, so that a screen reader reads it right.
+- [ ] The map's overlay (lines, dots, markers, tooltips) is hidden from assistive technology, the map has a name and an instruction ("use the arrow keys to move the map, plus and minus to zoom") from `ui.json`, and every text for this is in the chosen language.
+- [ ] Axe scans of the main view, the journal index, an entry with a picture and a list of events, the image viewer and the notice, in Finnish and English, in a wide and a narrow window, give no serious or critical violation (contrast included), and no violation at all in the structure rules. Any colour that fails is changed, and the change is listed in `DESIGN.md`.
+- [ ] At 200% zoom (a window of 640 x 360 CSS px) the page has no sideways scrolling and all the controls can be reached.
+- [ ] The journal panel's slide follows "reduce motion" (as now), and nothing else changes with it.
+- [ ] Pictures keep their alt texts (the lead image has the entry's name), the viewer's picture has its alt text, and a link with only an image has a name.
+
+Automated tests: Playwright tests with axe for each page state above (Chromium, and the narrow ones in WebKit), tests for the landmarks and the heading order, the status region after a step, a map switch and the first load, the `lang` on a fallback text, the hidden overlay, the 200% zoom case, and the reduced-motion case for the panel; unit tests for the heading and landmark helper, if any.
+
+### Milestone 8: without a mouse, and for every reader (after B-30 and B-36)
+
+A checkpoint for using the site in other ways than a mouse and good eyes.
+
+What to try: use the whole site once with the keyboard only (no mouse), once with a screen reader for a few events and an entry, and once at a browser zoom of 200%. Ask a player or two who use other devices to try it if you can.
+
+Feedback wanted:
+- whether the keyboard way feels natural, in particular the order of the controls and the skip link, and whether the visible focus mark looks right with the rest of the design;
+- whether the trap in the journal on a phone-sized window is comfortable, and whether the free Tab in a wide window is what you want;
+- what the screen reader reads: whether the announcement of a step is the right amount, and whether anything is read twice or not at all;
+- any colour that changed in the contrast fixes and that you want to keep or revert.
+
+## B-31 Performance with a large campaign
+
+Status: defined
+
+Related: FR-1 (50 markers), FR-2 (200 ms, 300 events), "Performance", "Scale target".
+
+Depends on: B-35 (the generated campaign must pass all the checks, with no warnings), and the feature work before it.
+
+Scope note: the product owner wants the data for this kept apart from the demo content. There are then three content folders: `content/` (the demo until B-32, the real campaign after it), `perf-campaign/` (generated) and `campaign/` (the real draft until B-32). The performance campaign is written by a script from a fixed seed, so it is always the same, it is not committed (`perf-campaign/` is in `.gitignore`), and the repository stays small. Its size is the scale target: 300 events, 50 locations and 30 journal entries, plus about 20 pictures. It is built like a real campaign: events spread over several years of the calendar, about 60% on the main map, some shown on Bog End, some only on Haestra (`n/a` on the main map), about 10% standalone, three split groups of 10 to 15 events each with a few `newSegment`, one to five paragraphs each with an average of three links to entries, about 40% with an English section, 15 journal-only passages, about 30 pictures in texts, and entries (the long ones named by 100 events) with long excerpt lists. Every location, picture and entry is used, so the campaign has no warnings. If a measurement breaks a limit, a small fix goes into this item, and a larger one becomes a new item that is agreed with the product owner.
+
+You will see: a campaign of the scale target that you can open and step through, and numbers for how quickly the site answers.
+
+How to check by hand:
+1. Run `npm run perf:generate`. A folder `perf-campaign/` appears.
+2. Run `CONTENT_DIR=perf-campaign npm run dev` and open the site. Step quickly with Next and Previous through the events, open the long journal entries, switch maps and languages. Nothing waits or stutters.
+3. Run `CONTENT_DIR=perf-campaign npm run build` and then `npm run preview -- --host`. Open the address on your phone in the same network and do the same. Note how long the first view takes.
+4. Run `npm run test:perf`. The numbers are written in the terminal.
+
+Acceptance criteria:
+- [ ] `npm run perf:generate` writes `perf-campaign/` with exactly 300 events, 50 locations and 30 journal entries, with all the features listed above, in about two seconds, and the same files every time.
+- [ ] The generated campaign builds and loads with no errors and no warnings, and every location, picture and entry in it is used.
+- [ ] `perf-campaign/` is in `.gitignore`. `CONTENT_DIR=perf-campaign npm run dev` and `npm run build` work on it.
+- [ ] Stepping to the next or previous event, from the click to the change of the title, the marker and the lines, takes a median under 100 ms and a 95th percentile under 200 ms over 100 steps through the performance campaign in Chromium, including the steps at the end of the campaign, where the most dots and the longest route are drawn. Opening the longest journal entry, switching the map, and switching the language also take under 200 ms.
+- [ ] Building the routes of the 300 events when the app loads takes under 50 ms, and drawing the lines of one step under 10 ms.
+- [ ] The size of the built script (compressed) is written in the test output and in `DESIGN.md`, with a limit that the test enforces, set after the first measurement.
+- [ ] The tests also print the same numbers with the processor slowed to a quarter (a phone), as information, with no limit.
+- [ ] `npm run test:perf` runs these tests, and they are part of `npm run test:all` and of the publishing workflow.
+
+Automated tests: unit tests of the generator (the counts, the same output twice, that it loads without errors and warnings, that every item is used) and of the routes' time; a Playwright project `perf` that builds the generated campaign and measures the steps, the entry, the map switch and the language switch with the browser's own timing marks.
+
+### Milestone 9: a big campaign (after B-31)
+
+A checkpoint for how the site feels when the campaign is as big as it is going to be.
+
+What to try: open the performance campaign on your computer and on your phone, step quickly forwards and backwards through many events, jump to the end, open the long journal entries and follow their links, and switch maps and languages. Look at the main map with its long route.
+
+Feedback wanted:
+- whether anything waits, stutters or looks wrong at this size, on the computer and on the phone;
+- whether the map with the whole route of 300 events is still readable, or whether the old lines should fade or be limited (this was left open in Milestone 2);
+- whether the long journal entries, with their excerpts and lists of events, are still comfortable to read, or need a limit or a "show more".
+
+## B-32 Moving to the real content
+
+Status: defined
+
+Related: "Folder layout", "Deployment", "Test content".
+
+Depends on: B-31. It starts only when the product owner says that the real content is ready to be published, because the live site changes with it.
+
+Scope note: decided with the product owner: the folders are swapped, so the default content is the real campaign. The real campaign moves to `content/`: the files of `campaign/` and the map images (`content/maps/`, which stay where they are) and an events folder with the real events. The demo moves to `demo/`, and its map file points to `../content/maps/`, as `campaign/maps.json` does now. `campaign/` stops to exist. The publishing workflow and `npm run dev` then use `content/` as before, since the default does not change; the demo is used with `CONTENT_DIR=demo`. The files are moved with `git mv`, so that the history follows. The performance campaign generator and the documents are updated for the new paths. The text in earlier items that says `content/` for the demo is history and is left as it is, with one note at the top of `BACKLOG.md`. This item also writes the authoring guide: how the product owner adds events, entries, pictures and links, how to read the warnings, how to try a change (`npm run dev`) and how to publish it.
+
+You will see: `npm run dev` and the live site show your own real events and no demo events, and the demo is still there when you ask for it.
+
+How to check by hand:
+1. Run `npm run dev`. The real events are shown, and no event starts with "Demo:".
+2. Run `CONTENT_DIR=demo npm run dev`. The demo opens as before, with its journal.
+3. Run `npm run build`: no errors and no warnings. After you push, the live site shows the real events.
+4. Read `content/README.md`. Follow it to add an event with a picture and a link, and see it in the dev server.
+5. Look for `campaign/`: it is gone.
+
+Acceptance criteria:
+- [ ] `content/` holds the real campaign (campaign, interface texts, maps and their images, locations, events, and a journal folder when there are entries), `demo/` holds the demo (its events, journal and pictures, and files for the campaign settings, interface texts and locations; its `maps.json` points to the maps in `content/maps/`), and `campaign/` no longer exists. The files are moved with `git mv`.
+- [ ] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` and `CONTENT_DIR=perf-campaign` work as before for the other two.
+- [ ] Both `content/` and `demo/` load with no errors and no warnings, and the unit tests for them (now two) pass; the tests that use the fixtures are unchanged.
+- [ ] The performance campaign generator uses the new path of the maps, and its output is as before.
+- [ ] `CLAUDE.md`, `DESIGN.md` (folder layout, deployment, test content), `REQUIREMENTS.md` where it applies, and the READMEs of `content/` and `demo/` describe the new layout. `campaign/README.md`'s notes that are still true (the dates of the first session) move to the new `content/README.md`.
+- [ ] `content/README.md` is an authoring guide, in English with Finnish examples, that covers the folder layout, writing an event (the file name, the front matter, languages, links, pictures, journal-only passages), writing an entry, adding a picture, reading the warnings, running the site, and publishing; it is short enough to read in ten minutes.
+- [ ] A note at the top of `BACKLOG.md` says that earlier items call the demo folder `content/`.
+
+Automated tests: the unit tests for `content/` and `demo/`, the generator test with the new path, and the whole of `npm run test:all` and the workflow's steps passing.
+
+## B-37 Release check
+
+Status: defined
+
+Related: "Deployment", "Non-functional requirements", the whole of `REQUIREMENTS.md` and `DESIGN.md`.
+
+Depends on: B-32.
+
+Scope note: the last checks before the site is called finished: the documents against the finished system, the requirements against the tests, and the live site against the targets that only a real run can show.
+
+You will see: a short report from me, a repository front page that explains the site, and your own measurements of the live site.
+
+How to check by hand:
+1. Read the report of the check (in the commit message and in this item): what differed and what was changed.
+2. Open the repository's front page on GitHub. It says what the site is and how to run it.
+3. Open the live site on a fast connection and on your phone, and note how long the main map and the first event take to appear. Compare with the 3 seconds in the requirements.
+4. Open the live site on your phone and use it for a while, as in Milestone 7.
+
+Acceptance criteria:
+- [ ] Every statement in `REQUIREMENTS.md` and `DESIGN.md` is checked against the code and the content: the file formats against the loader, the validation rules against the tests, the architecture and the components against `src/`. Every difference is fixed in the document (or, if it is a mistake in the code, in the code), and `DESIGN.md`'s status line and the open items of `REQUIREMENTS.md` are up to date.
+- [ ] Each of the requirements FR-1 to FR-9 has at least one unit test and one browser test whose name names it, and a unit test checks that this stays true.
+- [ ] `BUGS.md` has no open bug and `BACKLOG.md` has no item that is neither `accepted` nor in the list after the first version.
+- [ ] A `README.md` in the repository root says in English what the site is, shows the address, and tells how to run, test, write content and publish it, and points to `specifications/`.
+- [ ] GitHub Pages is enabled with the source "GitHub Actions" and the last run of the workflow on `master` is green (the product owner confirms both).
+- [ ] The product owner has measured the time to the main map and the first event on the live site, on a fast connection and on a phone, and the result is written in `DESIGN.md` next to the 3 s target, with a note if it is missed. The large map `haestra.jpg` loading in the background is checked on the phone.
+
+Automated tests: the unit test that every requirement is named by a test, and the whole of `npm run test:all` and the workflow passing.
+
+### Milestone 10: the real thing (after B-32 and B-37)
+
+The last checkpoint: the first version of the site, live, with the product owner's own content.
+
+What to try: use the live site as the players will. Send the address to a player and see what they do with it. Read your own events and entries on it, on the computer and on the phone.
+
+Feedback wanted:
+- what is missing for you to start adding the whole campaign;
+- what the players find confusing or good;
+- which of the ideas after the first version (a placement helper, clicking a marker, share links, filters, a book-style journal button, a fantasy look) you want first.
+
 ---
 
 # Outlined items (status: backlog)
 
-These are outlined only. Each is refined into a defined item, with acceptance criteria, automated tests and a manual check, when its turn comes. Each will also state what you can expect to see and how to check it by hand.
-
-## B-28 Build summary and warnings
-The summary per language of missing translations, and warnings for unused images, locations and entries, and tracks that never return to the party. Two more checks belong here, found in the review of the documents after B-27: a language map in a short text field (an event's `title`, an entry's `name` or `motto`, the names of locations and maps, `campaign.json` and `ui.json` texts) that names a language that is not configured is an error, as it is for an `@` section in a body, and a front-matter field that the design does not list for an event or an entry (for example a mistyped `mottto`) is a warning. (The warning for an event that is `n/a` on the main map although its `showOn` location has a main position is in B-34.) You will see the warnings and the per-language summary in the terminal when you build. "Validation rules".
-
-## B-29 Phone layout
-A layout that works on a phone: the event panel, the map and a full-screen journal panel. You will see the site working in the browser's phone view and on your own phone. FR-6, "Devices".
-
-## B-30 Accessibility
-Keyboard operation of the whole interface, focus handling for the journal panel, readable contrast, and alt texts. You will see that the whole site can be used with the keyboard alone. "Non-functional requirements".
-
-## B-31 Performance with a large campaign
-A generated stress content set of 300 events, 50 locations and 30 entries, a test that stepping takes under 200 ms, and a manual load check of the deployed site. You will see the site stay responsive with a campaign of that size and the first load time on the real site. FR-2, "Performance".
-
-## B-32 Replacing the demo content
-A short guide for replacing the demo content in `content/` with the real campaign content, which is drafted in `campaign/` meanwhile (see `campaign/README.md`), and a final check of the documents against the finished system. You will see your own first real events running on the site.
+None at the moment: all the items above are refined.
 
 ---
 

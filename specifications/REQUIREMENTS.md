@@ -108,7 +108,8 @@ The site can be shown in Finnish or English. Finnish is the default language, th
 
 ## 3. Post-MVP
 
-- A helper tool for placing locations and events on the map without measuring pixel coordinates.
+(The helper for placing locations on the map without measuring pixel coordinates is a development tool and not part of the site: it is planned in B-40.)
+
 - Clicking a map marker to select that location's events.
 - Shareable links to a single event.
 - Timeline filters (character, location, session).

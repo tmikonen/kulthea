@@ -90,7 +90,7 @@ Aldric first doubted the order here, though he told no one.
 - A `:::journal{for="..."}` block is hidden in the event and shown only in the named character's entry (`for="aldric,mira"` for several). Each id must name a player character or an NPC. The block is found by a line scanner of our own (a line `:::journal{for="..."}` up to a line `:::`), so a colon in ordinary text is never read as a directive. Blocks are for events only, cannot be nested, and links in a block do not make the event link to the entries they name.
 - Rules checked by the build: `location` exists and has a position on the main map unless it is `n/a`; `showOn.location` has a position on `showOn.map`; `n/a` requires `showOn`; every `for` and `[[...]]` id exists; the file name's date and order number are valid and unique.
 
-Folder layout (the demo is in `content/` until B-32, which gives the real campaign `content/` and the demo `demo/`; a generated campaign for the performance tests, `perf-campaign/`, is added by B-31 and is git-ignored):
+Folder layout (the demo is in `content/` and the real draft in `campaign/` until B-32, which gives the real campaign `content/` and the demo `demo/`; a generated campaign for the performance tests, `perf-campaign/`, is added by B-31; `drafts/` of the content track (B-41), `perf-campaign/` and the private notes in `gm-notes/` are git-ignored):
 ```
 content/
   campaign.json
@@ -305,6 +305,18 @@ Route rules, using the places of an event on a map as defined under "Map markers
 
 Bad links: if the URL names an event that doesn't exist, the app shows the first event with a dismissible notice. The address is replaced with the first event's, and the notice is carried in the history entry's state, so dismissing it does not change the address and it does not come back on reload after being dismissed. If it names a journal entry that doesn't exist, the entry is ignored and the event is shown. The app never shows a blank screen.
 
+## Content tools (planned, B-38 to B-42)
+
+The real content is made in pieces from the GM's notes (`BACKLOG.md`, "Content from the GM notes"). The notes are in `gm-notes/`, which is git-ignored, so they are never published. The tools are Node scripts in `scripts/` that the developer runs; none of them is part of the site, and none changes the notes.
+
+- `npm run notes:split` (B-38) cuts the notes' Markdown file into parts (the characters and the six parts of the sessions, each into its outcome and its plan), removes the export's Markdown escapes, decodes the embedded pictures into files and writes an outline, all into `gm-notes/work/`. The outcome of a session is at the start of the next year's part.
+- `npm run notes:image` (B-39) converts one of those pictures to WebP, at most 1600 px wide and about 1 MB, into a draft. It uses `sharp`, a development-only library.
+- A draft (B-41) is a folder `drafts/<item>/` (git-ignored) laid out like a content folder with only the new or changed files, plus `locations.add.json`, `images.json`, an optional `aliases.json` and `REVIEW.md`, which lists every proposal with its source in the notes, how sure it is, and the open questions. `npm run draft:check`, `draft:dev` and `draft:apply` validate a draft over the real content in a temporary folder (`.drafts-merged/`, git-ignored), show it on the dev server, and copy it into the real content; changed files are shown as a diff and need `--overwrite`. The real content folder is one setting in one file.
+- `npm run draft:links` (B-42) suggests `[[links]]` for the names of known entries and locations in a draft's Finnish text, matching Finnish endings, and with `--apply` writes the sure ones only.
+- The position helper (B-40) is a page, `place.html`, that the dev server serves and the build does not include. It shows a map, lets the developer click to read a percent position, and lists the places that have none.
+
+Nothing is invented in a draft: what the notes do not say is an open question in `REVIEW.md`. Planned and future events are not content.
+
 ## Deployment
 
 - Publishing: a GitHub Actions workflow runs on every push to the `master` branch. It installs dependencies, runs the tests and the content validation, builds the site and deploys it with GitHub's official Pages action. Nothing built is committed to the repository, and a failed validation never replaces the live site.
@@ -330,7 +342,7 @@ Bad links: if the URL names an event that doesn't exist, the app shows the first
 - App: React, TypeScript (strict), Vite and CSS Modules.
 - Map: Leaflet through react-leaflet. Routing: React Router with the hash router (`react-router`).
 - Content pipeline (the Vite plugin): unified and remark for Markdown (`unified`, `remark-parse`, `remark-rehype` and `rehype-stringify`, which produce the HTML at build time), with a line scanner of our own for the `:::journal` blocks, a YAML front-matter parser (the `yaml` package, with the front matter block split off by our own code) and `image-size`, which reads image dimensions. These are all the runtime packages: `react`, `react-dom`, `react-router`, `leaflet`, `react-leaflet`, `unified`, `remark-parse`, `remark-rehype`, `rehype-stringify`, `yaml` and `image-size`.
-- Quality: Vitest, React Testing Library, Playwright, and ESLint with TypeScript support. `@axe-core/playwright` is to be added as a development-only library for the accessibility scans (planned, B-36, approved by the product owner).
+- Quality: Vitest, React Testing Library, Playwright, and ESLint with TypeScript support. `@axe-core/playwright` is to be added as a development-only library for the accessibility scans (planned, B-36), and `sharp` for the picture tool of the content track (planned, B-39); the product owner has approved both.
 - No other runtime libraries are added without agreement with the product owner.
 
 ## Decision record

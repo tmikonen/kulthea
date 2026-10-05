@@ -948,6 +948,373 @@ Feedback wanted:
 - whether any warning is noise that you would not want (the unused entries and the unlisted fields are the likely ones), or any slip is not caught;
 - whether the English summary line tells you what you want to know about the translation, and whether it is in the right place in a long terminal log.
 
+## Content from the GM notes
+
+The real campaign content is made in pieces from the GM's notes in `gm-notes/` (git-ignored, so the notes themselves are never published): first the player characters, then one session at a time. The items B-38 to B-48 below are this track. It is semi-automatic: small tools (B-38 to B-42) do the mechanical work and check the result, I read the notes and write the proposals, and the product owner decides what goes in.
+
+What the notes are (checked in October 2026): one Markdown file, `Kulthea-kampanja-2026-1.md` (50 MB), and a PDF with the same content (120 MB), in Finnish. The text is only about 57 KB (930 lines): the rest is 85 embedded pictures (PNG, 36 MB in all, mostly 600 px wide, 7 over 1 MB), stored as base64 at the end of the file and used in the text as `![][image12]`. The text has these parts: `Hahmot` (six player characters: Og-Og, Marek Baalik, Jenel Idarien, Taelaran Quirinion, Bain Pitkävihainen and Magnus Bombus, of whom Jenel Idarien was never used in the campaign), then `Osa I` (2021) to `Osa V` (2025) as headings, and `Osa VI` (2026) as a plain line. Each part is mostly the GM's plan for that year's session: the starting situation, ways to solve it, NPCs, places, hooks and pictures. What really happened is written at the start of the next year's part ("Edellisellä kerralla tapahtunutta"), so the outcome of the 2021 session is at the start of `Osa II`, 2022 at the start of `Osa III`, 2023 at the start of `Osa IV` and 2025 in `Osa VI`. There is no such recap at the start of `Osa V`, so the outcome of 2024 has not been found (a question for B-47). `Osa VI` also holds a summary written by ChatGPT and a plan for the finale of 2026, which has not been played: planned and future events are not content (`REQUIREMENTS.md`, section 1).
+
+How the work goes, for every extraction item (B-43 to B-48):
+1. `npm run notes:split` prepares the notes again from the file (B-38), so that a new version of the notes is used.
+2. I read the outcome and the plan of the session and write proposals as ordinary content files in `drafts/<item>/` (B-41): events, journal entries, additions to the locations, and prepared pictures (B-39), in Finnish, with `[[links]]` suggested by the link helper (B-42). A file `REVIEW.md` lists every proposal with where in the notes it comes from, how sure it is, and the open questions. Nothing is invented: what is not in the notes is a question, not a guess.
+3. `npm run draft:check` validates the draft over the real content, and `draft:dev` shows it on the site for review, with the positions proposed (B-40 helps you correct them).
+4. You answer the questions in `REVIEW.md`: the dates, the places, who was present, and, for each session, which places, NPCs and items that appear only in the plans are included (decided per session, as you chose). A plan-only item is left out until you say so.
+5. `draft:apply` copies the accepted files into the real content, the tests and the build pass, and I commit it as `B-<n>: <title>`. You accept the item after seeing it on the site.
+
+The real content folder is `campaign/` until B-32 and `content/` after it; the tools take it from one setting. The notes are in Finnish, and so is the content; English texts are added later, a few at a time, and are not part of this track. The pictures in the notes may not be yours to publish: you decide which are used, and nothing in these tools decides it.
+
+## B-38 Notes preparation tool
+
+Status: defined
+
+Related: "Content from the GM notes".
+
+Depends on: B-35 (so that the checks that follow are in place). It uses no library that is not in the stack.
+
+Scope note: `npm run notes:split` (a Node script, `scripts/notes/split.mjs`) reads the notes' Markdown file (the path is an argument; by default the newest `gm-notes/*.md`) and writes, to `gm-notes/work/` (git-ignored, because `gm-notes/` is): the text cut into parts (`characters.md` and `part-1.md` to `part-6.md`), each part again cut into its outcome (the text after a line that starts "Edellisellä kerralla") and its plan, the Markdown escapes of the export removed (`\!`, `\-`, `\~`, `\(`) without touching the words, the pictures decoded to `images/image-NN.png` and referenced in the text as `![](images/image-NN.png)`, and an `outline.json` with, for each part, the line range, the headings, the pictures it uses (with the line above each, as a caption hint) and the size of each picture. It prints a report with the counts and a warning for what is not as expected (a part with no outcome marker, a picture that is not used, a picture that cannot be decoded). It does not interpret the story; that is for the extraction items. The PDF is not read: the Markdown has the same content. Running it again gives the same files.
+
+You will see: a folder `gm-notes/work/` with the notes as small text files and the pictures as files, and a report.
+
+How to check by hand:
+1. Run `npm run notes:split`. The report says 6 parts plus the characters, 85 pictures, and a warning that `part-5` (2025) has no outcome marker.
+2. Open `gm-notes/work/part-2.md`: the start is the outcome of 2021, then the plan for 2022. The pictures are links to files that open.
+3. Run it again and compare: nothing changes.
+
+Acceptance criteria:
+- [ ] The text files, the pictures and `outline.json` are written as above, and the pictures open (valid PNG files, the same bytes as the encoded ones).
+- [ ] Each part is cut at its heading (or, for the last, at the plain line "Osa VI"), and each is split into outcome and plan at the marker; a part without a marker is all plan and gets a warning in the report, except the first, which has no earlier session.
+- [ ] The Markdown escapes are removed and the text is otherwise unchanged (a test checks the rule with the examples that occur in the notes).
+- [ ] The tool does not change or write into the notes' own files, writes only under `gm-notes/work/`, and fails with a clear message when the file or the parts are not found.
+- [ ] It is repeatable: two runs give identical output.
+
+Automated tests: unit tests of the splitter with a small made-up notes file in `tests/fixtures-notes/` (two parts, an outcome marker in one of them, three tiny embedded pictures, one unused, one that is not valid), covering the cuts, the unescape rule, the outline and the report, and the repeatability.
+
+## B-39 Picture preparation tool
+
+Status: defined
+
+Related: "Content from the GM notes", "Images" (data model), "Validation rules" (image warnings).
+
+Depends on: B-38. It adds one development-only library, `sharp`, which the product owner has approved (it converts pictures in a script and is not part of the site); `DESIGN.md`'s stack list gets a line for it.
+
+Scope note: `npm run notes:image -- <number> <name>` takes one of the pictures from `gm-notes/work/images/`, scales it down to at most 1600 px wide, writes it as WebP to the images folder of a draft (`drafts/<item>/images/<name>.webp`, B-41) with the quality lowered step by step until the file is at most about 1 MB (a picture that has transparency keeps it), and prints the size and a place for the alt text that I fill in. `<name>` is an ASCII slug (letters, digits, hyphens). A file `drafts/<item>/images.json` records which picture of the notes became which file, so that a picture is not converted twice and a run can be repeated. A picture that is already small enough is converted anyway so that every picture on the site has one format. The tool does not decide which pictures are published.
+
+You will see: small WebP pictures in a draft folder, each under about 1 MB.
+
+How to check by hand:
+1. After B-38, run `npm run notes:image -- 15 trollin-luola` (any picture number). The tool writes a file under `drafts/…/images/` and says its width, height and size.
+2. Open the file. It looks like the original, and is at most 1600 px wide and about 1 MB.
+3. Run the same command again: it says that the picture is already done.
+
+Acceptance criteria:
+- [ ] The result is a valid WebP of at most 1600 px width (the proportions kept) and, for the 7 pictures that are now over 1 MB, at most about 1 MB.
+- [ ] Transparency is kept for pictures that have it; the colours are not visibly changed (the test compares the average colour within a small tolerance).
+- [ ] `images.json` records the number, the name, the sizes before and after; a repeated run does nothing and says so; a name that is already used for another picture is refused.
+- [ ] A name that is not a slug, a number that does not exist, and a missing `gm-notes/work/` give clear errors and write nothing.
+- [ ] The content loader accepts the files (a draft with such a picture in a text passes `draft:check` with no image warning).
+
+Automated tests: unit tests with generated pictures (a large opaque one, a small one, one with transparency) for the size, the width, the transparency, the repeat and the refusals.
+
+## B-40 Position helper
+
+Status: defined
+
+Related: "Positions", "Map markers"; it moves the "helper tool for placing locations" from the list of ideas after the first version into the plan, as a development tool.
+
+Depends on: B-35.
+
+Scope note: a page for the product owner (and me) that works out the percent positions that the text does not give. `npm run dev` serves it at `/kulthea/place.html` (the dev server only: it is not part of the built site and not published). It uses the content folder that is set by `CONTENT_DIR`. It shows one map at a time, chosen from the maps of that folder, with the same pan and zoom as the site, the places that already have a position on the map as labelled dots, and a list of the places that have no position on that map. Clicking on the map shows the position as `[x, y]` in percent with one decimal and a button that copies it; choosing a place from the list first and then clicking the map gives a snippet for that place's `positions` that can be pasted into `locations.json` (or into a draft's additions, B-41). It writes no files. It converts with the same function as the site, in reverse.
+
+You will see: a page with a map where a click tells you the position of the place, and the list of places that still need one.
+
+How to check by hand:
+1. Run `npm run dev` and open `http://localhost:5173/kulthea/place.html`. Choose Bay of Izar. The places of the demo are dots with their names.
+2. Click a spot on the map: the position appears, e.g. `[45.3, 79.0]`. Compare it with a place that has that position in `locations.json`: the dot is where you clicked.
+3. Choose a map where some place has no position, pick it from the list, click the map, and copy the snippet.
+4. Open the built site: there is no `place.html`.
+
+Acceptance criteria:
+- [ ] The page shows the chosen map of the content folder, its places with positions as labelled dots at the right spots, and the places without a position in a list.
+- [ ] A click shows the position as percent `[x, y]` with one decimal, from the top-left of the image, and agrees with the site's own conversion (a place put at that position is drawn at the click on the site); the copy button works.
+- [ ] With a place chosen from the list, the page shows a ready snippet `"<id>": { "<map>": [x, y] }` for it.
+- [ ] The page is only in the dev server, and not in the build output; it writes nothing.
+- [ ] Clicks outside the image are ignored.
+
+Automated tests: a unit test of the reverse conversion (a round trip with the forward one for corners, centre and random points); Playwright tests that the page loads from the fixtures, that a click gives the expected percent, that the list shows the places without a position, and that the built site has no `place.html`.
+
+## B-41 Drafts: check, preview and apply
+
+Status: defined
+
+Related: "Content from the GM notes", "File formats", "Validation rules".
+
+Depends on: B-38.
+
+Scope note: the way proposals travel from my reading of the notes into the real content. A draft is a folder `drafts/<item>/` (git-ignored, because it quotes the GM's private notes in `REVIEW.md`) laid out like a content folder, with only the files that are new or changed: `events/`, `journal/`, `images/`, and `locations.add.json`, a list of places to add to `locations.json` (an id that already exists is a conflict unless the entry is the same). `npm run draft:check -- <item>` makes a temporary content folder (`.drafts-merged/<item>/`, git-ignored) from the real content and the draft, loads it with the normal loader, and prints the errors and warnings, what is new and what is changed (a file that exists in the real content is shown as a change, with a diff), and the unresolved questions of `REVIEW.md`. `npm run draft:dev -- <item>` does the same and then starts the dev server on that folder, so the draft is seen on the site. `npm run draft:apply -- <item>` copies the files of the draft into the real content (a changed file only with `--overwrite`, and it lists them first), merges `locations.add.json` into `locations.json`, and refuses if the check has errors. The real content folder is one setting in one file: `campaign/` until B-32, `content/` after it.
+
+You will see: commands that tell you what a proposal would add or change, the proposal on the site, and a clean way to take it in.
+
+How to check by hand:
+1. Make `drafts/test/events/6052-2-021-06-testi.md` with a title and a place. Run `npm run draft:check -- test`. It lists one new event and no errors.
+2. Put a wrong place id in it and run again: an error that names the draft file.
+3. Run `npm run draft:dev -- test` and open the site: the test event is in the timeline.
+4. Run `npm run draft:apply -- test`: the event is copied into `campaign/events/`.
+
+Acceptance criteria:
+- [ ] `draft:check` merges the draft over the real content, reports errors and warnings with the file names of the draft, lists the new files, the changed files with a diff, and the open questions of `REVIEW.md` (lines that start with `- [ ]`), and exits with an error when there are errors.
+- [ ] `locations.add.json` is merged into the locations of the merged folder: a new id is added, the same entry again is fine, a different entry with an existing id is an error.
+- [ ] `draft:dev` serves the merged folder on the dev server, and the real content is not touched.
+- [ ] `draft:apply` refuses when the check has errors or a changed file is not allowed with `--overwrite`, otherwise copies the files and merges the locations, and a second run changes nothing.
+- [ ] `drafts/` and `.drafts-merged/` are in `.gitignore`; the real content folder comes from one setting that B-32 changes.
+
+Automated tests: unit tests, with small fixtures, of the merge (new, changed, conflicting and repeated files and locations), the report, the refusals, and the repeat.
+
+## B-42 Link helper
+
+Status: defined
+
+Related: FR-6 ("events are expected to contain many such links"), "Journal links", "Languages".
+
+Depends on: B-41.
+
+Scope note: `npm run draft:links -- <item>` reads the texts of a draft (and, for names that the draft introduces, the other files of the draft) and the entries and locations of the real content, and lists the places where a known name occurs in the Finnish text without a `[[link]]`. Names are inflected in Finnish ("Og-Ogin", "Bentarassa", "Marekille"), so it matches a name and the common endings after it, and prints the matched word, the file and line, and the id it suggests; a word that could belong to several ids is listed as unsure. Extra words for an id (nicknames, the shorter name used in the notes) go into an optional `drafts/<item>/aliases.json` (`{ "word": "id" }`) that the tool reads. With `--apply` it writes the sure suggestions into the draft's files as `[[id|word as written]]`, so that the text stays as the GM wrote it; it never changes a text in the real content and never links inside a link, a heading, a code span, or a `:::journal` line. It reports names that look like entries (a capitalized word that returns often) but have none, as suggestions for new entries.
+
+You will see: a list of suggested links with the context, and drafts whose texts are full of links after `--apply`.
+
+How to check by hand:
+1. With a draft whose text says "Marek kiitti Og-Ogia", and entries `marek-baalik` and `og-og` in the content, run `npm run draft:links -- test`. Two suggestions, with the words as written.
+2. Run with `--apply`: the text now has `[[marek-baalik|Marek]] kiitti [[og-og|Og-Ogia]]`. Run again: nothing to suggest.
+3. Put "Lea" in a text where only "Lean" is a place: it is not suggested.
+
+Acceptance criteria:
+- [ ] Names and ids of the entries and locations (in every language) are matched with Finnish endings and with a word boundary: "Lean", "Leanin" and "Leanista" match the place Lean, and "Leaa" or "Leanna" for a different word do not.
+- [ ] Each suggestion shows the file, the line, the word as written, the id, and whether it is sure or unsure; a word that could be two ids is unsure and is never applied.
+- [ ] `--apply` writes `[[id|word]]` for the sure ones only in the draft's files, leaves everything else byte-for-byte as it was, and a second run suggests nothing; it does not touch text inside existing links, headings, code or passage markers.
+- [ ] The capitalized words that return in the texts and have no entry are listed as candidates for entries.
+- [ ] `aliases.json` is read when present; an alias for an id that does not exist is an error.
+
+Automated tests: unit tests of the matcher (endings, boundaries, hyphenated names, unsure cases, aliases) and of `--apply` (idempotence, protected places), with Finnish examples.
+
+### Milestone 7: the notes become drafts (after B-42)
+
+A checkpoint for the tools, before they are used on the real notes. The tools are small and you will use them for years, so their feel matters.
+
+What to try: run `notes:split` and look at the parts and the pictures; try `notes:image` on a picture you like; make a draft of your own with a couple of test files and run `draft:check`, `draft:dev`, `draft:links` and `draft:apply` on it; use the position helper on the demo maps.
+
+Feedback wanted:
+- whether the cuts of the notes are where you would put them, and whether the report is clear;
+- whether the draft folder, the review file and the commands are the way you want to work, or whether something should be done differently (for example the review in another format);
+- whether the position helper is easy enough, and whether it should also write the position into the file for you;
+- what would make the later steps faster for you.
+
+## B-43 Extract the player characters
+
+Status: defined
+
+Related: FR-6, "Content from the GM notes", "Journal entries".
+
+Depends on: B-39, B-41 and B-42 (and so B-38).
+
+Scope note: the first extraction. The input is the `Hahmot` part (`gm-notes/work/characters.md`). For each player character that was used in the campaign there is a journal entry `journal/<id>.md` of type `pc`: the `name`, the `motto` (the quoted line under the description, such as "Og-Og lyö!"), and the body, which is the character's background, in the GM's own words and in Finnish, as written (only the export's escapes removed), with the character's race, class and level as the first line in italics ("Puolipeikko, soturi, taso 1"), and `[[links]]` where the text names a place, an NPC or an item that has an entry. The ids are the names without accents and spaces (`og-og`, `marek-baalik`, `taelaran-quirinion`, `bain-pitkavihainen`, `magnus-bombus`). Jenel Idarien was never used in the campaign and is left out of the proposal; he is listed in `REVIEW.md` so that you can say if he should have an entry anyway. The characters have no pictures in the notes. The backgrounds mention places, countries and events of the world (Stroane's war, Miir, Nievi and so on): they are listed as candidates for `note` entries or locations, to be chosen in the review; no birthplace events are made (you said that characters are not events). The crude language of the notes is the GM's voice and is not changed.
+
+You will see: on the site (as a draft preview first), the five characters in the journal under "Pelaajahahmot", each with its motto and background.
+
+How to check by hand:
+1. Run `npm run draft:dev -- pcs`. The journal index lists the five characters. Open each: the motto, the background, the line of race and class.
+2. Read `drafts/pcs/REVIEW.md`: every entry shows the lines of the notes it comes from, Jenel Idarien is listed as "left out", and the candidates for notes are listed.
+3. After you have answered the questions, I apply the draft. The characters are in `campaign/journal/`.
+
+Acceptance criteria:
+- [ ] One entry for each used player character (five), with the right id, name, motto and body, taken only from the notes and word for word apart from the removed escapes and the added first line; each is valid (`draft:check` has no errors or warnings).
+- [ ] `REVIEW.md` has, for each entry, the source lines in the notes; the left-out character with the reason; the world details that could be notes or locations; and an open question for each doubt.
+- [ ] Links are added by the link helper only where an entry or location exists; names in the backgrounds that have no entry are listed, not linked.
+- [ ] After your review the accepted files are applied to the real content, the unit and browser tests and the build pass with no warnings, and the entries are committed.
+
+Automated tests: a unit test that the real content (`campaign/` until B-32) loads without errors or warnings with the entries; the checks of B-41 for the draft; no new browser test is needed, since the journal is tested already.
+
+## B-44 Extract the 2021 session
+
+Status: defined
+
+Related: FR-3, FR-5, FR-6, "Content from the GM notes".
+
+Depends on: B-43.
+
+Scope note: the first session, "Osa I, Koskenkorvan Kulthea-kampanja 2021". The outcome of the session is the start of `Osa II`; the plan is `Osa I` (the watchtower, the troll cave with its prisoners, Lean, the old Jinteni ruins, the hooks). The real content folder already has five events for this session from the first study (the watchtower, the troll cave, the stone door, Sammal's sheep farm, back to Bentara). This item takes them up again: the events are checked and, where needed, corrected and completed against the outcome text, their dates are confirmed (only the first, TE 6052, 21st of Spring, is known; the others are put on that day, in order, until you set them), and the places, NPCs and items that the outcome mentions become entries and locations, with proposed positions. Which of the plan-only places, NPCs and items are included is decided by you in the review. Pictures of the plan (the picture of the tower and cave) are prepared and used where they fit. This item also checks the whole way of working on a small case, and what it teaches is written at the top of the next item.
+
+You will see: the first session in full on the site: a story of events on the map, with links to NPCs, places and items in the journal and with pictures.
+
+How to check by hand:
+1. Run `npm run draft:dev -- session-2021`. Step through the events. Each has a Finnish text of what happened, a place on the map, and links.
+2. Open the entries that the events link to (the dwarves and the halfling, Lean, the tower, the troll cave). Each has text from the notes, and the events list shows where it appears.
+3. Read `REVIEW.md`: the sources, the dates to confirm, the places whose positions are proposals, and the list of plan-only items for you to include or leave out.
+4. After the review, the draft is applied.
+
+Acceptance criteria:
+- [ ] The events of the session in order, each with a title, a date and order number, a place (a location, a position, or `n/a` with `showOn`), a Finnish text that follows the outcome of the notes (every statement has a source line in `REVIEW.md`), the track and `newSegment` where the party split or jumped, and one sentence per paragraph where a character is mentioned.
+- [ ] The existing five events are updated and not duplicated; changed files are listed with their diff in the check.
+- [ ] Each entry is made from the notes: type, name, text in Finnish, a picture where the notes have one that you chose, and links; an NPC, a place or an item that is named in the outcome has an entry, one that is only in the plan has none until you say so.
+- [ ] New locations are in `locations.add.json` with positions that are marked as proposals in `REVIEW.md` and that you have confirmed or corrected (with the helper), and the pictures are prepared with alt texts and captions in Finnish.
+- [ ] The dates that are not known are listed as questions, not invented.
+- [ ] After your review the content is applied, the tests and the build pass without warnings, and it is committed.
+
+Automated tests: the real content loads without errors or warnings; the checks of B-41 and B-42 for the draft; no new browser test.
+
+### Milestone 8: the first real content (after B-43 and B-44)
+
+The first checkpoint with your own story in the site, before it is published. Everything is in the draft preview and in `campaign/`.
+
+What to try: read the five characters and the first session from the start, on the map and in the journal, the way a player would. Compare with how you remember the session.
+
+Feedback wanted:
+- whether the events are the right scenes, with the right titles, order and level of detail, and whether the text reads like your chronicle;
+- whether the entries (characters, NPCs, places, items) are the right ones, and what is left out that you want in;
+- whether the positions and the dates are right, and how the position helper worked;
+- whether the way of working (the review file, the preview, the questions) is good enough to repeat for four more sessions, or what should change first.
+
+## B-32 Moving to the real content
+
+Status: defined
+
+Related: "Folder layout", "Deployment", "Test content".
+
+Depends on: B-44. The swap makes what has been reviewed so far public, and the later sessions are then added straight to the live content. It starts when the product owner says that what exists is ready to be published.
+
+Scope note: decided with the product owner: the folders are swapped, so the default content is the real campaign. The real campaign moves to `content/`: the files of `campaign/` (with the characters and the first session) and the map images (`content/maps/`, which stay where they are). The demo moves to `demo/`, and its map file points to `../content/maps/`, as `campaign/maps.json` does now. `campaign/` stops to exist. The publishing workflow and `npm run dev` then use `content/` as before, since the default does not change; the demo is used with `CONTENT_DIR=demo`. The files are moved with `git mv`, so that the history follows. The setting of the real content folder in the draft tools (B-41) is changed from `campaign/` to `content/`; the performance campaign generator (B-31) and the documents are updated for the new paths. The text in earlier items that says `content/` for the demo is history and is left as it is, with one note at the top of `BACKLOG.md`. This item also writes the authoring guide: how the product owner adds events, entries, pictures and links by hand, how the tools of this track are used, how to read the warnings, how to try a change (`npm run dev`) and how to publish it.
+
+You will see: `npm run dev` and the live site show your own real characters and first session and no demo events, and the demo is still there when you ask for it.
+
+How to check by hand:
+1. Run `npm run dev`. The real events are shown, and no event starts with "Demo:".
+2. Run `CONTENT_DIR=demo npm run dev`. The demo opens as before, with its journal.
+3. Run `npm run build`: no errors and no warnings. After you push, the live site shows the real content.
+4. Read `content/README.md`. Follow it to add an event with a picture and a link by hand, and see it in the dev server.
+5. Look for `campaign/`: it is gone. Run `npm run draft:check -- test` (the test draft of B-41, if you kept it): it merges over `content/`.
+
+Acceptance criteria:
+- [ ] `content/` holds the real campaign (campaign, interface texts, maps and their images, locations, events, and the journal), `demo/` holds the demo (its events, journal and pictures, and files for the campaign settings, interface texts and locations; its `maps.json` points to the maps in `content/maps/`), and `campaign/` no longer exists. The files are moved with `git mv`.
+- [ ] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` and, once B-31 is done, `CONTENT_DIR=perf-campaign` work for the other two.
+- [ ] Both `content/` and `demo/` load with no errors and no warnings, and the unit tests for them (now two) pass; the tests that use the fixtures are unchanged.
+- [ ] The draft tools of B-41 merge over `content/`, and their tests pass with the new setting.
+- [ ] `CLAUDE.md`, `DESIGN.md` (folder layout, deployment, test content, the content tools), `REQUIREMENTS.md` where it applies, and the READMEs of `content/` and `demo/` describe the new layout. `campaign/README.md`'s notes that are still true (the dates of the first session) move to the new `content/README.md`.
+- [ ] `content/README.md` is an authoring guide, in English with Finnish examples, that covers the folder layout, writing an event (the file name, the front matter, languages, links, pictures, journal-only passages), writing an entry, adding a picture, the content tools, reading the warnings, running the site, and publishing; it is short enough to read in ten minutes.
+- [ ] A note at the top of `BACKLOG.md` says that earlier items call the demo folder `content/`.
+
+Automated tests: the unit tests for `content/` and `demo/`, the draft tool tests with the new path, and the whole of `npm run test:all` and the workflow's steps passing.
+
+### Milestone 9: the real site (after B-32)
+
+The first time the players can see the real site. It has the characters and the first session; the other sessions follow.
+
+What to try: open the live site on your computer and your phone; send the address to a player; use `npm run dev` for the real content and `CONTENT_DIR=demo npm run dev` for the demo.
+
+Feedback wanted:
+- whether you are comfortable with a half-finished chronicle being public while the other sessions are added, or want a note on the page;
+- what a player says or asks;
+- whether the authoring guide has what you needed.
+
+## B-45 Extract the 2022 session
+
+Status: defined
+
+Related: FR-3, FR-5, FR-6, "Content from the GM notes".
+
+Depends on: B-44 and B-32. It starts with what B-44 taught (written here when that item is done).
+
+Scope note: the second session, "Osa II, Lapua 2022". The outcome is the start of `Osa III`; the plan is `Osa II` (the camp at the swamp and the hermit, the kobold castle on the old Jinteni ruins, the base under it, the portal and the demon, with pictures). The way of working and the rules are those of B-44 and of the track introduction. The entries that already exist (the characters, Lean, the dwarves, the Jinteni ruins) are extended and not made again: the check shows the changed files with their diff, and a new paragraph is added to an entry only when the outcome says something new. The content goes to `content/`, so after the review it is live after you push. The date of the session is a question (the plan says spring 6052).
+
+You will see: the second session on the site, continuing the story from the first, with the new places, creatures and NPCs.
+
+How to check by hand: as in B-44, with `npm run draft:dev -- session-2022`; then, on the real site, the whole timeline from the first event through the new ones.
+
+Acceptance criteria: those of B-44 for this session, and in addition:
+- [ ] No entry or location is made twice: a thing that exists is reused or extended (the diff is shown), and an alias for a name that the notes use differently is recorded in `aliases.json`.
+- [ ] The first event of the session follows the last of the 2021 session in date order, and its date is confirmed by you.
+- [ ] The tests and the build pass without warnings after the apply, and the live site's timeline has no break or gap that you have not accepted.
+
+Automated tests: as in B-44.
+
+### Milestone 10: the second session (after B-45)
+
+A checkpoint after the way of working has been used twice, and the story continues on the live site.
+
+What to try: read the story from the first event to the end of the second session, following the links between sessions (characters and places that return).
+
+Feedback wanted:
+- whether the sessions fit together: the same NPC or place is one entry, and the route on the map makes sense across the two sessions;
+- whether the review of this session was lighter than the first, and what is still too much work;
+- whether the plan-only items you left out feel right, now that you have seen two sessions without them.
+
+## B-46 Extract the 2023 session
+
+Status: defined
+
+Related: FR-3, FR-5, FR-6, "Content from the GM notes".
+
+Depends on: B-45.
+
+Scope note: the third session, "Osa III, Lapua 2023" (a large set of pictures, 23, and a subheading for a monster's nest, "Kukkohirviön pesä"). The outcome is the start of `Osa IV` (they met Count Kert, hunted the cockatrice, "kukkotriikki", and had a short meeting with Nari Tulenjyske). The rules and the way of working are those of B-44 and B-45. If the outcome says that the party split, a new `track` is used and the rejoin is checked in the preview. If this item turns out to be too large, it is split into the events and the entries.
+
+You will see: the third session on the site, with its many pictures.
+
+How to check by hand: as in B-44 and B-45, with `npm run draft:dev -- session-2023`.
+
+Acceptance criteria: those of B-44 and B-45 for this session; the pictures are prepared (at most 1 MB, at most 1600 px) and used where you chose, with alt texts and captions in Finnish.
+
+Automated tests: as in B-44.
+
+## B-47 Extract the 2024 session
+
+Status: defined
+
+Related: FR-3, FR-5, FR-6, "Content from the GM notes".
+
+Depends on: B-46.
+
+Scope note: the fourth session, "Osa IV, Lapua 2024" (resting at Suonperä and the journey to the dimension portal in the mountains). The notes have no recap at the start of `Osa V`, where it would be, so the outcome of 2024 has not been found. This is the first question of the item: whether the outcome is somewhere else in the notes (the PDF is available to look at), is written elsewhere, or has to be told by you from memory. Until it is answered, the item only makes the plan-derived lists of places, NPCs and items for your decision, and no events, because an event is something that happened. The rest is as in B-44 and B-45.
+
+You will see: first a question from me; then, when the outcome is known, the fourth session on the site.
+
+How to check by hand: as in B-44 and B-45.
+
+Acceptance criteria: those of B-44 and B-45 for this session, and:
+- [ ] The source of the outcome is settled and written in `REVIEW.md`: where in the notes it is, or that it comes from you.
+- [ ] No event is written from the plan alone; each event's source is the outcome or your own telling, and is marked as such.
+
+Automated tests: as in B-44.
+
+## B-48 Extract the 2025 session
+
+Status: defined
+
+Related: FR-3, FR-5, FR-6, "Content from the GM notes".
+
+Depends on: B-47.
+
+Scope note: the fifth session, "Osa V, Lapua 2025" (the return to Bentara, the alchemist or sage Dirhavel, the temple of Eissa, the extortion league, the demon, the arrest). The outcome is in `Osa VI`: the party found the league and met three of its members in the tavern called Örkinpää, with the dwarf boy band; the fight in the league's warehouse in which two escaped; the return to the inn, the guard, the massacre in the temple, the arrest, and "the game ended there". The rest of `Osa VI` is the summary written by ChatGPT and the plan for the finale of 2026 (the interrogation): they are not events, and the extraction leaves them out. When the 2026 session has been played, its outcome is a new item.
+
+You will see: the last session played, ending with the arrest, so that the timeline reaches the present.
+
+How to check by hand: as in B-44 and B-45; then step to the last event and read the end of the story.
+
+Acceptance criteria: those of B-44 and B-45 for this session, and:
+- [ ] Nothing from the plan for 2026 or from the ChatGPT summary is in an event or an entry.
+- [ ] The last event is the arrest, and its text says the session ended there.
+
+Automated tests: as in B-44.
+
+### Milestone 11: the whole chronicle (after B-48)
+
+The whole story of the campaign so far, on the live site.
+
+What to try: read the story through from the start to the arrest, as a player returning after a year would; look at the whole route on the main map and at the journal as a whole.
+
+Feedback wanted:
+- whether the chronicle is complete and right, and what is missing that you want to add by hand;
+- whether the route lines over the five sessions are readable on the main map, and whether old lines should fade (this was left open in Milestone 2);
+- whether the journal is a good size and shape with all the entries, and whether the index needs more structure (for example by session);
+- what you want to do next: English texts, the other ideas for after the first version, or the polish items that follow.
+
 ## B-29 Phone layout
 
 Status: defined
@@ -979,7 +1346,7 @@ Acceptance criteria:
 
 Automated tests: Playwright tests in Chromium at each of the widths and in the landscape window (no horizontal scrolling, header height, the panel's box against the area, the sizes of the controls, the viewer's close button inside the screen), and the same tap flow in WebKit with the iPhone 13 mini profile (stepping, journal open and close, viewer) with real touch taps; a unit test of the narrow-window hook. The DESIGN.md layout section is updated.
 
-### Milestone 7: the phone (after B-29)
+### Milestone 12: the phone (after B-29)
 
 A checkpoint for the phone, on your own iPhone from the deployed site, since the phone has already shown things that a desktop does not.
 
@@ -1052,7 +1419,7 @@ Acceptance criteria:
 
 Automated tests: Playwright tests with axe for each page state above (Chromium, and the narrow ones in WebKit), tests for the landmarks and the heading order, the status region after a step, a map switch and the first load, the `lang` on a fallback text, the hidden overlay, the 200% zoom case, and the reduced-motion case for the panel; unit tests for the heading and landmark helper, if any.
 
-### Milestone 8: without a mouse, and for every reader (after B-30 and B-36)
+### Milestone 13: without a mouse, and for every reader (after B-30 and B-36)
 
 A checkpoint for using the site in other ways than a mouse and good eyes.
 
@@ -1072,7 +1439,7 @@ Related: FR-1 (50 markers), FR-2 (200 ms, 300 events), "Performance", "Scale tar
 
 Depends on: B-35 (the generated campaign must pass all the checks, with no warnings), and the feature work before it.
 
-Scope note: the product owner wants the data for this kept apart from the demo content. There are then three content folders: `content/` (the demo until B-32, the real campaign after it), `perf-campaign/` (generated) and `campaign/` (the real draft until B-32). The performance campaign is written by a script from a fixed seed, so it is always the same, it is not committed (`perf-campaign/` is in `.gitignore`), and the repository stays small. Its size is the scale target: 300 events, 50 locations and 30 journal entries, plus about 20 pictures. It is built like a real campaign: events spread over several years of the calendar, about 60% on the main map, some shown on Bog End, some only on Haestra (`n/a` on the main map), about 10% standalone, three split groups of 10 to 15 events each with a few `newSegment`, one to five paragraphs each with an average of three links to entries, about 40% with an English section, 15 journal-only passages, about 30 pictures in texts, and entries (the long ones named by 100 events) with long excerpt lists. Every location, picture and entry is used, so the campaign has no warnings. If a measurement breaks a limit, a small fix goes into this item, and a larger one becomes a new item that is agreed with the product owner.
+Scope note: the product owner wants the data for this kept apart from the demo content. After B-32 there are three content folders: `content/` (the real campaign), `demo/` (the demo) and `perf-campaign/` (generated); until then the demo is in `content/` and the real draft in `campaign/`. The performance campaign is written by a script from a fixed seed, so it is always the same, it is not committed (`perf-campaign/` is in `.gitignore`), and the repository stays small. Its size is the scale target: 300 events, 50 locations and 30 journal entries, plus about 20 pictures. It is built like a real campaign: events spread over several years of the calendar, about 60% on the main map, some shown on Bog End, some only on Haestra (`n/a` on the main map), about 10% standalone, three split groups of 10 to 15 events each with a few `newSegment`, one to five paragraphs each with an average of three links to entries, about 40% with an English section, 15 journal-only passages, about 30 pictures in texts, and entries (the long ones named by 100 events) with long excerpt lists. Every location, picture and entry is used, so the campaign has no warnings. If a measurement breaks a limit, a small fix goes into this item, and a larger one becomes a new item that is agreed with the product owner.
 
 You will see: a campaign of the scale target that you can open and step through, and numbers for how quickly the site answers.
 
@@ -1094,7 +1461,7 @@ Acceptance criteria:
 
 Automated tests: unit tests of the generator (the counts, the same output twice, that it loads without errors and warnings, that every item is used) and of the routes' time; a Playwright project `perf` that builds the generated campaign and measures the steps, the entry, the map switch and the language switch with the browser's own timing marks.
 
-### Milestone 9: a big campaign (after B-31)
+### Milestone 14: a big campaign (after B-31)
 
 A checkpoint for how the site feels when the campaign is as big as it is going to be.
 
@@ -1105,43 +1472,13 @@ Feedback wanted:
 - whether the map with the whole route of 300 events is still readable, or whether the old lines should fade or be limited (this was left open in Milestone 2);
 - whether the long journal entries, with their excerpts and lists of events, are still comfortable to read, or need a limit or a "show more".
 
-## B-32 Moving to the real content
-
-Status: defined
-
-Related: "Folder layout", "Deployment", "Test content".
-
-Depends on: B-31. It starts only when the product owner says that the real content is ready to be published, because the live site changes with it.
-
-Scope note: decided with the product owner: the folders are swapped, so the default content is the real campaign. The real campaign moves to `content/`: the files of `campaign/` and the map images (`content/maps/`, which stay where they are) and an events folder with the real events. The demo moves to `demo/`, and its map file points to `../content/maps/`, as `campaign/maps.json` does now. `campaign/` stops to exist. The publishing workflow and `npm run dev` then use `content/` as before, since the default does not change; the demo is used with `CONTENT_DIR=demo`. The files are moved with `git mv`, so that the history follows. The performance campaign generator and the documents are updated for the new paths. The text in earlier items that says `content/` for the demo is history and is left as it is, with one note at the top of `BACKLOG.md`. This item also writes the authoring guide: how the product owner adds events, entries, pictures and links, how to read the warnings, how to try a change (`npm run dev`) and how to publish it.
-
-You will see: `npm run dev` and the live site show your own real events and no demo events, and the demo is still there when you ask for it.
-
-How to check by hand:
-1. Run `npm run dev`. The real events are shown, and no event starts with "Demo:".
-2. Run `CONTENT_DIR=demo npm run dev`. The demo opens as before, with its journal.
-3. Run `npm run build`: no errors and no warnings. After you push, the live site shows the real events.
-4. Read `content/README.md`. Follow it to add an event with a picture and a link, and see it in the dev server.
-5. Look for `campaign/`: it is gone.
-
-Acceptance criteria:
-- [ ] `content/` holds the real campaign (campaign, interface texts, maps and their images, locations, events, and a journal folder when there are entries), `demo/` holds the demo (its events, journal and pictures, and files for the campaign settings, interface texts and locations; its `maps.json` points to the maps in `content/maps/`), and `campaign/` no longer exists. The files are moved with `git mv`.
-- [ ] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` and `CONTENT_DIR=perf-campaign` work as before for the other two.
-- [ ] Both `content/` and `demo/` load with no errors and no warnings, and the unit tests for them (now two) pass; the tests that use the fixtures are unchanged.
-- [ ] The performance campaign generator uses the new path of the maps, and its output is as before.
-- [ ] `CLAUDE.md`, `DESIGN.md` (folder layout, deployment, test content), `REQUIREMENTS.md` where it applies, and the READMEs of `content/` and `demo/` describe the new layout. `campaign/README.md`'s notes that are still true (the dates of the first session) move to the new `content/README.md`.
-- [ ] `content/README.md` is an authoring guide, in English with Finnish examples, that covers the folder layout, writing an event (the file name, the front matter, languages, links, pictures, journal-only passages), writing an entry, adding a picture, reading the warnings, running the site, and publishing; it is short enough to read in ten minutes.
-- [ ] A note at the top of `BACKLOG.md` says that earlier items call the demo folder `content/`.
-
-Automated tests: the unit tests for `content/` and `demo/`, the generator test with the new path, and the whole of `npm run test:all` and the workflow's steps passing.
-
 ## B-37 Release check
 
 Status: defined
 
 Related: "Deployment", "Non-functional requirements", the whole of `REQUIREMENTS.md` and `DESIGN.md`.
 
-Depends on: B-32.
+Depends on: B-48 and the polish items before it in this order (B-29, B-30, B-36 and B-31).
 
 Scope note: the last checks before the site is called finished: the documents against the finished system, the requirements against the tests, and the live site against the targets that only a real run can show.
 
@@ -1151,7 +1488,7 @@ How to check by hand:
 1. Read the report of the check (in the commit message and in this item): what differed and what was changed.
 2. Open the repository's front page on GitHub. It says what the site is and how to run it.
 3. Open the live site on a fast connection and on your phone, and note how long the main map and the first event take to appear. Compare with the 3 seconds in the requirements.
-4. Open the live site on your phone and use it for a while, as in Milestone 7.
+4. Open the live site on your phone and use it for a while, as in Milestone 12.
 
 Acceptance criteria:
 - [ ] Every statement in `REQUIREMENTS.md` and `DESIGN.md` is checked against the code and the content: the file formats against the loader, the validation rules against the tests, the architecture and the components against `src/`. Every difference is fixed in the document (or, if it is a mistake in the code, in the code), and `DESIGN.md`'s status line and the open items of `REQUIREMENTS.md` are up to date.
@@ -1163,7 +1500,7 @@ Acceptance criteria:
 
 Automated tests: the unit test that every requirement is named by a test, and the whole of `npm run test:all` and the workflow passing.
 
-### Milestone 10: the real thing (after B-32 and B-37)
+### Milestone 15: the real thing (after B-37)
 
 The last checkpoint: the first version of the site, live, with the product owner's own content.
 
@@ -1172,7 +1509,7 @@ What to try: use the live site as the players will. Send the address to a player
 Feedback wanted:
 - what is missing for you to start adding the whole campaign;
 - what the players find confusing or good;
-- which of the ideas after the first version (a placement helper, clicking a marker, share links, filters, a book-style journal button, a fantasy look) you want first.
+- which of the ideas after the first version (clicking a marker, share links, filters, a book-style journal button, a fantasy look) you want first.
 
 ---
 
@@ -1184,7 +1521,6 @@ None at the moment: all the items above are refined.
 
 # After the first version (not scheduled)
 
-- A helper tool for placing locations and events on the map without measuring positions.
 - Clicking a map marker to select that location's events.
 - A share-link button for an event.
 - Timeline filters (character, location, session).

@@ -120,7 +120,10 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Description: when the events are stepped quickly, the markers and the route lines are drawn at wrong places. It happens in both directions.
   - Forwards, from the first event quickly to "Demo: The market in Bentara": the current (red) marker is at the far right edge of the map, away from Bentara, and the route lines do not meet the dots they should join (screenshot `po-attachments/IMG_9204.PNG`).
   - Backwards, quickly back to the first event: the red marker is left of the Port of Izar, not on it (screenshot `po-attachments/IMG_9205.PNG`).
-- Root cause: not investigated yet.
+- Root cause: not found yet. The bug has not been reproduced here (see "Reproduction attempts").
+- Reproduction attempts (the demo content on the real Bay of Izar map, stepping quickly with Next and Previous, every frame checked against the places):
+  - Chromium emulating an iPhone 13 mini (375 x 629 px, touch, 3x pixel ratio), with the processor slowed down 1x, 4x and 8x, and 4 steps every 0, 50, 150 and 300 ms, forwards and backwards. Every run ended with every marker and dot at its place (at most 1 px off). Only one thing was seen: at 300 ms between steps, two frames in a row (about 16 ms) showed a few dots 12 to 21 px away from their places, in the middle of a move, and it corrected itself.
+  - The browser of the report, Safari on iOS (WebKit), cannot be run in this session: the Playwright WebKit build downloads, but it cannot start because the machine lacks about 30 system libraries (GTK 4, ICU 78, GStreamer and others) that only an administrator can install.
 - Fix: to be written.
 - Verified by: to be written. A failing test is to be written first where possible, and the bug is to be reproduced with the product owner.
 - Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshots are only in the product owner's working copy.

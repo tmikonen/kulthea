@@ -886,7 +886,7 @@ Feedback wanted:
 
 ## B-28 Checks for mistakes in the content
 
-Status: done
+Status: accepted
 
 Related: FR-9, "Languages", "Validation rules", "File formats".
 
@@ -912,7 +912,7 @@ Automated tests: unit tests, with their own fixtures, for each of the three chec
 
 ## B-35 Build summary and unused items
 
-Status: done
+Status: accepted
 
 Related: FR-9, "Validation rules" (warnings).
 
@@ -965,27 +965,27 @@ The real content folder is `campaign/` until B-32 and `content/` after it; the t
 
 ## B-38 Notes preparation tool
 
-Status: defined
+Status: done
 
 Related: "Content from the GM notes".
 
 Depends on: B-35 (so that the checks that follow are in place). It uses no library that is not in the stack.
 
-Scope note: `npm run notes:split` (a Node script, `scripts/notes/split.mjs`) reads the notes' Markdown file (the path is an argument; by default the newest `gm-notes/*.md`) and writes, to `gm-notes/work/` (git-ignored, because `gm-notes/` is): the text cut into parts (`characters.md` and `part-1.md` to `part-6.md`), each part again cut into its outcome (the text after a line that starts "Edellisellä kerralla") and its plan, the Markdown escapes of the export removed (`\!`, `\-`, `\~`, `\(`) without touching the words, the pictures decoded to `images/image-NN.png` and referenced in the text as `![](images/image-NN.png)`, and an `outline.json` with, for each part, the line range, the headings, the pictures it uses (with the line above each, as a caption hint) and the size of each picture. It prints a report with the counts and a warning for what is not as expected (a part with no outcome marker, a picture that is not used, a picture that cannot be decoded). It does not interpret the story; that is for the extraction items. The PDF is not read: the Markdown has the same content. Running it again gives the same files.
+Scope note: `npm run notes:split` (a Node script, `scripts/notes/split.ts`, run by Node's own TypeScript support like the rest of the code, with `node scripts/notes/split.ts`) reads the notes' Markdown file (the path is an argument; by default the newest `gm-notes/*.md`) and writes, to `gm-notes/work/` (git-ignored, because `gm-notes/` is): the text cut into parts (`characters.md` and `part-1.md` to `part-6.md`), each part again cut into its outcome and its plan (`part-N-outcome.md` and `part-N-plan.md`; the outcome is the text after a line that starts "Edellisellä kerralla", in whatever markup, up to the "Alkuasetelma" line or, when there is none, up to the next heading or bold line, and the plan is the rest), the Markdown escapes of the export removed (`\!`, `\-`, `\~`, `\(`) without touching the words, the pictures decoded to `images/image-NN.png` (or `.jpg` for a picture that the export labels PNG but whose bytes are a JPEG, which is reported: picture 78 of the present notes is one) and referenced in the text as `![](images/image-NN.png)`, and an `outline.json` with, for each part, the line range, the headings, the pictures it uses (with the line above each, as a caption hint) and the size of each picture. It prints a report with the counts and a warning for what is not as expected (a part with no outcome marker, a picture that is not used, a picture that cannot be decoded). It does not interpret the story; that is for the extraction items. The PDF is not read: the Markdown has the same content. Running it again gives the same files.
 
 You will see: a folder `gm-notes/work/` with the notes as small text files and the pictures as files, and a report.
 
 How to check by hand:
-1. Run `npm run notes:split`. The report says 6 parts plus the characters, 85 pictures, and a warning that `part-5` (2025) has no outcome marker.
-2. Open `gm-notes/work/part-2.md`: the start is the outcome of 2021, then the plan for 2022. The pictures are links to files that open.
+1. Run `npm run notes:split`. The report says 6 parts plus the characters, 85 pictures, and two warnings: `part-5` (2025) has no outcome marker, and picture 78 is a JPEG written as `image-78.jpg`.
+2. Open `gm-notes/work/part-2.md`: the start is the outcome of 2021, then the plan for 2022 (the same text is in `part-2-outcome.md` and `part-2-plan.md`). The outcome of `part-6` (2026) includes the ChatGPT summary, which comes before the unplayed finale. The pictures are links to files that open.
 3. Run it again and compare: nothing changes.
 
 Acceptance criteria:
-- [ ] The text files, the pictures and `outline.json` are written as above, and the pictures open (valid PNG files, the same bytes as the encoded ones).
-- [ ] Each part is cut at its heading (or, for the last, at the plain line "Osa VI"), and each is split into outcome and plan at the marker; a part without a marker is all plan and gets a warning in the report, except the first, which has no earlier session.
-- [ ] The Markdown escapes are removed and the text is otherwise unchanged (a test checks the rule with the examples that occur in the notes).
-- [ ] The tool does not change or write into the notes' own files, writes only under `gm-notes/work/`, and fails with a clear message when the file or the parts are not found.
-- [ ] It is repeatable: two runs give identical output.
+- [x] The text files, the pictures and `outline.json` are written as above, and the pictures open (valid image files, the same bytes as the encoded ones).
+- [x] Each part is cut at its heading (or, for the last, at the plain line "Osa VI"), and each is split into outcome and plan at the marker; a part without a marker is all plan and gets a warning in the report, except the first, which has no earlier session.
+- [x] The Markdown escapes are removed and the text is otherwise unchanged (a test checks the rule with the examples that occur in the notes).
+- [x] The tool does not change or write into the notes' own files, writes only under `gm-notes/work/`, and fails with a clear message when the file or the parts are not found.
+- [x] It is repeatable: two runs give identical output.
 
 Automated tests: unit tests of the splitter with a small made-up notes file in `tests/fixtures-notes/` (two parts, an outcome marker in one of them, three tiny embedded pictures, one unused, one that is not valid), covering the cuts, the unescape rule, the outline and the report, and the repeatability.
 

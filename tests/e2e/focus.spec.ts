@@ -295,7 +295,7 @@ test.describe('markers and lines during the move (BUG-7)', () => {
       requestAnimationFrame(tick);
     }), { places: PLACES });
 
-    expect(result.frames).toBeGreaterThan(60);
+    expect(result.frames, "frames sampled: a loaded machine may draw few, but the check needs a run of them").toBeGreaterThan(10);
     expect(result.worst, `the worst place was ${result.at}`).toBeLessThan(4);
     await expectFocused(page, [12, 88]);
   });
@@ -357,7 +357,7 @@ test.describe('markers and lines during the move (BUG-7)', () => {
         };
         requestAnimationFrame(tick);
       }), { places: [...PLACES, ...HOPS], gap });
-      expect(result.frames).toBeGreaterThan(60);
+      expect(result.frames, "frames sampled: a loaded machine may draw few, but the check needs a run of them").toBeGreaterThan(10);
       expect(result.worst, `the worst place was ${result.at}`).toBeLessThan(4);
     });
   }

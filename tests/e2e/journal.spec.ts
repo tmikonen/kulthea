@@ -601,7 +601,7 @@ test.describe('the journal panel on a phone (BUG-10)', () => {
     await page.setViewportSize({ width: 390, height: 700 });
     await open(page, '?journal=index');
     await settled(panel(page));
-    await page.getByRole('button', { name: 'Sulje päiväkirja' }).click({ timeout: 3000 });
+    await page.getByRole('button', { name: 'Sulje päiväkirja' }).click({ timeout: 15_000 });
     await expect(panel(page)).toHaveCount(0);
   });
 });

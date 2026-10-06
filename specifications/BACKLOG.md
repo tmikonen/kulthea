@@ -991,7 +991,7 @@ Automated tests: unit tests of the splitter with a small made-up notes file in `
 
 ## B-39 Picture preparation tool
 
-Status: done
+Status: accepted
 
 Related: "Content from the GM notes", "Images" (data model), "Validation rules" (image warnings).
 

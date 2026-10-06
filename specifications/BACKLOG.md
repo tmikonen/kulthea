@@ -965,7 +965,7 @@ The real content folder is `campaign/` until B-32 and `content/` after it; the t
 
 ## B-38 Notes preparation tool
 
-Status: done
+Status: accepted
 
 Related: "Content from the GM notes".
 
@@ -991,27 +991,27 @@ Automated tests: unit tests of the splitter with a small made-up notes file in `
 
 ## B-39 Picture preparation tool
 
-Status: defined
+Status: done
 
 Related: "Content from the GM notes", "Images" (data model), "Validation rules" (image warnings).
 
 Depends on: B-38. It adds one development-only library, `sharp`, which the product owner has approved (it converts pictures in a script and is not part of the site); `DESIGN.md`'s stack list gets a line for it.
 
-Scope note: `npm run notes:image -- <number> <name>` takes one of the pictures from `gm-notes/work/images/`, scales it down to at most 1600 px wide, writes it as WebP to the images folder of a draft (`drafts/<item>/images/<name>.webp`, B-41) with the quality lowered step by step until the file is at most about 1 MB (a picture that has transparency keeps it), and prints the size and a place for the alt text that I fill in. `<name>` is an ASCII slug (letters, digits, hyphens). A file `drafts/<item>/images.json` records which picture of the notes became which file, so that a picture is not converted twice and a run can be repeated. A picture that is already small enough is converted anyway so that every picture on the site has one format. The tool does not decide which pictures are published.
+Scope note: `npm run notes:image -- <item> <number> <name>` (decided with the product owner: the draft is the first argument, as in `draft:check -- <item>`; for example `-- characters 15 trollin-luola`) takes picture number `<number>`, the number it has in the notes and in the file name `image-NN`, from `gm-notes/work/images/`, scales it down to at most 1600 px wide, writes it as WebP to the images folder of a draft (`drafts/<item>/images/<name>.webp`, B-41; `<item>` is the label of the draft, such as `characters` or `session-2021`, and is a slug like `<name>`) with the quality lowered step by step until the file is at most about 1 MB (a picture that has transparency keeps it), and prints the size, the line above the picture in the notes as a hint, and a place for the alt text that I fill in. The size limit is 1,000,000 bytes, a little under the 1 MiB at which the loader warns. When the quality alone is not enough, the width is reduced too. `<name>` is an ASCII slug (letters, digits, hyphens). A file `drafts/<item>/images.json` records which picture of the notes became which file, so that a picture is not converted twice and a run can be repeated. A picture that is already small enough is converted anyway so that every picture on the site has one format. The tool does not decide which pictures are published.
 
 You will see: small WebP pictures in a draft folder, each under about 1 MB.
 
 How to check by hand:
-1. After B-38, run `npm run notes:image -- 15 trollin-luola` (any picture number). The tool writes a file under `drafts/…/images/` and says its width, height and size.
+1. After B-38, run `npm run notes:image -- test 15 trollin-luola` (any picture number; `test` is any draft label, and `drafts/test/` can be deleted afterwards). The tool writes a file under `drafts/…/images/` and says its width, height and size.
 2. Open the file. It looks like the original, and is at most 1600 px wide and about 1 MB.
-3. Run the same command again: it says that the picture is already done.
+3. Run the same command again: it says that the picture is already done. A different name for the same picture, or the same name for another one, is refused.
 
 Acceptance criteria:
-- [ ] The result is a valid WebP of at most 1600 px width (the proportions kept) and, for the 7 pictures that are now over 1 MB, at most about 1 MB.
-- [ ] Transparency is kept for pictures that have it; the colours are not visibly changed (the test compares the average colour within a small tolerance).
-- [ ] `images.json` records the number, the name, the sizes before and after; a repeated run does nothing and says so; a name that is already used for another picture is refused.
-- [ ] A name that is not a slug, a number that does not exist, and a missing `gm-notes/work/` give clear errors and write nothing.
-- [ ] The content loader accepts the files (a draft with such a picture in a text passes `draft:check` with no image warning).
+- [x] The result is a valid WebP of at most 1600 px width (the proportions kept) and, for the 7 pictures that are now over 1 MB, at most about 1 MB.
+- [x] Transparency is kept for pictures that have it; the colours are not visibly changed (the test compares the average colour within a small tolerance).
+- [x] `images.json` records the number, the name, the sizes before and after; a repeated run does nothing and says so; a name that is already used for another picture is refused.
+- [x] A name that is not a slug, a number that does not exist, and a missing `gm-notes/work/` give clear errors and write nothing.
+- [x] The content loader accepts the files (a text with such a picture loads with no image warning; the test uses the loader, because `draft:check` comes with B-41).
 
 Automated tests: unit tests with generated pictures (a large opaque one, a small one, one with transparency) for the size, the width, the transparency, the repeat and the refusals.
 

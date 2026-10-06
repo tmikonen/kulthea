@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "test:e2e": "playwright test",
     "notes:split": "node scripts/notes/split.ts",
+    "notes:image": "node scripts/notes/image.ts",
     "test:all": "npm test && npm run typecheck && npm run lint && npm run test:e2e"
   },
   "dependencies": {
@@ -41,6 +42,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "jsdom": "^30.1.1",
+    "sharp": "^0.35.5",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.0",
     "vite": "^8.3.2",

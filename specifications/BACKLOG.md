@@ -1138,7 +1138,7 @@ Status: defined
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
-Depends on: B-43.
+Depends on: B-43 and B-40 (the position helper).
 
 Scope note: the first session, "Osa I, Koskenkorvan Kulthea-kampanja 2021". The outcome of the session is the start of `Osa II`; the plan is `Osa I` (the watchtower, the troll cave with its prisoners, Lean, the old Jinteni ruins, the hooks). The real content folder already has five events for this session from the first study (the watchtower, the troll cave, the stone door, Sammal's sheep farm, back to Bentara). This item takes them up again: the events are checked and, where needed, corrected and completed against the outcome text, their dates are confirmed (only the first, TE 6052, 21st of Spring, is known; the others are put on that day, in order, until you set them), and the places, NPCs and items that the outcome mentions become entries and locations, with proposed positions. Which of the plan-only places, NPCs and items are included is decided by you in the review. Pictures of the plan (the picture of the tower and cave) are prepared and used where they fit. This item also checks the whole way of working on a small case, and what it teaches is written at the top of the next item.
 
@@ -1180,7 +1180,7 @@ Related: "Folder layout", "Deployment", "Test content".
 
 Depends on: B-44. The swap makes what has been reviewed so far public, and the later sessions are then added straight to the live content. It starts when the product owner says that what exists is ready to be published.
 
-Scope note: decided with the product owner: the folders are swapped, so the default content is the real campaign. The real campaign moves to `content/`: the files of `campaign/` (with the characters and the first session) and the map images (`content/maps/`, which stay where they are). The demo moves to `demo/`, and its map file points to `../content/maps/`, as `campaign/maps.json` does now. `campaign/` stops to exist. The publishing workflow and `npm run dev` then use `content/` as before, since the default does not change; the demo is used with `CONTENT_DIR=demo`. The files are moved with `git mv`, so that the history follows. The setting of the real content folder in the draft tools (B-41) is changed from `campaign/` to `content/`; the performance campaign generator (B-31) and the documents are updated for the new paths. The text in earlier items that says `content/` for the demo is history and is left as it is, with one note at the top of `BACKLOG.md`. This item also writes the authoring guide: how the product owner adds events, entries, pictures and links by hand, how the tools of this track are used, how to read the warnings, how to try a change (`npm run dev`) and how to publish it.
+Scope note: decided with the product owner: the folders are swapped, so the default content is the real campaign. The real campaign moves to `content/`: the files of `campaign/` (with the characters and the first session) and the map images (`content/maps/`, which stay where they are). The demo moves to `demo/`, and its map file points to `../content/maps/`, as `campaign/maps.json` does now. `campaign/` stops to exist. The publishing workflow and `npm run dev` then use `content/` as before, since the default does not change; the demo is used with `CONTENT_DIR=demo`. The files are moved with `git mv`, so that the history follows. The setting of the real content folder in the draft tools (B-41) is changed from `campaign/` to `content/`; the documents are updated for the new paths (the performance campaign of B-31 comes after this item and is made for the new layout). The text in earlier items that says `content/` for the demo is history and is left as it is, with one note at the top of `BACKLOG.md`. This item also writes the authoring guide: how the product owner adds events, entries, pictures and links by hand, how the tools of this track are used, how to read the warnings, how to try a change (`npm run dev`) and how to publish it.
 
 You will see: `npm run dev` and the live site show your own real characters and first session and no demo events, and the demo is still there when you ask for it.
 
@@ -1193,7 +1193,7 @@ How to check by hand:
 
 Acceptance criteria:
 - [ ] `content/` holds the real campaign (campaign, interface texts, maps and their images, locations, events, and the journal), `demo/` holds the demo (its events, journal and pictures, and files for the campaign settings, interface texts and locations; its `maps.json` points to the maps in `content/maps/`), and `campaign/` no longer exists. The files are moved with `git mv`.
-- [ ] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` and, once B-31 is done, `CONTENT_DIR=perf-campaign` work for the other two.
+- [ ] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` works for the demo.
 - [ ] Both `content/` and `demo/` load with no errors and no warnings, and the unit tests for them (now two) pass; the tests that use the fixtures are unchanged.
 - [ ] The draft tools of B-41 merge over `content/`, and their tests pass with the new setting.
 - [ ] `CLAUDE.md`, `DESIGN.md` (folder layout, deployment, test content, the content tools), `REQUIREMENTS.md` where it applies, and the READMEs of `content/` and `demo/` describe the new layout. `campaign/README.md`'s notes that are still true (the dates of the first session) move to the new `content/README.md`.
@@ -1437,9 +1437,9 @@ Status: defined
 
 Related: FR-1 (50 markers), FR-2 (200 ms, 300 events), "Performance", "Scale target".
 
-Depends on: B-35 (the generated campaign must pass all the checks, with no warnings), and the feature work before it.
+Depends on: B-35 (the generated campaign must pass all the checks, with no warnings), B-32 (the folder layout it uses), and the feature work before it.
 
-Scope note: the product owner wants the data for this kept apart from the demo content. After B-32 there are three content folders: `content/` (the real campaign), `demo/` (the demo) and `perf-campaign/` (generated); until then the demo is in `content/` and the real draft in `campaign/`. The performance campaign is written by a script from a fixed seed, so it is always the same, it is not committed (`perf-campaign/` is in `.gitignore`), and the repository stays small. Its size is the scale target: 300 events, 50 locations and 30 journal entries, plus about 20 pictures. It is built like a real campaign: events spread over several years of the calendar, about 60% on the main map, some shown on Bog End, some only on Haestra (`n/a` on the main map), about 10% standalone, three split groups of 10 to 15 events each with a few `newSegment`, one to five paragraphs each with an average of three links to entries, about 40% with an English section, 15 journal-only passages, about 30 pictures in texts, and entries (the long ones named by 100 events) with long excerpt lists. Every location, picture and entry is used, so the campaign has no warnings. If a measurement breaks a limit, a small fix goes into this item, and a larger one becomes a new item that is agreed with the product owner.
+Scope note: the product owner wants the data for this kept apart from the demo content. There are then three content folders: `content/` (the real campaign), `demo/` (the demo) and `perf-campaign/` (generated). The generator takes the calendar, the interface texts and the map images from `content/` (and so needs B-32 to be done), and everything else it writes itself. The performance campaign is written by a script from a fixed seed, so it is always the same, it is not committed (`perf-campaign/` is in `.gitignore`), and the repository stays small. Its size is the scale target: 300 events, 50 locations and 30 journal entries, plus about 20 pictures. It is built like a real campaign: events spread over several years of the calendar, about 60% on the main map, some shown on Bog End, some only on Haestra (`n/a` on the main map), about 10% standalone, three split groups of 10 to 15 events each with a few `newSegment`, one to five paragraphs each with an average of three links to entries, about 40% with an English section, 15 journal-only passages, about 30 pictures in texts, and entries (the long ones named by 100 events) with long excerpt lists. Every location, picture and entry is used, so the campaign has no warnings. If a measurement breaks a limit, a small fix goes into this item, and a larger one becomes a new item that is agreed with the product owner.
 
 You will see: a campaign of the scale target that you can open and step through, and numbers for how quickly the site answers.
 
@@ -1494,8 +1494,9 @@ Acceptance criteria:
 - [ ] Every statement in `REQUIREMENTS.md` and `DESIGN.md` is checked against the code and the content: the file formats against the loader, the validation rules against the tests, the architecture and the components against `src/`. Every difference is fixed in the document (or, if it is a mistake in the code, in the code), and `DESIGN.md`'s status line and the open items of `REQUIREMENTS.md` are up to date.
 - [ ] Each of the requirements FR-1 to FR-9 has at least one unit test and one browser test whose name names it, and a unit test checks that this stays true.
 - [ ] `BUGS.md` has no open bug and `BACKLOG.md` has no item that is neither `accepted` nor in the list after the first version.
-- [ ] A `README.md` in the repository root says in English what the site is, shows the address, and tells how to run, test, write content and publish it, and points to `specifications/`.
-- [ ] GitHub Pages is enabled with the source "GitHub Actions" and the last run of the workflow on `master` is green (the product owner confirms both).
+- [ ] No statement in the documents is still marked "planned": each item removes its own marks when it is done, and this check finds any that are left (`DESIGN.md`, `REQUIREMENTS.md`, `CLAUDE.md`), including the "Content tools" section, which then describes the tools as they are.
+- [ ] A `README.md` in the repository root says in English what the site is, shows the address, and tells how to run, test, write content (by hand and with the tools of the content track) and publish it, says that `gm-notes/` and `drafts/` are private and never committed, and points to `specifications/`.
+- [ ] GitHub Pages is still enabled with the source "GitHub Actions" and the last run of the workflow on `master` is green, with the browser tests of Chromium and WebKit and the performance tests in it (the product owner confirms both).
 - [ ] The product owner has measured the time to the main map and the first event on the live site, on a fast connection and on a phone, and the result is written in `DESIGN.md` next to the 3 s target, with a note if it is missed. The large map `haestra.jpg` loading in the background is checked on the phone.
 
 Automated tests: the unit test that every requirement is named by a test, and the whole of `npm run test:all` and the workflow passing.
@@ -1507,7 +1508,7 @@ The last checkpoint: the first version of the site, live, with the product owner
 What to try: use the live site as the players will. Send the address to a player and see what they do with it. Read your own events and entries on it, on the computer and on the phone.
 
 Feedback wanted:
-- what is missing for you to start adding the whole campaign;
+- what is missing for you to carry on alone with the next sessions (the 2026 session and later), with the authoring guide and the tools;
 - what the players find confusing or good;
 - which of the ideas after the first version (clicking a marker, share links, filters, a book-style journal button, a fantasy look) you want first.
 

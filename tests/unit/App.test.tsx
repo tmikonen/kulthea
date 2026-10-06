@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { App } from '../../src/App';
 
@@ -334,6 +334,46 @@ describe('stepping (B-12)', () => {
     fireEvent.keyDown(next, { key: 'ArrowRight', shiftKey: true });
     fireEvent.keyDown(next, { key: 'ArrowRight', metaKey: true });
     expect(path()).toBe(`/event/${IDS[1]}`);
+  });
+
+  // BUG-11: a click that came before the page had drawn the result of the previous click stepped from the event
+  // that was still drawn, so it repeated the previous step and one step was lost.
+  it('FR-2 clicks that come before the page is redrawn each take one step', () => {
+    renderApp();
+    const next = screen.getByRole('button', { name: 'Seuraava' });
+    act(() => {
+      next.click();
+      next.click();
+      next.click();
+    });
+    expect(path()).toBe(`/event/${IDS[3]}`);
+    const previous = screen.getByRole('button', { name: 'Edellinen' });
+    act(() => {
+      previous.click();
+      previous.click();
+    });
+    expect(path()).toBe(`/event/${IDS[1]}`);
+  });
+
+  it('FR-2 arrow keys that come before the page is redrawn each take one step', () => {
+    renderApp();
+    const next = screen.getByRole('button', { name: 'Seuraava' });
+    act(() => {
+      fireEvent.keyDown(next, { key: 'ArrowRight' });
+      fireEvent.keyDown(next, { key: 'ArrowRight' });
+    });
+    expect(path()).toBe(`/event/${IDS[2]}`);
+  });
+
+  it('FR-2 a step at the end of the events, made before the page is redrawn, does nothing', () => {
+    renderApp(`/event/${IDS[IDS.length - 2]}`);
+    const next = screen.getByRole('button', { name: 'Seuraava' });
+    act(() => {
+      next.click();
+      next.click();
+      next.click();
+    });
+    expect(path()).toBe(`/event/${IDS[IDS.length - 1]}`);
   });
 
   it('FR-1 the arrow keys on the map do not step, so they can pan the map', () => {

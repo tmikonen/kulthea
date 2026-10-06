@@ -24,6 +24,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-8 | The whole page shifts sideways, with a scroll bar, while the journal panel slides in | fixed | B-21 |
 | BUG-9 | Markers and route lines are misplaced after quick stepping on an iPhone | fixed | B-33 |
 | BUG-10 | The map switcher buttons cover the journal panel's heading on a phone | fixed | B-21 |
+| BUG-11 | A step is lost when Next or Previous is clicked again before the page has been redrawn | fixed | B-12 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -139,3 +140,14 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Verified by: `tests/e2e/journal.spec.ts`, "FR-6 on a phone the panel is above the map buttons: nothing of the map is drawn over its heading and its close button (BUG-10)". It opens the panel at a phone size and checks, for the heading, the close button and every map button that is under the panel, that the element at its middle is in the panel. It failed before the fix (the heading was covered by the button "Pääkartta") in Chromium and in WebKit with the iPhone profile (`journal-webkit`), and passes now. A second test, "the close button of the panel can be tapped", guards the other control of the title bar.
 - Note: `po-attachments/` is in `.gitignore` on purpose, so the screenshot is only in the product owner's working copy.
 - Also confirmed by hand by the product owner, on the deployed site, on the iPhone where it was found.
+
+## BUG-11: A step is lost when Next or Previous is clicked again before the page has been redrawn
+
+- Status: fixed
+- Related item: B-12 (stepping through events)
+- Found: by Claude, while investigating a WebKit browser test that failed about once in five full runs (`focus-webkit`, the BUG-7 test with four quick clicks). Not yet seen by the product owner, but it would show on a slow phone with quick taps.
+- Description: when the browser is slow (a loaded machine, a slow phone), two clicks on Next (or arrow keys) that come before the page has drawn the result of the first one take one step, not two. In the test, four clicks 100 ms apart from "same-place" ended at "far-c", one event short of "far-d".
+- Root cause: confirmed by reproduction, with a unit test and with the browser test under load (12 parallel workers). The buttons and keys step to the neighbour of the event that is drawn. A click before the redraw still sees the old event, so it repeats the previous step. A first version of the fix, which remembered only the last target, still lost a step when the page drew an intermediate event on the way and cleared the memory.
+- Fix: `MainView` keeps the list of events that steps have gone to and that the page has not drawn yet, and steps from the last of them. When the page draws an event, the list drops the entries up to it, and an event that is not in the list (the back button, an edited address) clears it. The URL stays the only state: the list only bridges the time until it is drawn.
+- Verified by: `tests/unit/App.test.tsx`, "FR-2 clicks that come before the page is redrawn each take one step", "FR-2 arrow keys that come before the page is redrawn each take one step" and "FR-2 a step at the end of the events, made before the page is redrawn, does nothing" (the first two failed before the fix: three clicks went to the second event, not the fourth). The browser test under load also passed 120 of 120 runs after the fix, and failed in 1 to 4 of 24 runs before it.
+- Note: the same browser tests also failed under load for two other reasons that were the tests' own: the frame count and a 3 s click timeout were too strict for a starved browser (commit "Make the WebKit frame and tap tests robust on a loaded machine"). A third kind of failure, a displacement of about 70 px late in a move, was seen once in the full runs before this fix, and has not been seen since.

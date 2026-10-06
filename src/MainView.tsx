@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import content from 'virtual:content';
 import { activeLanguage } from './content/language';
@@ -57,12 +57,27 @@ export function MainView({ event }: { event?: EventDef }) {
 
   const { previous, next } = neighbours(content.events, event?.id);
   const text = event ? eventText(event, lang, defaultLang) : { html: '', fallback: false };
-  /** Steps to another event. A manual map choice lasts only until the next step, so `map` is dropped. */
+  /**
+   * The events that steps have gone to and that the page has not shown yet, oldest first. The buttons and keys step from
+   * the event that is drawn, so a click that comes before the page is redrawn (a slow device, quick taps) would repeat
+   * the previous step and lose one. It steps from the last of these instead. The page may draw some of them on the way,
+   * and an event that is not one of them (the back button, an edited address) clears the list.
+   */
+  const pending = useRef<string[]>([]);
+  useEffect(() => {
+    const at = pending.current.indexOf(event?.id ?? '');
+    pending.current = at >= 0 ? pending.current.slice(at + 1) : [];
+  }, [event?.id]);
+  /** Steps to the neighbour of the event in the direction of `target`. A manual map choice lasts only until the next step, so `map` is dropped. */
   const step = (target: EventDef) => {
+    const direction = target.id === next?.id ? 'next' : 'previous';
+    const to = neighbours(content.events, pending.current.at(-1) ?? event?.id)[direction];
+    if (!to) return;
+    pending.current.push(to.id);
     const kept = new URLSearchParams(params);
     kept.delete('map');
     kept.delete('journal');
-    navigate({ pathname: eventPath(target.id), search: kept.toString() });
+    navigate({ pathname: eventPath(to.id), search: kept.toString() });
   };
 
   const mainMapId = maps.find((map) => map.main)!.id;

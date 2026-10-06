@@ -7,6 +7,7 @@ import { splitSections } from '../src/content/sections.ts';
 import { renderWithLinks, type ImageInfo, type ImageLookup, type RenderedText } from './links.ts';
 import { extractPassages } from './passages.ts';
 import { findRawHtml } from './markdown.ts';
+import { checkLanguageMap, warnUnlistedFields } from './checks.ts';
 import { JOURNAL_TYPES } from '../src/content/types.ts';
 import type { Campaign, EventDef, Excerpt, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
@@ -74,12 +75,13 @@ export function loadContent(dir: string): LoadResult {
     }
   }
 
-  const campaign = validateCampaign(readJson('campaign.json'), rel(path.join(dir, 'campaign.json')), errors);
+  const campaign = validateCampaign(readJson('campaign.json'), rel(path.join(dir, 'campaign.json')), errors, warnings);
   const maps = validateMaps(
     readJson('maps.json'),
     rel(path.join(dir, 'maps.json')),
     dir,
     campaign?.defaultLanguage,
+    campaign?.languages,
     errors,
     warnings,
   );
@@ -89,7 +91,9 @@ export function loadContent(dir: string): LoadResult {
     rel(path.join(dir, 'locations.json')),
     maps?.map((map) => map.id),
     campaign?.defaultLanguage,
+    campaign?.languages,
     errors,
+    warnings,
   );
   // The journal is read first, because the links in the text of events and entries need the names of the entries.
   const drafts = campaign && locations
@@ -108,13 +112,13 @@ export function loadContent(dir: string): LoadResult {
     ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, entryType, linkLog, errors, warnings)
     : null;
   const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, dir, errors, warnings) : null;
-  const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, errors);
+  const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, campaign?.languages, errors);
 
   if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) return { bundle: null, errors, warnings };
   return { bundle: { campaign, maps, locations, events, journal, ui }, errors, warnings };
 }
 
-function validateCampaign(raw: unknown, file: string, errors: string[]): Campaign | null {
+function validateCampaign(raw: unknown, file: string, errors: string[], warnings: string[]): Campaign | null {
   if (raw === undefined) return null;
   const err = (problem: string) => errors.push(`${file}: ${problem}`);
   if (!isRecord(raw)) {
@@ -157,6 +161,22 @@ function validateCampaign(raw: unknown, file: string, errors: string[]): Campaig
     });
   }
 
+  const warn = (problem: string) => warnings.push(`${file}: ${problem}`);
+  warnUnlistedFields(raw, ['title', 'languages', 'defaultLanguage', 'era', 'months', 'daysPerMonth', 'dateFormat'], '', warn);
+  warnUnlistedFields(era, ['name', 'abbreviation'], '"era": ', warn);
+  months.forEach((month, i) => {
+    if (isRecord(month)) warnUnlistedFields(month, ['name', 'inDate'], `month ${i + 1}: `, warn);
+  });
+  checkLanguageMap(raw.title, languages, '"title"', err);
+  checkLanguageMap(era.name, languages, '"era.name"', err);
+  checkLanguageMap(era.abbreviation, languages, '"era.abbreviation"', err);
+  checkLanguageMap(dateFormat, languages, '"dateFormat"', err);
+  months.forEach((month, i) => {
+    if (!isRecord(month)) return;
+    checkLanguageMap(month.name, languages, `month ${i + 1} "name"`, err);
+    checkLanguageMap(month.inDate, languages, `month ${i + 1} "inDate"`, err);
+  });
+
   if (errors.length > before) return null;
   return {
     title: raw.title as Campaign['title'],
@@ -179,7 +199,9 @@ function validateLocations(
   file: string,
   mapIds: string[] | undefined,
   defaultLanguage: string | undefined,
+  languages: string[] | undefined,
   errors: string[],
+  warnings: string[],
 ): LocationDef[] | null {
   if (raw === undefined) return null;
   const err = (problem: string) => errors.push(`${file}: ${problem}`);
@@ -205,6 +227,8 @@ function validateLocations(
     if (ids.has(id)) err(`${where}: duplicate id`);
     ids.add(id);
 
+    warnUnlistedFields(entry, ['id', 'name', 'positions'], `${where}: `, (problem) => warnings.push(`${file}: ${problem}`));
+    if (languages) checkLanguageMap(entry.name, languages, `${where}: "name"`, err);
     if (defaultLanguage !== undefined && !hasText(entry.name, defaultLanguage, defaultLanguage)) {
       err(`${where}: "name" has no text in the default language "${defaultLanguage}"`);
     }
@@ -373,6 +397,11 @@ function validateEvents(
         });
       }
     }
+    warnUnlistedFields(front, ['title', 'location', 'position', 'showOn', 'track', 'newSegment'], '', (problem) => warnings.push(`${file}: ${problem}`));
+    if (isRecord(front.showOn)) {
+      warnUnlistedFields(front.showOn, ['map', 'location', 'position'], '"showOn": ', (problem) => warnings.push(`${file}: ${problem}`));
+    }
+    checkLanguageMap(front.title, campaign.languages, '"title"', err);
     if (front.title === undefined) err('"title" is missing');
     else if (!hasText(front.title, defaultLang, defaultLang)) {
       err(`"title" has no text in the default language "${defaultLang}"`);
@@ -480,7 +509,24 @@ function validateEvents(
   }
 
   if (errors.length > before) return null;
-  return events.sort(compareEvents);
+  const sorted = events.sort(compareEvents);
+  warnUnreturnedGroups(sorted, (id) => `${rel(path.join(eventsDir, id))}.md`, warnings);
+  return sorted;
+}
+
+/** A named group whose last event has no later party event never returns to the party, which is probably a mistyped `track`. */
+function warnUnreturnedGroups(events: EventDef[], file: (id: string) => string, warnings: string[]): void {
+  const lastOfGroup = new Map<string, number>();
+  let lastParty = -1;
+  events.forEach((event, i) => {
+    if (event.track === null) lastParty = i;
+    else if (event.track.trim().toLowerCase() !== 'none') lastOfGroup.set(event.track, i);
+  });
+  for (const [group, index] of lastOfGroup) {
+    if (index > lastParty) {
+      warnings.push(`${file(events[index].id)}: the group "${group}" has no later party event, so it never returns to the party. Check the "track" name if it should.`);
+    }
+  }
 }
 
 /**
@@ -608,6 +654,10 @@ function readJournal(
     const type = JOURNAL_TYPES.find((t) => t === front.type);
     if (!type) err(`"type" must be one of ${JOURNAL_TYPES.join(', ')}`);
 
+    warnUnlistedFields(front, ['type', 'name', 'image', 'motto'], '', (problem) => warnings.push(`${file}: ${problem}`));
+    checkLanguageMap(front.name, campaign.languages, '"name"', err);
+    checkLanguageMap(front.motto, campaign.languages, '"motto"', err);
+
     let name: JournalEntryDef['name'] = '';
     if (type === 'location') {
       const location = locationsById.get(id);
@@ -726,6 +776,7 @@ function validateUi(
   raw: unknown,
   file: string,
   defaultLanguage: string | undefined,
+  languages: string[] | undefined,
   errors: string[],
 ): UiTexts | null {
   if (raw === undefined) return null;
@@ -737,6 +788,8 @@ function validateUi(
   for (const [key, value] of Object.entries(raw)) {
     if (typeof value !== 'string' && !isRecord(value)) {
       errors.push(`${file}: text "${key}" must be a string or a language map`);
+    } else if (languages && isRecord(value) && Object.keys(value).some((lang) => !languages.includes(lang))) {
+      checkLanguageMap(value, languages, `text "${key}"`, (problem) => errors.push(`${file}: ${problem}`));
     } else if (defaultLanguage !== undefined && !hasText(value, defaultLanguage, defaultLanguage)) {
       errors.push(`${file}: text "${key}" has no text in the default language "${defaultLanguage}"`);
     }
@@ -749,6 +802,7 @@ function validateMaps(
   file: string,
   dir: string,
   defaultLanguage: string | undefined,
+  languages: string[] | undefined,
   errors: string[],
   warnings: string[],
 ): MapDef[] | null {
@@ -776,6 +830,9 @@ function validateMaps(
     if (ids.has(id)) err(`${where}: duplicate id`);
     ids.add(id);
 
+    warnUnlistedFields(entry, ['id', 'name', 'image', 'width', 'height', 'main', 'focusZoom', 'routes'], `${where}: `,
+      (problem) => warnings.push(`${file}: ${problem}`));
+    if (languages) checkLanguageMap(entry.name, languages, `${where}: "name"`, err);
     if (defaultLanguage !== undefined && !hasText(entry.name, defaultLanguage, defaultLanguage)) {
       err(`${where}: "name" has no text in the default language "${defaultLanguage}"`);
     }

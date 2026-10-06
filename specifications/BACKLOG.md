@@ -886,7 +886,7 @@ Feedback wanted:
 
 ## B-28 Checks for mistakes in the content
 
-Status: defined
+Status: done
 
 Related: FR-9, "Languages", "Validation rules", "File formats".
 
@@ -903,10 +903,10 @@ How to check by hand (with the demo content):
 4. Give the last demo event the line `track: demo-extra`. The build warns that the group "demo-extra" has no later party event. Remove it.
 
 Acceptance criteria:
-- [ ] A language map with an unconfigured language is an error in every short text field listed above, naming the file, the field and the language. A plain value and a map with only configured languages are as before.
-- [ ] An unlisted field is a warning in the front matter of events and entries, in `showOn`, and in `campaign.json`, `maps.json` and `locations.json` (also inside `era`, `months` and `dateFormat`). It names the file and the field, and suggests a listed field within two typing mistakes. A warning does not fail the build, and the files in `content/`, `campaign/` and the fixtures have none.
-- [ ] A named group (a `track` that is not empty and not `none`) whose last event has no later party event gives a warning that names the last event's file and the group. A group that rejoins, a standalone event and the party give none.
-- [ ] The warnings appear in the terminal in the dev server and in the build, as the other warnings do.
+- [x] A language map with an unconfigured language is an error in every short text field listed above, naming the file, the field and the language. A plain value and a map with only configured languages are as before.
+- [x] An unlisted field is a warning in the front matter of events and entries, in `showOn`, and in `campaign.json`, `maps.json` and `locations.json` (also inside `era`, `months` and `dateFormat`). It names the file and the field, and suggests a listed field within two typing mistakes. A warning does not fail the build, and the files in `content/`, `campaign/` and the fixtures have none.
+- [x] A named group (a `track` that is not empty and not `none`) whose last event has no later party event gives a warning that names the last event's file and the group. A group that rejoins, a standalone event and the party give none.
+- [x] The warnings appear in the terminal in the dev server and in the build, as the other warnings do.
 
 Automated tests: unit tests, with their own fixtures, for each of the three checks (an error for each kind of field, plain values and valid maps still passing, a warning for each kind of unlisted field with and without a suggestion, groups that rejoin and groups that do not), and that `content/`, `campaign/` and the fixtures give no new warning.
 

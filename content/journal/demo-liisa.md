@@ -8,4 +8,4 @@ Keksitty esimerkkihahmo, jolla on vain suomenkielinen teksti. Liisa lähtee usei
 
 Hän on taitava jäljittäjä ja tuntee Suonperän ympäristön.
 
-Hän kulkee usein yhdessä [[demo-kaarlo|Kaarlon]] kanssa ja viihtyy [[bog-end|Suonperässä]].
+Hän kulkee usein yhdessä [[demo-kaarlo|Kaarlon]] kanssa ja viihtyy [[bog-end|Suonperässä]]. Lisää tarinoita: [[demo-vanhat-tarinat]].

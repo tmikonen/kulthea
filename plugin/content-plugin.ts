@@ -19,8 +19,10 @@ export function contentPlugin(options: { dir: string }): Plugin {
     },
     load(id) {
       if (id !== RESOLVED_ID) return;
-      const { bundle, errors, warnings } = loadContent(contentDir);
+      const { bundle, errors, warnings, summary } = loadContent(contentDir);
       for (const warning of warnings) this.warn(warning);
+      // The translation summary is not a warning: it is printed on every load, so also after a change in the dev server.
+      for (const line of summary) console.log(line);
       if (errors.length > 0) {
         throw new Error(`Content errors:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
       }

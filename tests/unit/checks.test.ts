@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadContent } from '../../plugin/load-content';
@@ -6,6 +5,9 @@ import { editDistance, suggestField } from '../../plugin/checks';
 import { cleanupTempContent, editJson, FIXTURES, loadModified, writeEntry, writeEvent } from './content-helpers';
 
 afterEach(cleanupTempContent);
+
+/** The warnings of B-35 about things that nothing uses. */
+const UNUSED = /the image is not used|is not used by any event|the entry is not used/;
 
 const REAL_FOLDERS = [FIXTURES, path.resolve(__dirname, '../../content'), path.resolve(__dirname, '../../campaign')];
 
@@ -84,7 +86,7 @@ describe('fields that are not listed (B-28)', () => {
     const { bundle, errors, warnings } = loadModified(change);
     expect(errors).toEqual([]);
     expect(bundle).not.toBeNull();
-    return warnings;
+    return warnings.filter((w) => !UNUSED.test(w)); // the unused entries made by these tests are for the B-35 tests
   };
 
   it('FR-9 an entry field, with a suggestion', () => {
@@ -129,7 +131,7 @@ describe('fields that are not listed (B-28)', () => {
 });
 
 describe('a group that never returns (B-28)', () => {
-  const groupWarnings = (change: (dir: string) => void) => loadModified(change).warnings;
+  const groupWarnings = (change: (dir: string) => void) => loadModified(change).warnings.filter((w) => !UNUSED.test(w));
 
   it('FR-5 warns, naming the last event and the group, when no party event comes after it', () => {
     expect(groupWarnings((dir) => writeEvent(dir, '6050-4-001-01-last.md', 'title: X\nlocation: both-places\ntrack: scouts'))).toEqual([
@@ -159,14 +161,11 @@ describe('a group that never returns (B-28)', () => {
 });
 
 describe('the real content gives no new warning (B-28)', () => {
-  it('FR-9 the fixtures, the demo content and the campaign content have no warnings', () => {
-    for (const dir of REAL_FOLDERS) {
+  it('FR-9 the fixtures, the demo content and the campaign content have no warnings about fields and groups', () => {
+    for (const dir of [...REAL_FOLDERS, 'tests/fixtures-focus', 'tests/fixtures-routes'].map((d) => path.resolve(d))) {
       const { errors, warnings } = loadContent(dir);
       expect(errors, dir).toEqual([]);
-      expect(warnings, dir).toEqual([]);
-    }
-    for (const dir of ['tests/fixtures-focus', 'tests/fixtures-routes']) {
-      if (fs.existsSync(dir)) expect(loadContent(path.resolve(dir)).warnings, dir).toEqual([]);
+      expect(warnings.filter((w) => !UNUSED.test(w)), dir).toEqual([]);
     }
   });
 });

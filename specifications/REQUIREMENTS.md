@@ -127,6 +127,6 @@ The site can be shown in Finnish or English. Finnish is the default language, th
 
 ## 5. Open items
 
-None. (Checks that the design asks for and the build does not do yet are planned in B-35 in `BACKLOG.md`.)
+None.
 
 Future ideas such as route waypoints along roads are not in scope.

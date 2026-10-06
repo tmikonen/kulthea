@@ -8,6 +8,7 @@ import { renderWithLinks, type ImageInfo, type ImageLookup, type RenderedText } 
 import { extractPassages } from './passages.ts';
 import { findRawHtml } from './markdown.ts';
 import { checkLanguageMap, warnUnlistedFields } from './checks.ts';
+import { findUnused, summarizeTranslations, type Usage } from './summary.ts';
 import { JOURNAL_TYPES } from '../src/content/types.ts';
 import type { Campaign, EventDef, Excerpt, EventShowOn, ImageRef, JournalEntryDef, JournalType, LoadedContent, LocationDef, MapDef, Month, UiTexts } from '../src/content/types.ts';
 
@@ -15,6 +16,8 @@ export interface LoadResult {
   bundle: LoadedContent | null;
   errors: string[];
   warnings: string[];
+  /** One line for each language other than the default, about what has no text in it. Not a warning. */
+  summary: string[];
 }
 
 const MAP_MAX_BYTES = 10 * 1024 * 1024;
@@ -59,6 +62,7 @@ function hasText(value: unknown, lang: string, defaultLang: string): boolean {
 export function loadContent(dir: string): LoadResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const usage: Usage = { images: new Set(), links: new Set() };
   const rel = (file: string) => path.relative(process.cwd(), file).split(path.sep).join('/');
 
   function readJson(name: string): unknown {
@@ -97,7 +101,7 @@ export function loadContent(dir: string): LoadResult {
   );
   // The journal is read first, because the links in the text of events and entries need the names of the entries.
   const drafts = campaign && locations
-    ? readJournal(path.join(dir, 'journal'), dir, rel, campaign, locations, errors, warnings)
+    ? readJournal(path.join(dir, 'journal'), dir, rel, campaign, locations, usage, errors, warnings)
     : null;
   /** The type of an entry. When an entry has an error, its own error is enough, so any id is taken as a character then. */
   const entryType = (id: string) => (drafts === null ? 'pc' : drafts.find((d) => d.id === id)?.type);
@@ -109,13 +113,17 @@ export function loadContent(dir: string): LoadResult {
   };
   const linkLog: LinkLog = new Map();
   const events = campaign && maps && locations
-    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, entryType, linkLog, errors, warnings)
+    ? validateEvents(path.join(dir, 'events'), rel, campaign, maps, locations, linkName, entryType, linkLog, usage, errors, warnings)
     : null;
-  const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, dir, errors, warnings) : null;
+  const journal = drafts && campaign ? renderJournal(drafts, campaign, events ?? [], linkLog, linkName, dir, usage, errors, warnings) : null;
   const ui = validateUi(readJson('ui.json'), rel(path.join(dir, 'ui.json')), campaign?.defaultLanguage, campaign?.languages, errors);
 
-  if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) return { bundle: null, errors, warnings };
-  return { bundle: { campaign, maps, locations, events, journal, ui }, errors, warnings };
+  if (errors.length > 0 || !campaign || !maps || !locations || !events || !journal || !ui) {
+    return { bundle: null, errors, warnings, summary: [] };
+  }
+  const bundle = { campaign, maps, locations, events, journal, ui };
+  warnings.push(...findUnused(bundle, dir, rel, usage));
+  return { bundle, errors, warnings, summary: summarizeTranslations(bundle) };
 }
 
 function validateCampaign(raw: unknown, file: string, errors: string[], warnings: string[]): Campaign | null {
@@ -305,6 +313,7 @@ function validateEvents(
   linkName: LinkName,
   entryType: (id: string) => string | undefined,
   linkLog: LinkLog,
+  usage: Usage,
   errors: string[],
   warnings: string[],
 ): EventDef[] | null {
@@ -363,7 +372,7 @@ function validateEvents(
     }
 
     const eventErrors = errors.length;
-    const images = makeImageLookup(path.dirname(eventsDir), file, warnings);
+    const images = makeImageLookup(path.dirname(eventsDir), file, warnings, usage);
     const text: Record<string, string> = {};
     const { sections, errors: sectionErrors } = splitSections(
       eventBody(fileText, match[0].length), campaign.languages, defaultLang);
@@ -575,9 +584,10 @@ function readImage(
 }
 
 /** Looks up the images that the text of one file uses, reading each image once and giving its warnings once. */
-function makeImageLookup(contentDir: string, file: string, warnings: string[]): ImageLookup {
+function makeImageLookup(contentDir: string, file: string, warnings: string[], usage: Usage): ImageLookup {
   const known = new Map<string, ImageInfo>();
   return (value) => {
+    usage.images.add(path.posix.normalize(value));
     const cached = known.get(value);
     if (cached) return cached;
     let info: ImageInfo;
@@ -605,6 +615,7 @@ function readJournal(
   rel: (file: string) => string,
   campaign: Campaign,
   locations: LocationDef[],
+  usage: Usage,
   errors: string[],
   warnings: string[],
 ): JournalDraft[] | null {
@@ -678,6 +689,7 @@ function readJournal(
     }
 
     const image = front.image === undefined ? null : readImage(front.image, contentDir, file, err, warnings);
+    if (image) usage.images.add(image.src);
 
     const { sections, errors: sectionErrors } = splitSections(
       eventBody(fileText, match[0].length), campaign.languages, defaultLang);
@@ -705,15 +717,18 @@ function renderJournal(
   linkLog: LinkLog,
   linkName: LinkName,
   contentDir: string,
+  usage: Usage,
   errors: string[],
   warnings: string[],
 ): JournalEntryDef[] | null {
   const before = errors.length;
   const entries: JournalEntryDef[] = drafts.map(({ file, sections, ...entry }) => {
-    const images = makeImageLookup(contentDir, file, warnings);
+    const images = makeImageLookup(contentDir, file, warnings, usage);
     const text: Record<string, string> = {};
     for (const [lang, markdown] of Object.entries(sections)) {
-      text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`), images, (problem) => warnings.push(`${file}: ${problem}`));
+      text[lang] = renderText(markdown, lang, linkName, (problem) => errors.push(`${file}: ${problem}`), images, (problem) => warnings.push(`${file}: ${problem}`), (rendered) => {
+        for (const id of rendered.links) if (id !== entry.id) usage.links.add(id);
+      });
     }
     return { ...entry, text, events: eventLists(entry, campaign, events, linkLog), excerpts: excerptLists(entry, campaign, events, linkLog) };
   });

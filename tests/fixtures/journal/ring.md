@@ -5,7 +5,7 @@ name:
   en: Ring
 ---
 @fi
-Esineen kuvaus.
+Esineen kuvaus. Katso [[lore]].
 
 @en
-The item's description.
+The item's description. See [[lore]].

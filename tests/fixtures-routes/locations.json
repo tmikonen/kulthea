@@ -1,8 +1,1 @@
-[
-  { "id": "both-places", "name": { "fi": "Molemmat paikat", "en": "Both Places" },
-    "positions": { "main-map": [25, 75], "second-map": [50, 50] } },
-  { "id": "main-only", "name": "Main Only",
-    "positions": { "main-map": [80, 20] } },
-  { "id": "second-only", "name": { "fi": "Vain toinen", "en": "Second Only" },
-    "positions": { "second-map": [10, 90] } }
-]
+[]

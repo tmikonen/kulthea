@@ -702,7 +702,7 @@ describe('events that are n/a on the main map (B-34)', () => {
 
   it('FR-3 the fixture, demo and campaign events give no such warning', () => {
     for (const dir of [FIXTURES, path.resolve(__dirname, '../../content'), path.resolve(__dirname, '../../campaign')]) {
-      expect(loadContent(dir).warnings).toEqual([]);
+      expect(loadContent(dir).warnings.filter((w) => /is n\/a on the main map/.test(w))).toEqual([]);
     }
   });
 });

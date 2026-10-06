@@ -912,7 +912,7 @@ Automated tests: unit tests, with their own fixtures, for each of the three chec
 
 ## B-35 Build summary and unused items
 
-Status: defined
+Status: done
 
 Related: FR-9, "Validation rules" (warnings).
 
@@ -930,10 +930,10 @@ How to check by hand (with the demo content):
 5. Add the English text to a Finnish-only demo event. The count of events without text goes down by one.
 
 Acceptance criteria:
-- [ ] An unused image, location and entry, by the definitions above, each give a warning that names the file (or `locations.json` and the id) and says what is unused. Items that are used give none, and the files in `content/`, `campaign/` and the fixtures have no such warnings.
-- [ ] The summary has one line for each language other than the default, as above, with the counts of what is missing for that language, "complete" when nothing is missing, and the language's name.
-- [ ] The summary is printed in the dev server and in the build, and it never fails the build or counts as a warning. A site with only the default language prints no summary line.
-- [ ] The counts follow the fallback rules: a text counts as missing exactly when the app would show the default language's text with the note.
+- [x] An unused image, location and entry, by the definitions above, each give a warning that names the file (or `locations.json` and the id) and says what is unused. Items that are used give none, and the files in `content/` and the fixtures have no such warnings. (Decided with the product owner: `campaign/` keeps five locations that its first events do not use yet, so it has five such warnings until the extraction items B-43 to B-48 use them. The demo got a location entry for the Troll Cave and a link to its note, and the focus and route fixtures no longer list locations they do not use.)
+- [x] The summary has one line for each language other than the default, as above, with the counts of what is missing for that language, "complete" when nothing is missing, and the language's name.
+- [x] The summary is printed in the dev server and in the build, and it never fails the build or counts as a warning. A site with only the default language prints no summary line.
+- [x] The counts follow the fallback rules: a text counts as missing exactly when the app would show the default language's text with the note.
 
 Automated tests: unit tests for each unused kind (used by an event, by a link, by a lead image, by a passage; unused), for the counts of the summary with and without missing parts and for the complete case, and for the line text.
 

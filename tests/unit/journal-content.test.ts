@@ -158,21 +158,21 @@ describe('journal content (B-20)', () => {
       });
       expect(wide.errors).toEqual([]);
       expect(wide.bundle?.journal.find((e) => e.id === 'a')?.image).toEqual({ src: 'images/huge.png', width: 2000, height: 100 });
-      expect(wide.warnings).toEqual([expect.stringMatching(/journal\/a\.md: image "images\/huge\.png" is over 1600 px wide \(2000 px\)/)]);
+      expect(wide.warnings.filter((w) => !/not used/.test(w))).toEqual([expect.stringMatching(/journal\/a\.md: image "images\/huge\.png" is over 1600 px wide \(2000 px\)/)]);
 
       const heavy = loadModified((dir) => {
         fs.writeFileSync(path.join(dir, 'images', 'heavy.png'), Buffer.concat([png(100, 100), Buffer.alloc(1.2 * 1024 * 1024)]));
         writeEntry(dir, 'a.md', 'type: note\nname: X\nimage: images/heavy.png');
       });
       expect(heavy.errors).toEqual([]);
-      expect(heavy.warnings).toEqual([expect.stringMatching(/image "images\/heavy\.png" is over about 1 MB/)]);
+      expect(heavy.warnings.filter((w) => !/not used/.test(w))).toEqual([expect.stringMatching(/image "images\/heavy\.png" is over about 1 MB/)]);
 
       const gif = loadModified((dir) => {
         fs.writeFileSync(path.join(dir, 'images', 'a.gif'), Buffer.from('R0lGODlhAQABAAAAACwAAAAAAQABAAA=', 'base64'));
         writeEntry(dir, 'a.md', 'type: note\nname: X\nimage: images/a.gif');
       });
       expect(gif.errors).toEqual([]);
-      expect(gif.warnings).toEqual([expect.stringMatching(/image "images\/a\.gif" is gif, not JPEG, PNG or WebP/)]);
+      expect(gif.warnings.filter((w) => !/not used/.test(w))).toEqual([expect.stringMatching(/image "images\/a\.gif" is gif, not JPEG, PNG or WebP/)]);
     });
   });
 
@@ -184,7 +184,7 @@ describe('journal content (B-20)', () => {
     expect(journal.filter((e) => e.type === 'pc')).toHaveLength(2);
     expect(journal.filter((e) => e.type === 'npc')).toHaveLength(2);
     expect(journal.filter((e) => e.type === 'item')).toHaveLength(1);
-    expect(journal.filter((e) => e.type === 'location')).toHaveLength(2);
+    expect(journal.filter((e) => e.type === 'location')).toHaveLength(3);
     expect(journal.filter((e) => e.type === 'note')).toHaveLength(1);
     expect(journal.some((e) => e.text.en)).toBe(true);
     expect(journal.some((e) => !e.text.en)).toBe(true);

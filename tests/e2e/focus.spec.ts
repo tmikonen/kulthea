@@ -289,13 +289,14 @@ test.describe('markers and lines during the move (BUG-7)', () => {
       [0, 100, 200, 300].forEach((delay) => setTimeout(() => nextButton.click(), delay));
       const tick = () => {
         check();
-        if (performance.now() - start < 2500) requestAnimationFrame(tick);
+        // Sample for 2.5 s, and on until enough frames have been drawn: a starved browser draws few.
+        if (performance.now() - start < 2500 || (frames < 40 && performance.now() - start < 20000)) requestAnimationFrame(tick);
         else resolve({ worst, frames, at });
       };
       requestAnimationFrame(tick);
     }), { places: PLACES });
 
-    expect(result.frames, "frames sampled: a loaded machine may draw few, but the check needs a run of them").toBeGreaterThan(10);
+    expect(result.frames, "the check needs a run of frames").toBeGreaterThan(30);
     expect(result.worst, `the worst place was ${result.at}`).toBeLessThan(4);
     await expectFocused(page, [12, 88]);
   });
@@ -352,13 +353,48 @@ test.describe('markers and lines during the move (BUG-7)', () => {
         [0, gap, 2 * gap].forEach((delay) => setTimeout(() => nextButton.click(), delay));
         const tick = () => {
           check();
-          if (performance.now() - start < 3 * gap + 1500) requestAnimationFrame(tick);
+          if (performance.now() - start < 3 * gap + 1500 || (frames < 40 && performance.now() - start < 20000)) requestAnimationFrame(tick);
           else resolve({ worst, frames, at });
         };
         requestAnimationFrame(tick);
       }), { places: [...PLACES, ...HOPS], gap });
-      expect(result.frames, "frames sampled: a loaded machine may draw few, but the check needs a run of them").toBeGreaterThan(10);
+      expect(result.frames, "the check needs a run of frames").toBeGreaterThan(30);
       expect(result.worst, `the worst place was ${result.at}`).toBeLessThan(4);
     });
   }
+});
+
+// BUG-12: when the browser draws no frame for more than the length of a move, right after the move has begun, the move
+// is made in a single jump. Leaflet moves the map image only when the zoom changes (or the view is reset), and the first
+// and the last frame of a move between two focused views have the same zoom, so the image stayed where it was while the
+// markers and lines went to the new place.
+test.describe('a move that is made in one jump (BUG-12)', () => {
+  test.beforeEach(async ({ page }) => {
+    // The frames of the animation are delayed while `__stall` is set, as on a loaded machine or a slow phone.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __stall: boolean };
+      const frame = window.requestAnimationFrame.bind(window);
+      w.__stall = false;
+      window.requestAnimationFrame = (callback) => (w.__stall ? window.setTimeout(() => callback(performance.now()), 900) as unknown as number : frame(callback));
+    });
+  });
+
+  /** How far the marker is from where its place is on the map image, in pixels. */
+  const offImage = async (page: Page, at: [number, number]) => {
+    const img = (await image(page).boundingBox())!;
+    const marker = await markerCentre(page);
+    return Math.hypot(marker.x - (img.x + (img.width * at[0]) / 100), marker.y - (img.y + (img.height * at[1]) / 100));
+  };
+
+  test('FR-1 after a move that is made in one jump the map image is where the marker says it is', async ({ page }) => {
+    await page.goto(`./#/event/${CENTRE}`);
+    await expectFocused(page, [50, 50]);
+    await page.evaluate(() => { (window as unknown as { __stall: boolean }).__stall = true; });
+    await next(page).click();
+    await expect(page).toHaveURL(new RegExp(RIGHT));
+    await page.waitForTimeout(1500); // the move has ended, in one jump
+    await page.evaluate(() => { (window as unknown as { __stall: boolean }).__stall = false; });
+    await expectFocused(page, [80, 30]);
+    expect(await offImage(page, [80, 30])).toBeLessThan(3);
+  });
 });

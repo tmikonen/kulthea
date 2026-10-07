@@ -149,8 +149,19 @@ function FocusOnMarker({ map: def, marker, eventId }: { map: ContentMap; marker:
     const target = map.unproject([centre.x, centre.y], zoom);
     const animate = focused.current !== undefined && focused.current !== eventId;
     focused.current = eventId;
-    if (animate) map.flyTo(target, zoom, { duration: FOCUS_SECONDS });
-    else map.setView(target, zoom, { animate: false });
+    if (animate) {
+      map.flyTo(target, zoom, { duration: FOCUS_SECONDS });
+      // Leaflet moves the map image only when the zoom changes, and the first and the last frame of this flight
+      // have the same zoom. When the browser draws no frame in between (a loaded machine, a slow phone), the
+      // flight ends in one jump and the image stays where it was while the markers and lines move on. So when the
+      // flight has ended, reset the view where it is, which places every layer again.
+      const settle = () => map.setView(map.getCenter(), map.getZoom(), { reset: true } as ZoomPanOptions);
+      map.once('moveend', settle);
+      return () => {
+        map.off('moveend', settle);
+      };
+    }
+    map.setView(target, zoom, { animate: false });
   }, [map, def, eventId, x, y]);
   return null;
 }

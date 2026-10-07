@@ -20,11 +20,11 @@ export default defineConfig({
     { name: 'fixtures', testIgnore: /(focus|routes)\.spec\.ts/, use: { baseURL: `http://localhost:${port}/kulthea/` } },
     { name: 'focus', testMatch: /focus\.spec\.ts/, use: { baseURL: `http://localhost:${focusPort}/kulthea/` } },
     // Safari's engine on an iPhone, for the checks that markers and lines stay where they should during a move
-    // (BUG-7 and BUG-9, which showed on a phone).
+    // (BUG-7, BUG-9 and BUG-12, which showed on a phone or on a slow machine).
     {
       name: 'focus-webkit',
       testMatch: /focus\.spec\.ts/,
-      grep: /BUG-[79]/,
+      grep: /BUG-(7|9|12)/,
       use: { ...devices['iPhone 13 Mini'], baseURL: `http://localhost:${focusPort}/kulthea/` },
     },
     // The journal panel on an iPhone (BUG-10).

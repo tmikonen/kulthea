@@ -16,6 +16,7 @@
     "draft:check": "node scripts/drafts/draft.ts check",
     "draft:dev": "node scripts/drafts/draft.ts dev",
     "draft:apply": "node scripts/drafts/draft.ts apply",
+    "draft:links": "node scripts/drafts/links.ts",
     "test:all": "npm test && npm run typecheck && npm run lint && npm run test:e2e"
   },
   "dependencies": {

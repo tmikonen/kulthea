@@ -1075,7 +1075,7 @@ Automated tests: unit tests, with small fixtures, of the merge (new, changed, co
 
 ## B-42 Link helper
 
-Status: defined
+Status: done
 
 Related: FR-6 ("events are expected to contain many such links"), "Journal links", "Languages".
 
@@ -1091,11 +1091,18 @@ How to check by hand:
 3. Put "Lea" in a text where only "Lean" is a place: it is not suggested.
 
 Acceptance criteria:
-- [ ] Names and ids of the entries and locations (in every language) are matched with Finnish endings and with a word boundary: "Lean", "Leanin" and "Leanista" match the place Lean, and "Leaa" or "Leanna" for a different word do not.
-- [ ] Each suggestion shows the file, the line, the word as written, the id, and whether it is sure or unsure; a word that could be two ids is unsure and is never applied.
-- [ ] `--apply` writes `[[id|word]]` for the sure ones only in the draft's files, leaves everything else byte-for-byte as it was, and a second run suggests nothing; it does not touch text inside existing links, headings, code or passage markers.
-- [ ] The capitalized words that return in the texts and have no entry are listed as candidates for entries.
-- [ ] `aliases.json` is read when present; an alias for an id that does not exist is an error.
+- [x] Names and ids of the entries and locations (in every language) are matched with Finnish endings and with a word boundary: "Lean", "Leanin" and "Leanista" match the place Lean, and "Leaa" or "Leanna" for a different word do not.
+- [x] Each suggestion shows the file, the line, the word as written, the id, and whether it is sure or unsure; a word that could be two ids is unsure and is never applied.
+- [x] `--apply` writes `[[id|word]]` for the sure ones only in the draft's files, leaves everything else byte-for-byte as it was, and a second run suggests nothing; it does not touch text inside existing links, headings, code or passage markers.
+- [x] The capitalized words that return in the texts and have no entry are listed as candidates for entries.
+- [x] `aliases.json` is read when present; an alias for an id that does not exist is an error.
+
+Implementation notes (decisions made while building it):
+- Only journal entries can be linked to (the build rejects a link to anything else), so a location is suggested only when it has a journal entry, in the real content or in the draft. Names come from the entries' `name` fields in every language, the locations' names for location entries, the ids, and the aliases.
+- For a player character or an NPC with a name of two or more words, the first word alone ("Marek" of "Marek Baalik") also counts; it is not done for places and items, whose first words are ordinary words. A word that two entries could both mean ("Lean" when both a "Lea" and a "Lean" exist) is unsure.
+- The endings are the regular cases of the name as written: vowel names (Bentaran, Bentarassa, Bentaraan), consonant names (Marekin, Marekille), names in -s (Bombusta, Bombuksen), names in -nen (Pitkävihaisen), and the clitics (-kin, -han and so on). A stem change that the helper does not know (consonant gradation) needs an alias. A name that starts with a capital must be written with it; one that starts with a small letter is also found at the start of a sentence.
+- Only the default language's text is read: not the front matter, other languages' sections, headings, code, `:::` lines, Markdown links, pictures and addresses. An entry does not get links to itself.
+- A capitalized word is a candidate for an entry when it comes back at least 3 times in the middle of sentences (cases of one name are counted together) and no entry has it.
 
 Automated tests: unit tests of the matcher (endings, boundaries, hyphenated names, unsure cases, aliases) and of `--apply` (idempotence, protected places), with Finnish examples.
 

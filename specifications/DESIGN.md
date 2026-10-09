@@ -305,7 +305,7 @@ Route rules, using the places of an event on a map as defined under "Map markers
 
 Bad links: if the URL names an event that doesn't exist, the app shows the first event with a dismissible notice. The address is replaced with the first event's, and the notice is carried in the history entry's state, so dismissing it does not change the address and it does not come back on reload after being dismissed. If it names a journal entry that doesn't exist, the entry is ignored and the event is shown. The app never shows a blank screen.
 
-## Content tools (B-38 and B-39 done, B-40 to B-42 planned)
+## Content tools (B-38 to B-40 done, B-41 and B-42 planned)
 
 The real content is made in pieces from the GM's notes (`BACKLOG.md`, "Content from the GM notes"). The notes are in `gm-notes/`, which is git-ignored, so they are never published. The tools are Node scripts in `scripts/` that the developer runs; none of them is part of the site, and none changes the notes.
 
@@ -313,7 +313,7 @@ The real content is made in pieces from the GM's notes (`BACKLOG.md`, "Content f
 - `npm run notes:image -- <item> <number> <name>` (B-39, `scripts/notes/image.ts`) converts one of those pictures to WebP, at most 1600 px wide and about 1 MB, into the draft `drafts/<item>/`, and records it in the draft's `images.json`. It uses `sharp`, a development-only library.
 - A draft (B-41) is a folder `drafts/<item>/` (git-ignored) laid out like a content folder with only the new or changed files, plus `locations.add.json`, `images.json`, an optional `aliases.json` and `REVIEW.md`, which lists every proposal with its source in the notes, how sure it is, and the open questions. `npm run draft:check`, `draft:dev` and `draft:apply` validate a draft over the real content in a temporary folder (`.drafts-merged/`, git-ignored), show it on the dev server, and copy it into the real content; changed files are shown as a diff and need `--overwrite`. The real content folder is one setting in one file.
 - `npm run draft:links` (B-42) suggests `[[links]]` for the names of known entries and locations in a draft's Finnish text, matching Finnish endings, and with `--apply` writes the sure ones only.
-- The position helper (B-40) is a page, `place.html`, that the dev server serves and the build does not include. It shows a map, lets the developer click to read a percent position, and lists the places that have none.
+- The position helper (B-40) is a page, `place.html` with `src/place/`, that the dev server serves and the build does not include (Vite builds only `index.html`). It shows a map of the content folder, lets the developer click to read a percent position (`fromLeaflet` in `map/coords.ts`, the reverse of `toLeaflet`), copy it, and lists the places that have none on that map, with a snippet for the one chosen. It writes nothing.
 
 Nothing is invented in a draft: what the notes do not say is an open question in `REVIEW.md`. Planned and future events are not content.
 

@@ -1017,7 +1017,7 @@ Automated tests: unit tests with generated pictures (a large opaque one, a small
 
 ## B-40 Position helper
 
-Status: defined
+Status: done
 
 Related: "Positions", "Map markers"; it moves the "helper tool for placing locations" from the list of ideas after the first version into the plan, as a development tool.
 
@@ -1034,11 +1034,13 @@ How to check by hand:
 4. Open the built site: there is no `place.html`.
 
 Acceptance criteria:
-- [ ] The page shows the chosen map of the content folder, its places with positions as labelled dots at the right spots, and the places without a position in a list.
-- [ ] A click shows the position as percent `[x, y]` with one decimal, from the top-left of the image, and agrees with the site's own conversion (a place put at that position is drawn at the click on the site); the copy button works.
-- [ ] With a place chosen from the list, the page shows a ready snippet `"<id>": { "<map>": [x, y] }` for it.
-- [ ] The page is only in the dev server, and not in the build output; it writes nothing.
-- [ ] Clicks outside the image are ignored.
+- [x] The page shows the chosen map of the content folder, its places with positions as labelled dots at the right spots, and the places without a position in a list.
+- [x] A click shows the position as percent `[x, y]` with one decimal, from the top-left of the image, and agrees with the site's own conversion (a place put at that position is drawn at the click on the site); the copy button works.
+- [x] With a place chosen from the list, the page shows a ready snippet `"<id>": { "<map>": [x, y] }` for it.
+- [x] The page is only in the dev server, and not in the build output; it writes nothing.
+- [x] Clicks outside the image are ignored.
+
+Implementation note: the page's texts are English and fixed, because it is a development tool and not part of the site (so not in `ui.json`). Its map and chosen place are local state, not in the URL. It uses the site's own `FitToImage`, so it fits and zooms as the site does. The Playwright tests run it on a dev server of their own (the `place` project, port 4176, on `tests/fixtures`), and a test checks that the built sites have no `place.html`.
 
 Automated tests: a unit test of the reverse conversion (a round trip with the forward one for corners, centre and random points); Playwright tests that the page loads from the fixtures, that a click gives the expected percent, that the list shows the places without a position, and that the built site has no `place.html`.
 

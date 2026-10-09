@@ -5,6 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
 const port = 4173;
 const focusPort = 4174;
 const routesPort = 4175;
+const placePort = 4176;
 
 const site = (outDir: string, content: string, sitePort: number) => ({
   command: `npm run build -- --outDir ${outDir} && npm run preview -- --outDir ${outDir} --port ${sitePort} --strictPort`,
@@ -17,7 +18,7 @@ const site = (outDir: string, content: string, sitePort: number) => ({
 export default defineConfig({
   testDir: 'tests/e2e',
   projects: [
-    { name: 'fixtures', testIgnore: /(focus|routes)\.spec\.ts/, use: { baseURL: `http://localhost:${port}/kulthea/` } },
+    { name: 'fixtures', testIgnore: /(focus|routes|place)\.spec\.ts/, use: { baseURL: `http://localhost:${port}/kulthea/` } },
     { name: 'focus', testMatch: /focus\.spec\.ts/, use: { baseURL: `http://localhost:${focusPort}/kulthea/` } },
     // Safari's engine on an iPhone, for the checks that markers and lines stay where they should during a move
     // (BUG-7, BUG-9 and BUG-12, which showed on a phone or on a slow machine).
@@ -34,11 +35,20 @@ export default defineConfig({
       grep: /BUG-10/,
       use: { ...devices['iPhone 13 Mini'], baseURL: `http://localhost:${port}/kulthea/` },
     },
+    // The position helper page, which only the dev server serves (B-40).
+    { name: 'place', testMatch: /place\.spec\.ts/, use: { baseURL: `http://localhost:${placePort}/kulthea/` } },
     { name: 'routes', testMatch: /routes\.spec\.ts/, use: { baseURL: `http://localhost:${routesPort}/kulthea/` } },
   ],
   webServer: [
     site('dist-e2e', 'tests/fixtures', port),
     site('dist-e2e-focus', 'tests/fixtures-focus', focusPort),
     site('dist-e2e-routes', 'tests/fixtures-routes', routesPort),
+    {
+      command: `npm run dev -- --port ${placePort} --strictPort`,
+      url: `http://localhost:${placePort}/kulthea/place.html`,
+      env: { CONTENT_DIR: 'tests/fixtures' },
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
   ],
 });

@@ -17,6 +17,11 @@ export function toLeaflet([x, y]: Position, { width, height }: ImageSize): LatLn
   return [((100 - y) / 100) * height, (x / 100) * width];
 }
 
+/** The reverse of `toLeaflet`: a Leaflet point `[lat, lng]` as a percent position. It can lie outside 0 to 100 when the point is outside the image. */
+export function fromLeaflet([lat, lng]: LatLngTuple, { width, height }: ImageSize): Position {
+  return [(lng / width) * 100, 100 - (lat / height) * 100];
+}
+
 /** The Leaflet bounds covered by the whole image. */
 export function imageBounds({ width, height }: ImageSize): LatLngBoundsLiteral {
   return [[0, 0], [height, width]];

@@ -14,14 +14,14 @@ import styles from './MapView.module.css';
  * starts with wide limits, and FitToImage widens them again before every fit and then sets the
  * real ones.
  */
-const INITIAL_MIN_ZOOM = -20;
+export const INITIAL_MIN_ZOOM = -20;
 const INITIAL_MAX_ZOOM = 20;
 
 /** How far past the fitted view, and past the image's native size, the user can zoom in. */
 const EXTRA_ZOOM = 2;
 
 /** Fits the image to the area, and refits it on resize unless the user has zoomed in. */
-function FitToImage({ map: def }: { map: ContentMap }) {
+export function FitToImage({ map: def }: { map: ContentMap }) {
   const map = useMap();
   useEffect(() => {
     const bounds = imageBounds(def);

@@ -305,7 +305,7 @@ Route rules, using the places of an event on a map as defined under "Map markers
 
 Bad links: if the URL names an event that doesn't exist, the app shows the first event with a dismissible notice. The address is replaced with the first event's, and the notice is carried in the history entry's state, so dismissing it does not change the address and it does not come back on reload after being dismissed. If it names a journal entry that doesn't exist, the entry is ignored and the event is shown. The app never shows a blank screen.
 
-## Content tools (B-38 to B-40 done, B-41 and B-42 planned)
+## Content tools (B-38 to B-41 done, B-42 planned)
 
 The real content is made in pieces from the GM's notes (`BACKLOG.md`, "Content from the GM notes"). The notes are in `gm-notes/`, which is git-ignored, so they are never published. The tools are Node scripts in `scripts/` that the developer runs; none of them is part of the site, and none changes the notes.
 

@@ -1046,7 +1046,7 @@ Automated tests: a unit test of the reverse conversion (a round trip with the fo
 
 ## B-41 Drafts: check, preview and apply
 
-Status: defined
+Status: done
 
 Related: "Content from the GM notes", "File formats", "Validation rules".
 
@@ -1063,11 +1063,13 @@ How to check by hand:
 4. Run `npm run draft:apply -- test`: the event is copied into `campaign/events/`.
 
 Acceptance criteria:
-- [ ] `draft:check` merges the draft over the real content, reports errors and warnings with the file names of the draft, lists the new files, the changed files with a diff, and the open questions of `REVIEW.md` (lines that start with `- [ ]`), and exits with an error when there are errors.
-- [ ] `locations.add.json` is merged into the locations of the merged folder: a new id is added, the same entry again is fine, a different entry with an existing id is an error.
-- [ ] `draft:dev` serves the merged folder on the dev server, and the real content is not touched.
-- [ ] `draft:apply` refuses when the check has errors or a changed file is not allowed with `--overwrite`, otherwise copies the files and merges the locations, and a second run changes nothing.
-- [ ] `drafts/` and `.drafts-merged/` are in `.gitignore`; the real content folder comes from one setting that B-32 changes.
+- [x] `draft:check` merges the draft over the real content, reports errors and warnings with the file names of the draft, lists the new files, the changed files with a diff, and the open questions of `REVIEW.md` (lines that start with `- [x]`), and exits with an error when there are errors.
+- [x] `locations.add.json` is merged into the locations of the merged folder: a new id is added, the same entry again is fine, a different entry with an existing id is an error.
+- [x] `draft:dev` serves the merged folder on the dev server, and the real content is not touched.
+- [x] `draft:apply` refuses when the check has errors or a changed file is not allowed with `--overwrite`, otherwise copies the files and merges the locations, and a second run changes nothing.
+- [x] `drafts/` and `.drafts-merged/` are in `.gitignore`; the real content folder comes from one setting that B-32 changes.
+
+Implementation note: the script is `scripts/drafts/draft.ts` (the real content folder is the one constant in `scripts/content-dir.ts`). The merged folder does not copy the maps: its `maps.json` points to the images of the real folder. Warnings that the real content has on its own are left out of the report, so it shows what the draft causes. `draft:dev` merges once and starts the dev server on the result; a change to the draft is seen by running it again. `images.json`, `aliases.json` and `REVIEW.md` are work files and are never copied into the content; any other file outside `events/`, `journal/` and `images/` is listed as left out.
 
 Automated tests: unit tests, with small fixtures, of the merge (new, changed, conflicting and repeated files and locations), the report, the refusals, and the repeat.
 

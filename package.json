@@ -13,6 +13,9 @@
     "test:e2e": "playwright test",
     "notes:split": "node scripts/notes/split.ts",
     "notes:image": "node scripts/notes/image.ts",
+    "draft:check": "node scripts/drafts/draft.ts check",
+    "draft:dev": "node scripts/drafts/draft.ts dev",
+    "draft:apply": "node scripts/drafts/draft.ts apply",
     "test:all": "npm test && npm run typecheck && npm run lint && npm run test:e2e"
   },
   "dependencies": {

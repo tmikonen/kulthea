@@ -2,8 +2,4 @@
 title: Saapuminen Leaniin
 location: lean
 ---
-Seurue saapui paluumatkalla Leaniin.
-
-[[marek-baalik|Marek]] antoi Leanin torilla uhrin [[mynistra|Mynistralle]] pitkin hampain.
-
-[[horinin-kaapiot|Kääpiöt]] erosivat [[ilbo|Ilbosta]] ja seurueesta.
+Seurue saapui paluumatkalla [[lean|Leaniin]], jossa lepäsi yhden yön ajan ennen matkan jatkamista. Kääpiöt erosivat seurueesta,  [[marek-baalik|Marek]] antoi pitkin hampain uhrin [[mynistra|jumalatterelleen]], muiden tukahduttaessa janonsa Turisevassa Tursaassa.

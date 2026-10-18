@@ -2,6 +2,8 @@
 title: Yö Sammalin lammastilalla
 location: sammals-sheep-farm
 ---
-Paluumatkalla seurue yöpyi maatilalla, jonka lampaita peikot olivat ryöstäneet. Isäntä Sammal, jonka seurue oli tavannut jo matkalla vahtitornille kääpiöitä jäljittäessään, oli iloinen kuullessaan, että peikot oli tapettu eivätkä ne enää vaivaisi häntä. Lato, jossa yövyttiin, paloi aamuyöstä.
+Paluumatkalla seurue yöpyi maatilalla, joka oli kärsinyt peikkojen hyökkäyksistä ja ryöstelystä. Isäntä Sammal, jonka seurue oli tavannut jo matkalla vahtitornille kääpiöitä jäljittäessään, oli iloinen kuullessaan, että peikot oli tapettu eivätkä ne enää vaivaisi häntä. Hän tarjosi koko seurueelle, kääpiöineen kaikkineen, yösijan maatilansa pihapiirin rakennuksissa.
 
-[[magnus-bombus|Magnus Bombus]] hyräili iloisesti matkalla Leaniin.
+Vaan rauhaa ei riittänyt montakaan tuntia. Seurue heräsi aamuyöstä eläinten pelästyneisiin ääniin ja savun hajuun. Pihassa ollut lato, jossa hahmot yöpyivät, oli ilmiliekeissä. Vaikkakin kaikki pelastuivat vammoitta, lato paloi maan tasalle. Palon syttymissyytä ei saatu kaiken hälyn keskellä selvitettyä. Isäntä oli luonnollisesti tapauksesta järkyttynyt, ja toivotti vieraansa aamulla jatkamaan matkaa kireän tunnelman vallitessa.
+
+Niin tai näin, [[magnus-bombus|Magnus Bombusta]] tapaus ei vaikuttanut hetkauttavan. Päinvastoin, Magnus hyräili iloisesti matkalla Leaniin.

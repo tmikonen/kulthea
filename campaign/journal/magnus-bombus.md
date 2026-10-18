@@ -2,6 +2,7 @@
 type: pc
 name: "Magnus Bombus"
 motto: "BUUUM!"
+image: images/magnus-bombus.webp
 ---
 *Suur-Ihminen (Laan), velho, taso 1*
 

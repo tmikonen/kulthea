@@ -2,6 +2,7 @@
 type: pc
 name: "Taelaran Quirinion"
 motto: "Ah, kerrassaan mainiota. Saisinko tuon kuolinkorahduksen vielä uudelleen?"
+image: images/taelaran-quirinion.webp
 ---
 *Haltia, bardi, taso 1*
 

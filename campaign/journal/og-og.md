@@ -2,6 +2,7 @@
 type: pc
 name: "Og-Og"
 motto: "Og-Og lyö!"
+image: images/og-og.webp
 ---
 *Puolipeikko, soturi, taso 1*
 

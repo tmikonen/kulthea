@@ -261,7 +261,23 @@ describe('the player characters of the campaign (B-43)', () => {
   it('FR-6 the map found in the troll cave is the item "Muinaisten jintenirauniojen kartta", linked from the event of the stone door', () => {
     expect(entry('jinteni-ruins-map').type).toBe('item');
     expect(fi(entry('jinteni-ruins-map').name)).toBe('Muinaisten jintenirauniojen kartta');
-    expect(entry('jinteni-ruins-map').events.fi).toEqual(['6052-2-021-03-kiviovi']);
+    expect(entry('jinteni-ruins-map').events.fi).toEqual(['6052-2-022-02-kiviovi']);
+  });
+
+  it('FR-6 each character has the portrait from the notes as the lead image', () => {
+    for (const id of ['og-og', 'marek-baalik', 'taelaran-quirinion', 'bain-pitkavihainen', 'magnus-bombus']) {
+      expect(entry(id).image, id).not.toBeNull();
+    }
+  });
+
+  it('FR-1 the events of the 2021 session are on the days that the product owner gave: 21, 22, 22, 23 and 30 of Spring', () => {
+    expect(campaign.bundle!.events.map((e) => e.id)).toEqual([
+      '6052-2-021-01-vahtitorni',
+      '6052-2-022-01-peikkoluola-hyokkays',
+      '6052-2-022-02-kiviovi',
+      '6052-2-023-01-sammalin-lammastila',
+      '6052-2-030-01-paluu-bentaraan',
+    ]);
   });
 
   it('FR-6 the entries give no warning other than that something is not used yet', () => {

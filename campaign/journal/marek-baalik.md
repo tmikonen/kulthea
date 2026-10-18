@@ -2,6 +2,7 @@
 type: pc
 name: "Marek Baalik"
 motto: "Painu helvettiin!"
+image: images/marek-baalik.webp
 ---
 *Ihminen (Shay), [[mynistra|Mynistran]] paladiini, taso 1*
 

@@ -2,6 +2,7 @@
 type: pc
 name: "Bain Pitkävihainen"
 motto: "Kyllä. Bain PITKÄvihainen. Oliko siinä jotain hauskaa, häh?"
+image: images/bain-pitkavihainen.webp
 ---
 *Kääpiö, rosvo, taso 1*
 

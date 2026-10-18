@@ -1168,7 +1168,7 @@ Implementation notes (decisions made with the product owner while building it):
 
 ## B-44 Extract the 2021 session
 
-Status: defined
+Status: done
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
@@ -1185,15 +1185,22 @@ How to check by hand:
 4. After the review, the draft is applied.
 
 Acceptance criteria:
-- [ ] The events of the session in order, each with a title, a date and order number, a place (a location, a position, or `n/a` with `showOn`), a Finnish text that follows the outcome of the notes (every statement has a source line in `REVIEW.md`), the track and `newSegment` where the party split or jumped, and one sentence per paragraph where a character is mentioned.
-- [ ] The existing five events are updated and not duplicated; changed files are listed with their diff in the check.
-- [ ] Each entry is made from the notes: type, name, text in Finnish, a picture where the notes have one that you chose, and links; an NPC, a place or an item that is named in the outcome has an entry, with the description and the picture from the plan where there are some; one that is only in the plan is a question, and has an entry when you confirm it.
-- [ ] New locations are in `locations.add.json` with positions that are marked as proposals in `REVIEW.md` and that you have confirmed or corrected (with the helper), and the pictures are prepared with alt texts and captions in Finnish.
-- [ ] The dates that are not known are listed as questions, not invented.
-- [ ] The events are as detailed as the outcome and the plan allow, and the existing short events are extended; every doubt about whether something happened is a question that you have answered.
-- [ ] After your review the content is applied, the tests pass, the build has no errors and no warnings except the accepted "not used" ones that `REVIEW.md` explains, and it is committed.
+- [x] The events of the session in order, each with a title, a date and order number, a place (a location, a position, or `n/a` with `showOn`), a Finnish text that follows the outcome of the notes (every statement has a source line in `REVIEW.md`), the track and `newSegment` where the party split or jumped, and one sentence per paragraph where a character is mentioned.
+- [x] The existing five events are updated and not duplicated; changed files are listed with their diff in the check.
+- [x] Each entry is made from the notes: type, name, text in Finnish, a picture where the notes have one that you chose, and links; an NPC, a place or an item that is named in the outcome has an entry, with the description and the picture from the plan where there are some; one that is only in the plan is a question, and has an entry when you confirm it.
+- [x] New locations are in `locations.add.json` with positions that are marked as proposals in `REVIEW.md` and that you have confirmed or corrected (with the helper), and the pictures are prepared with alt texts and captions in Finnish.
+- [x] The dates that are not known are listed as questions, not invented.
+- [x] The events are as detailed as the outcome and the plan allow, and the existing short events are extended; every doubt about whether something happened is a question that you have answered.
+- [x] After your review the content is applied, the tests pass, the build has no errors and no warnings except the accepted "not used" ones that `REVIEW.md` explains, and it is committed.
 
 Automated tests: the real content loads without errors or warnings; the checks of B-41 and B-42 for the draft; no new browser test.
+
+Implementation notes (decisions made with the product owner while building it; the questions and answers are in the git-ignored `drafts/session-2021/REVIEW.md`):
+- Two events were added to the five: the hiring by Belladonna on the 12th of Spring at Bentara (the first event of the party's route, naming the five characters as the party) and the arrival in Lean on the 23rd (after the farm event: Marek's offering "pitkin hampain" and the dwarves parting from Ilbo and the party). All five characters and the players were present the whole time. The other events were extended with the details the product owner confirmed: the trail and the details of the tower, the three trolls, the scouting, the teleport, the stone door at the mouth of the cave (Bain on the stone), the three dwarves who were already eaten, the loot, the map that Horin gave, the ponies, and Sammal's reaction. The fire at the farm is "aamuyöstä". Each sentence about a character is its own paragraph, so that the character's list shows it.
+- New entries: Ilbo, Belladonna and "Horinin kääpiöt" (one entry for all of Horin's dwarves, from the plan's list) as NPCs; the note "Peikot" (placeholder text, B-49); the place entries for Lean, the watchtower and the troll cave (the plan's descriptions, with the floor plan of the cave). No entry for Sammal, the Jinteni caves (left to B-45), Bentara or Sammal's farm. The item "Muinaisten jintenirauniojen kartta" says that Horin gave the map.
+- The plan's hooks (the man with the battle glove, Zula, Altius Visius and the demon) never happened in the campaign and are left out; Orov was not in the game. A glove or a demon in a later plan is asked about before use.
+- The floor plan comes from the PDF (page 10), where it is larger than in the Markdown; its alt text and caption are both "Peikkojen luolan pohjapiirros".
+- Accepted warnings in the build: the unused places Bog End and the ancient Jinteni ruins, and the unused note Niév (the same as after B-43, minus the characters and Lean, which are used now).
 
 ### Milestone 8: the first real content (after B-43 and B-44)
 
@@ -1555,7 +1562,7 @@ Feedback wanted:
 
 Status: backlog
 
-Scope note (to be refined with the product owner): the entries made in B-43 for the places and notes that the player characters' backgrounds name have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Niév, Sel-Kai, Katra and Mynistra, the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret and Arakin, and the item "Muinaisten jintenirauniojen kartta". The descriptions are written by the product owner or taken from the notes, and the entries may get pictures and English texts.
+Scope note (to be refined with the product owner): the entries made in B-43 for the places and notes that the player characters' backgrounds name have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Niév, Sel-Kai, Katra and Mynistra, the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret and Arakin, the item "Muinaisten jintenirauniojen kartta", and (from B-44) the note "Peikot" for the trolls of the cave; the product owner writes these descriptions. The descriptions are written by the product owner or taken from the notes, and the entries may get pictures and English texts.
 
 ---
 

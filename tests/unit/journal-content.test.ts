@@ -270,12 +270,14 @@ describe('the player characters of the campaign (B-43)', () => {
     }
   });
 
-  it('FR-1 the events of the 2021 session are on the days that the product owner gave: 21, 22, 22, 23 and 30 of Spring', () => {
+  it('FR-1 the events of the 2021 session are on the days that the product owner gave', () => {
     expect(campaign.bundle!.events.map((e) => e.id)).toEqual([
+      '6052-2-012-01-belladonna-palkkaa-seurueen',
       '6052-2-021-01-vahtitorni',
       '6052-2-022-01-peikkoluola-hyokkays',
       '6052-2-022-02-kiviovi',
       '6052-2-023-01-sammalin-lammastila',
+      '6052-2-023-02-saapuminen-leaniin',
       '6052-2-030-01-paluu-bentaraan',
     ]);
   });
@@ -614,5 +616,80 @@ describe('images in text in the build (B-27)', () => {
       writeEvent(dir, '6050-1-001-03-img.md', 'title: K\nlocation: main-only', ':::journal{for="hero"}\n![Kuva](images/hero.png "Otsikko")\n:::'));
     const excerpt = bundle!.journal.find((e) => e.id === 'hero')!.excerpts.fi.find((x) => x.event.endsWith('-img'))!;
     expect(excerpt.html[0]).toContain('<figcaption>Otsikko</figcaption>');
+  });
+});
+
+describe('the 2021 session (B-44)', () => {
+  const campaign = loadContent(path.resolve(__dirname, '../../campaign'));
+  const event = (id: string) => campaign.bundle!.events.find((e) => e.id === id)!;
+  const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
+  const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+
+  it('FR-1 the hiring is the first event of the party\'s route, and is not a standalone event', () => {
+    const first = campaign.bundle!.events[0];
+    expect(first.id).toBe('6052-2-012-01-belladonna-palkkaa-seurueen');
+    expect(first.track).toBeNull();
+    expect(first.location).toBe('bentara');
+  });
+
+  it('FR-6 all five characters are named in the first event, so it is in each of their lists', () => {
+    for (const id of ['og-og', 'marek-baalik', 'taelaran-quirinion', 'bain-pitkavihainen', 'magnus-bombus']) {
+      expect(entry(id).events.fi, id).toContain('6052-2-012-01-belladonna-palkkaa-seurueen');
+    }
+  });
+
+  it('FR-6 the watchtower event has the trail and the details of the tower', () => {
+    const text = plain(event('6052-2-021-01-vahtitorni').text.fi);
+    expect(text).toContain('Lean-nimisen kylän läpi');
+    expect(text).toContain('ballista');
+    expect(text).toContain('sivurakennus');
+  });
+
+  it('FR-6 the troll cave events follow what the product owner told: three trolls, the teleport, the outer door, the map from Horin', () => {
+    expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('kolme peikkoa');
+    expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('teleporttaamalla');
+    const door = plain(event('6052-2-022-02-kiviovi').text.fi);
+    expect(door).toContain('ulkoovena');
+    expect(door).toContain('Horin Puusilmä antoi seurueelle kartan');
+    expect(entry('bain-pitkavihainen').events.fi).toContain('6052-2-022-02-kiviovi');
+  });
+
+  it('FR-1 the farm and the arrival in Lean are on the same day, in that order, and the fire is in the early morning', () => {
+    const farm = event('6052-2-023-01-sammalin-lammastila');
+    const lean = event('6052-2-023-02-saapuminen-leaniin');
+    expect([farm.year, farm.month, farm.day]).toEqual([lean.year, lean.month, lean.day]);
+    expect(farm.order).toBeLessThan(lean.order);
+    expect(plain(farm.text.fi)).toContain('paloi aamuyöstä');
+    expect(lean.location).toBe('lean');
+  });
+
+  it('FR-6 Marek\'s offering is at Lean, and the dwarves part from Ilbo and the party there', () => {
+    expect(entry('mynistra').events.fi).toContain('6052-2-023-02-saapuminen-leaniin');
+    expect(plain(event('6052-2-023-02-saapuminen-leaniin').text.fi)).toContain('pitkin hampain');
+    expect(plain(event('6052-2-023-02-saapuminen-leaniin').text.fi)).toContain('erosivat');
+  });
+
+  it('FR-6 the new entries: Ilbo, Belladonna, the dwarves, the trolls, Lean, the watchtower and the troll cave', () => {
+    expect(entry('ilbo').type).toBe('npc');
+    expect(entry('belladonna').type).toBe('npc');
+    expect(entry('horinin-kaapiot').type).toBe('npc');
+    expect(entry('trolls').type).toBe('note');
+    for (const id of ['lean', 'ruined-watchtower', 'troll-cave']) expect(entry(id).type).toBe('location');
+    expect(entry('ilbo').events.fi).toContain('6052-2-030-01-paluu-bentaraan');
+    expect(entry('horinin-kaapiot').events.fi).toContain('6052-2-022-02-kiviovi');
+    expect(plain(entry('horinin-kaapiot').text.fi)).toContain('Kimi, Keke, ja Obl');
+    expect(entry('lean').events.fi).toEqual(['6052-2-023-02-saapuminen-leaniin']);
+    expect(plain(entry('lean').text.fi)).not.toContain('Finlines');
+    expect(plain(entry('lean').text.fi)).not.toContain('Orov');
+  });
+
+  it('FR-4 the floor plan of the troll cave is in its entry, with its short text as the alt text and the caption', () => {
+    const html = entry('troll-cave').text.fi;
+    expect(html).toContain('alt="Peikkojen luolan pohjapiirros"');
+    expect(html).toContain('Peikkojen luolan pohjapiirros</figcaption>');
+  });
+
+  it('FR-6 the map item says that Horin gave it', () => {
+    expect(plain(entry('jinteni-ruins-map').text.fi)).toContain('Horin Puusilmä antoi seurueelle');
   });
 });

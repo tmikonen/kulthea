@@ -9,4 +9,4 @@ The real campaign content, drafted from the GM notes. It is a separate content f
 ## Dates
 
 - The 2021 session starts at the old watchtower on TE 6052, 21st of Spring (`6052-2-021`). That date is confirmed.
-- Dates set by the product owner: the troll cave events (the attack and the stone door) are one day after the watchtower, TE 6052, 22nd of Spring (`6052-2-022`); the night at Sammal's farm is one day after that, the 23rd (`6052-2-023`); the return to Bentara is seven days after the farm, the 30th (`6052-2-030`). The order number counts the events of one day.
+- Dates set by the product owner (B-43, B-44): Belladonna hires the party at Bentara on the 12th of Spring (9 days before the watchtower, the first event of the party's route); the watchtower is on the 21st (`6052-2-021`); the two troll cave events are on the 22nd; the night at Sammal's farm and the arrival in Lean are on the 23rd (the farm first); the return to Bentara is on the 30th. The order number counts the events of one day.

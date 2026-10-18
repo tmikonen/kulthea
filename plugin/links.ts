@@ -15,6 +15,9 @@ interface MdNode {
   data?: Record<string, unknown>;
 }
 
+/** A "[[" or "]]" that is left in a text between or after the links is a link that was not finished. */
+const STRAY = /\[\[|\]\]/;
+const STRAY_MESSAGE = 'a "[[" or "]]" in the text is not part of a link like [[id]] or [[id|text]]';
 /** A journal link: `[[id]]` or `[[id|text]]`, with no brackets, bars or line breaks inside. */
 const LINK = /\[\[([^[\]|\n]*)(?:\|([^[\]\n]*))?\]\]/g;
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -167,6 +170,7 @@ export function renderWithLinks(
           errors.push(`the link ${whole} is inside another link, which is not allowed`);
           continue;
         }
+        if (STRAY.test(rest)) errors.push(STRAY_MESSAGE);
         if (rest !== '') result.push({ type: 'text', value: rest });
         rest = '';
         if (!links.includes(id)) links.push(id);
@@ -178,7 +182,7 @@ export function renderWithLinks(
         });
       }
       rest += text.slice(last);
-      if (/\[\[|\]\]/.test(rest)) errors.push(`a "[[" or "]]" in the text is not part of a link like [[id]] or [[id|text]]`);
+      if (STRAY.test(rest)) errors.push(STRAY_MESSAGE);
       if (rest !== '') result.push({ type: 'text', value: rest });
     }
     node.children = result;

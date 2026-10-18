@@ -26,6 +26,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-10 | The map switcher buttons cover the journal panel's heading on a phone | fixed | B-21 |
 | BUG-11 | A step is lost when Next or Previous is clicked again before the page has been redrawn | fixed | B-12 |
 | BUG-12 | The map image stays behind while the markers and lines move on, when a move is made in one jump | fixed | B-33 |
+| BUG-13 | A broken link before a good one in the same text is not reported | fixed | B-23 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -163,3 +164,13 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Fix: when the animated move ends (`moveend`), the view is reset where it is, which places every layer again, the image included. The handler is removed when the next event stops the move.
 - Verified by: `tests/e2e/focus.spec.ts`, "FR-1 after a move that is made in one jump the map image is where the marker says it is" (BUG-12). It delays the animation frames of the page by 0.9 s, steps once, and checks that the marker is at its place on the image. It failed before the fix, by 213 px in Chromium and 191 px in WebKit (`focus` and `focus-webkit`), and passes now.
 - Note: the earlier changes to the tests (a click timeout, and a lower frame count) did not touch this bug, and the failure of the BUG-7 test on GitHub was a real fault of the application, not of the test. The frame-by-frame tests now sample until at least 30 frames have been drawn, however slow the browser is, and fail if they cannot, so they stay strict. After the fix the BUG-7, BUG-9 and BUG-12 tests passed 576 of 576 runs in Chromium and WebKit with 12 parallel workers.
+
+## BUG-13: A broken link before a good one in the same text is not reported
+
+- Status: fixed
+- Related item: B-23 (journal links in text), found while checking the content of B-44
+- Found: by Claude, when the product owner's rewrite of the event "Paluu Bentaraan" had `[[bentara|Bentaraan],` (one closing bracket) before a good link in the same paragraph. The build gave no error and the site showed the brackets as they were.
+- Description: "an unclosed `[[` or a stray `]]`" is an error (see "Validation rules" in `DESIGN.md`), but only when it comes after the last good link of a paragraph. A broken link in front of a good one, in the same paragraph, passes the build and is shown as literal text.
+- Root cause: the loop of `renderWithLinks` in `plugin/links.ts` cuts a text at each good link and checked for a stray bracket only in the piece after the last link, not in the pieces before.
+- Fix: every piece of text that is left between and after the links is checked.
+- Verified by: `tests/unit/links.test.ts`, "FR-6 a broken link before a good one in the same text is an error too (BUG-13)". It failed before the fix (no error for `Saapui [[aldric|Aldric], jossa [[mira]] odotti.`) and passes now. The text of the event was corrected too (`[[bentara|Bentaraan]]`).

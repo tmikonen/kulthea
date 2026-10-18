@@ -249,9 +249,9 @@ describe('the player characters of the campaign (B-43)', () => {
   });
 
   it('FR-6 the places and notes that the backgrounds name are entries, and the new places have their positions on Haestra', () => {
-    for (const id of ['stroane', 'miir', 'vornia', 'niev', 'sel-kai', 'katra', 'mynistra']) expect(entry(id).type).toBe('note');
-    for (const id of ['ton-bor', 'port-of-izar', 'kultavuoret', 'rankavuoret', 'arakin']) expect(entry(id).type).toBe('location');
-    expect(fi(entry('niev').name)).toBe('Niév');
+    for (const id of ['stroane', 'miir', 'vornia', 'sel-kai', 'katra', 'mynistra']) expect(entry(id).type).toBe('note');
+    expect(campaign.bundle!.journal.some((e) => e.id === 'niev')).toBe(false);
+    for (const id of ['ton-bor', 'port-of-izar', 'kultavuoret', 'rankavuoret', 'arakin', 'bog-end', 'ancient-jinteni-ruins']) expect(entry(id).type).toBe('location');
     const position = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!.positions.haestra;
     expect(position('kultavuoret')).toEqual([62.6, 51.3]);
     expect(position('rankavuoret')).toEqual([95, 46.8]);
@@ -282,8 +282,8 @@ describe('the player characters of the campaign (B-43)', () => {
     ]);
   });
 
-  it('FR-6 the entries give no warning other than that something is not used yet', () => {
-    expect(campaign.warnings.filter((w) => !/is not used/.test(w))).toEqual([]);
+  it('FR-9 the real campaign loads with no warnings at all', () => {
+    expect(campaign.warnings).toEqual([]);
   });
 });
 
@@ -641,25 +641,24 @@ describe('the 2021 session (B-44)', () => {
   it('FR-6 the watchtower event has the trail and the details of the tower', () => {
     const text = plain(event('6052-2-021-01-vahtitorni').text.fi);
     expect(text).toContain('Lean-nimisen kylän läpi');
-    expect(text).toContain('ballista');
-    expect(text).toContain('sivurakennus');
+    expect(text).toContain('sivurakennuksen');
   });
 
-  it('FR-6 the troll cave events follow what the product owner told: three trolls, the teleport, the outer door, the map from Horin', () => {
+  it('FR-6 the troll cave events have the three trolls, the teleport, the stone in front of the cave and the map from Horin', () => {
     expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('kolme peikkoa');
-    expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('teleporttaamalla');
+    expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('teleporttaamaan');
     const door = plain(event('6052-2-022-02-kiviovi').text.fi);
-    expect(door).toContain('ulkoovena');
-    expect(door).toContain('Horin Puusilmä antoi seurueelle kartan');
+    expect(door).toContain('luolan edustalla olevaa kiveä');
+    expect(door).toContain('Horin Puusilmä antoi seurueelle');
     expect(entry('bain-pitkavihainen').events.fi).toContain('6052-2-022-02-kiviovi');
   });
 
-  it('FR-1 the farm and the arrival in Lean are on the same day, in that order, and the fire is in the early morning', () => {
+  it('FR-1 the farm and the arrival in Lean are on the same day, in that order, and the fire is in the early morning (aamuyöstä)', () => {
     const farm = event('6052-2-023-01-sammalin-lammastila');
     const lean = event('6052-2-023-02-saapuminen-leaniin');
     expect([farm.year, farm.month, farm.day]).toEqual([lean.year, lean.month, lean.day]);
     expect(farm.order).toBeLessThan(lean.order);
-    expect(plain(farm.text.fi)).toContain('paloi aamuyöstä');
+    expect(plain(farm.text.fi)).toContain('aamuyöstä');
     expect(lean.location).toBe('lean');
   });
 
@@ -691,5 +690,7 @@ describe('the 2021 session (B-44)', () => {
 
   it('FR-6 the map item says that Horin gave it', () => {
     expect(plain(entry('jinteni-ruins-map').text.fi)).toContain('Horin Puusilmä antoi seurueelle');
+    expect(entry('jinteni-ruins-map').text.fi).toContain('data-journal="bog-end"');
+    expect(entry('jinteni-ruins-map').text.fi).toContain('data-journal="ancient-jinteni-ruins"');
   });
 });

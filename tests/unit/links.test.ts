@@ -72,6 +72,13 @@ describe('journal links (B-23)', () => {
     expect(render('Close aldric]] here').errors).toEqual([expect.stringMatching(/not part of a link/)]);
   });
 
+  it('FR-6 a broken link before a good one in the same text is an error too (BUG-13)', () => {
+    const stray = [expect.stringMatching(/not part of a link/)];
+    expect(render('Saapui [[aldric|Aldric], jossa [[mira]] odotti.').errors).toEqual(stray);
+    expect(render('Close aldric]] and then [[mira]] here.').errors).toEqual(stray);
+    expect(render('[[mira]] and [[aldric|Al], and [[ring-of-stroane]].').errors).toEqual(stray);
+  });
+
   it('FR-6 a link inside an ordinary Markdown link is an error', () => {
     expect(render('[see [[aldric]]](https://example.com)').errors).toEqual([expect.stringMatching(/inside another link/)]);
   });

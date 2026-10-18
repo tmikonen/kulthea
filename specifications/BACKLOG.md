@@ -1164,7 +1164,7 @@ Implementation notes (decisions made with the product owner while building it):
 - Portraits: the Markdown export of the notes leaves out the pictures of the characters, but the PDF has them, on the pages of the descriptions (pages 1, 3, 5, 6 and 7). They were extracted from the PDF into `gm-notes/work/images/` as `image-86` to `image-90`, which `notes:split` would delete if it is run again, and converted with `notes:image` into `campaign/images/<id>.webp`; each is the lead image of its character. The picture of Og-Og is small in the PDF (274 x 207 px).
 - Dates set by the product owner: the troll cave events are on the 22nd of Spring (`6052-2-022`), the night at Sammal's farm on the 23rd, and the return to Bentara on the 30th; the watchtower stays on the 21st. The event files were renamed accordingly (see `campaign/README.md`).
 - The criterion of no warnings could not be met, and the product owner has accepted the warnings: the build has the three unused places that `campaign/` already had (Bog End, the ancient Jinteni ruins, Lean) and "not used" for Bain, Magnus, Marek, Taelaran and Niév, because no event links to them yet. B-44 links the characters from the events of the session; Niév is named only in the text of the left-out character, so it stays unused until an event or an entry names it.
-- Accepted by the product owner, with these warnings left in the build until later items remove them: the three locations that `campaign/` already had unused (Bog End, the ancient Jinteni ruins, Lean), and "not used" for Bain, Magnus, Marek, Taelaran and Niév.
+- Accepted by the product owner, with these warnings left in the build until later items remove them: the three locations that `campaign/` already had unused (Bog End, the ancient Jinteni ruins, Lean), and "not used" for Bain, Magnus, Marek, Taelaran and Niév. Later cleared (after B-44): Bog End and the ancient Jinteni ruins have placeholder entries, linked from the map item, and the note Niév was removed (its name occurs only in the text of the character who was left out), so the build of `campaign/` has no warnings.
 
 ## B-44 Extract the 2021 session
 
@@ -1200,7 +1200,7 @@ Implementation notes (decisions made with the product owner while building it; t
 - New entries: Ilbo, Belladonna and "Horinin kääpiöt" (one entry for all of Horin's dwarves, from the plan's list) as NPCs; the note "Peikot" (placeholder text, B-49); the place entries for Lean, the watchtower and the troll cave (the plan's descriptions, with the floor plan of the cave). No entry for Sammal, the Jinteni caves (left to B-45), Bentara or Sammal's farm. The item "Muinaisten jintenirauniojen kartta" says that Horin gave the map.
 - The plan's hooks (the man with the battle glove, Zula, Altius Visius and the demon) never happened in the campaign and are left out; Orov was not in the game. A glove or a demon in a later plan is asked about before use.
 - The floor plan comes from the PDF (page 10), where it is larger than in the Markdown; its alt text and caption are both "Peikkojen luolan pohjapiirros".
-- Accepted warnings in the build: the unused places Bog End and the ancient Jinteni ruins, and the unused note Niév (the same as after B-43, minus the characters and Lean, which are used now).
+- Warnings in the build after B-44: the unused places Bog End and the ancient Jinteni ruins, and the unused note Niév; these were cleared afterwards (see B-43).
 
 ### Milestone 8: the first real content (after B-43 and B-44)
 
@@ -1562,7 +1562,7 @@ Feedback wanted:
 
 Status: backlog
 
-Scope note (to be refined with the product owner): the entries made in B-43 for the places and notes that the player characters' backgrounds name have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Niév, Sel-Kai, Katra and Mynistra, the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret and Arakin, the item "Muinaisten jintenirauniojen kartta", and (from B-44) the note "Peikot" for the trolls of the cave; the product owner writes these descriptions. The descriptions are written by the product owner or taken from the notes, and the entries may get pictures and English texts.
+Scope note (to be refined with the product owner): some entries have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Sel-Kai, Katra and Mynistra (made in B-43 for the names in the characters' backgrounds), the note "Peikot" for the trolls of the cave (B-44), and the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret, Arakin, Bog End, the ancient Jinteni ruins and Bentara. The descriptions are written by the product owner or taken from the notes (the later session items, B-45 onward, give some of them, for example the Jinteni ruins and Bog End), and the entries may get pictures and English texts.
 
 ---
 

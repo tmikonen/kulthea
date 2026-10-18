@@ -1,5 +1,4 @@
 ---
-type: note
-name: Niév
+type: location
 ---
 Kuvaus puuttuu vielä.

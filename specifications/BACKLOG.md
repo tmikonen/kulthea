@@ -1120,7 +1120,7 @@ Feedback wanted:
 
 ## B-43 Extract the player characters
 
-Status: defined
+Status: in progress
 
 Related: FR-6, "Content from the GM notes", "Journal entries".
 
@@ -1136,12 +1136,21 @@ How to check by hand:
 3. After you have answered the questions, I apply the draft. The characters are in `campaign/journal/`.
 
 Acceptance criteria:
-- [ ] One entry for each used player character (five), with the right id, name, motto and body, taken only from the notes and word for word apart from the removed escapes and the added first line; each is valid (`draft:check` has no errors or warnings).
-- [ ] `REVIEW.md` has, for each entry, the source lines in the notes; the left-out character with the reason; the world details that could be notes or locations; and an open question for each doubt.
-- [ ] Links are added by the link helper only where an entry or location exists; names in the backgrounds that have no entry are listed, not linked.
+- [x] One entry for each used player character (five), with the right id, name, motto and body, taken only from the notes and word for word apart from the removed escapes and the added first line; each is valid (`draft:check` has no errors or warnings).
+- [x] `REVIEW.md` has, for each entry, the source lines in the notes; the left-out character with the reason; the world details that could be notes or locations; and an open question for each doubt.
+- [x] Links are added by the link helper only where an entry or location exists; names in the backgrounds that have no entry are listed, not linked.
 - [ ] After your review the accepted files are applied to the real content, the unit and browser tests and the build pass with no warnings, and the entries are committed.
 
 Automated tests: a unit test that the real content (`campaign/` until B-32) loads without errors or warnings with the entries; the checks of B-41 for the draft; no new browser test is needed, since the journal is tested already.
+
+Implementation notes (decisions made with the product owner while building it):
+- Strikethrough: Og-Og's text has `~~pienokaisena~~`, which the site showed as plain tildes. `remark-gfm` was added (approved), with `singleTilde: false`, so `~~text~~` is drawn struck out and a single `~` stays text. `DESIGN.md` has it in the stack list and in the content rules.
+- Two typing mistakes of the notes are corrected in the entries (Og-Og: "täysin. Kolmimetrinen", "palkkasoturikomppanioiden"), and in Taelaran's text "Izarista" is "Izarinportista"; everything else is as the notes have it. The class of a character is written with a small letter, except the proper name ("Mynistran paladiini").
+- World details of the backgrounds: notes for Stroane, Miir, Vornia, Niév (written without the last "i"), Sel-Kai, Katra and Mynistra; the new locations Kultavuoret, Rankavuoret and Arakin on the Haestra map; entries for the existing locations Ton-Bor and Izarinportti. Each has the placeholder text "Kuvaus puuttuu vielä." because an entry must have a body; the descriptions are B-49. Everything else the backgrounds name is left as text.
+- The map that the party found in the troll cave is the item `jinteni-ruins-map` ("Muinaisten jintenirauniojen kartta", the Bog End map of the ancient Jinteni ruins), linked from the event of the stone door. Its text is a placeholder that says only what the product owner told.
+- The last sentence of the event at Sammal's farm is "Magnus Bombus hyräili iloisesti matkalla Leaniin." (a change by the product owner).
+- The notes have no pictures of the five characters, so the entries have no `image` yet. The dates of the events of the session are still the one date with order numbers, and are set by the product owner (B-44).
+- The criterion of no warnings could not be met: the build has the three unused places that `campaign/` already had (Bog End, the ancient Jinteni ruins, Lean) and "not used" for Bain, Magnus, Marek, Taelaran and Niév, because no event links to them yet. B-44 links the characters from the events of the session; Niév is named only in the text of the left-out character, so it stays unused until an event or an entry names it.
 
 ## B-44 Extract the 2021 session
 
@@ -1527,7 +1536,11 @@ Feedback wanted:
 
 # Outlined items (status: backlog)
 
-None at the moment: all the items above are refined.
+## B-49 Descriptions for the stub entries
+
+Status: backlog
+
+Scope note (to be refined with the product owner): the entries made in B-43 for the places and notes that the player characters' backgrounds name have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Niév, Sel-Kai, Katra and Mynistra, the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret and Arakin, and the item "Muinaisten jintenirauniojen kartta". The descriptions are written by the product owner or taken from the notes, and the entries may get pictures and English texts.
 
 ---
 

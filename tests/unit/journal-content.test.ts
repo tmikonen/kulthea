@@ -194,9 +194,78 @@ describe('journal content (B-20)', () => {
     }
   });
 
-  it('FR-6 the real campaign draft in campaign/ is still valid without entries', () => {
+  it('FR-6 the real campaign in campaign/ is valid with its journal entries', () => {
     const { errors } = loadContent(path.resolve(__dirname, '../../campaign'));
     expect(errors).toEqual([]);
+  });
+});
+
+describe('the player characters of the campaign (B-43)', () => {
+  const campaign = loadContent(path.resolve(__dirname, '../../campaign'));
+  const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
+  const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
+  const motto = (id: string) => fi(entry(id).motto);
+  const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+
+  it('FR-6 the five used characters are player characters with their names and mottos, and Jenel Idarien is left out', () => {
+    const pcs = campaign.bundle!.journal.filter((e) => e.type === 'pc');
+    expect(pcs.map((e) => e.id).sort()).toEqual(['bain-pitkavihainen', 'magnus-bombus', 'marek-baalik', 'og-og', 'taelaran-quirinion']);
+    expect(pcs.map((e) => fi(e.name)).sort())
+      .toEqual(['Bain Pitkävihainen', 'Magnus Bombus', 'Marek Baalik', 'Og-Og', 'Taelaran Quirinion']);
+    expect(motto('og-og')).toBe('Og-Og lyö!');
+    expect(motto('marek-baalik')).toBe('Painu helvettiin!');
+    expect(motto('magnus-bombus')).toBe('BUUUM!');
+    expect(campaign.bundle!.journal.some((e) => /jenel/i.test(e.id))).toBe(false);
+  });
+
+  it('FR-6 each character starts with a line of race, class and level, and the background follows', () => {
+    const first = (id: string) => entry(id).text.fi.split('\n')[0];
+    for (const [id, line] of [
+      ['og-og', 'Puolipeikko, soturi, taso 1'],
+      ['marek-baalik', 'Ihminen (Shay), Mynistran paladiini, taso 1'],
+      ['taelaran-quirinion', 'Haltia, bardi, taso 1'],
+      ['bain-pitkavihainen', 'Kääpiö, rosvo, taso 1'],
+      ['magnus-bombus', 'Suur-Ihminen (Laan), velho, taso 1'],
+    ]) {
+      expect(first(id).startsWith('<p><em>'), id).toBe(true);
+      expect(plain(first(id)), id).toBe(line);
+    }
+  });
+
+  it('FR-6 the notes\' strikethrough is kept, and the two corrected typing mistakes are corrected', () => {
+    const og = entry('og-og').text.fi;
+    expect(og).toContain('<del>pienokaisena</del>');
+    expect(og).toContain('täysin. Kolmimetrinen');
+    expect(og).toContain('palkkasoturikomppanioiden');
+  });
+
+  it('FR-6 names that have an entry are links, and the place of Taelaran\'s soap is Izarinportti', () => {
+    const links = (id: string) => [...entry(id).text.fi.matchAll(/data-journal="([^"]+)"/g)].map((m) => m[1]);
+    expect(new Set(links('og-og'))).toEqual(new Set(['miir', 'stroane', 'vornia']));
+    expect(new Set(links('bain-pitkavihainen'))).toEqual(new Set(['kultavuoret', 'ton-bor', 'rankavuoret']));
+    expect(new Set(links('marek-baalik'))).toEqual(new Set(['arakin', 'katra', 'stroane', 'miir', 'vornia', 'kultavuoret', 'mynistra']));
+    expect(links('taelaran-quirinion')).toEqual(['sel-kai', 'port-of-izar']);
+    expect(plain(entry('taelaran-quirinion').text.fi)).toContain('Izarinportista ostamani');
+  });
+
+  it('FR-6 the places and notes that the backgrounds name are entries, and the new places have their positions on Haestra', () => {
+    for (const id of ['stroane', 'miir', 'vornia', 'niev', 'sel-kai', 'katra', 'mynistra']) expect(entry(id).type).toBe('note');
+    for (const id of ['ton-bor', 'port-of-izar', 'kultavuoret', 'rankavuoret', 'arakin']) expect(entry(id).type).toBe('location');
+    expect(fi(entry('niev').name)).toBe('Niév');
+    const position = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!.positions.haestra;
+    expect(position('kultavuoret')).toEqual([62.6, 51.3]);
+    expect(position('rankavuoret')).toEqual([95, 46.8]);
+    expect(position('arakin')).toEqual([94, 67]);
+  });
+
+  it('FR-6 the map found in the troll cave is the item "Muinaisten jintenirauniojen kartta", linked from the event of the stone door', () => {
+    expect(entry('jinteni-ruins-map').type).toBe('item');
+    expect(fi(entry('jinteni-ruins-map').name)).toBe('Muinaisten jintenirauniojen kartta');
+    expect(entry('jinteni-ruins-map').events.fi).toEqual(['6052-2-021-03-kiviovi']);
+  });
+
+  it('FR-6 the entries give no warning other than that something is not used yet', () => {
+    expect(campaign.warnings.filter((w) => !/is not used/.test(w))).toEqual([]);
   });
 });
 

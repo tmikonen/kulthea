@@ -1265,7 +1265,7 @@ Feedback wanted:
 
 ## B-45 Extract the 2022 session
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 

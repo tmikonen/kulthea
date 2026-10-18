@@ -27,6 +27,13 @@ describe('journal links (B-23)', () => {
     expect(links).toEqual(['mira', 'aldric', 'ring-of-stroane']);
   });
 
+  it('FR-6 a link works inside strikethrough, and the struck-out text stays struck out (B-43)', () => {
+    const { html, errors, links } = render('Hello ~~[[aldric|Al]] and more~~ there.');
+    expect(errors).toEqual([]);
+    expect(html).toBe(`<p>Hello <del>${anchor('aldric', 'Al')} and more</del> there.</p>`);
+    expect(links).toEqual(['aldric']);
+  });
+
   it('FR-6 links work in emphasis, lists, quotes and headings, next to ordinary Markdown', () => {
     const { html, errors } = render('# About [[mira]]\n\n*Seen by [[aldric]]*\n\n- [[ring-of-stroane|the ring]]\n\n> [[mira]] said **no**.');
     expect(errors).toEqual([]);

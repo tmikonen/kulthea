@@ -1,7 +1,9 @@
 import rehypeStringify from 'rehype-stringify';
+import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
+import { gfmOptions } from './markdown.ts';
 
 interface MdNode {
   type: string;
@@ -201,6 +203,7 @@ export function renderWithLinks(
 
   const processor = unified()
     .use(remarkParse)
+    .use(remarkGfm, gfmOptions)
     .use(() => (tree: MdNode) => {
       transform(tree, false);
       if (imageOf) {

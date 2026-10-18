@@ -17,6 +17,20 @@ describe('Markdown rendering (B-10)', () => {
   });
 });
 
+describe('strikethrough (B-43)', () => {
+  it('FR-3 ~~text~~ is drawn as struck-out text', () => {
+    expect(renderMarkdown('hylättynä ~~pienokaisena~~. Siis')).toBe('<p>hylättynä <del>pienokaisena</del>. Siis</p>');
+  });
+
+  it('FR-3 a single tilde is ordinary text, so "~3 m" and "~5 m" are not struck out', () => {
+    expect(renderMarkdown('noin ~3 m ja ~5 m')).toBe('<p>noin ~3 m ja ~5 m</p>');
+  });
+
+  it('FR-3 strikethrough is not raw HTML', () => {
+    expect(findRawHtml('~~yliviivattu~~')).toEqual([]);
+  });
+});
+
 describe('raw HTML in Markdown (B-10)', () => {
   it('FR-3 finds an HTML tag in a paragraph, and a block of HTML', () => {
     expect(findRawHtml('teksti <i>x</i> loppu')).toEqual(['<i>', '</i>']);

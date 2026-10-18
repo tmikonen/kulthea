@@ -1,7 +1,11 @@
 import rehypeStringify from 'rehype-stringify';
+import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
+
+/** Only the strikethrough `~~text~~` of GitHub's Markdown is wanted, and not `~text~`, so that "~3 m" stays text. */
+export const gfmOptions = { singleTilde: false };
 
 interface MdNode {
   type: string;
@@ -16,7 +20,7 @@ function collectHtml(node: MdNode, found: string[]) {
 
 /** The raw HTML in a Markdown text (code spans and code blocks are not HTML). */
 export function findRawHtml(markdown: string): string[] {
-  const tree = unified().use(remarkParse).parse(markdown) as MdNode;
+  const tree = unified().use(remarkParse).use(remarkGfm, gfmOptions).parse(markdown) as MdNode;
   const found: string[] = [];
   collectHtml(tree, found);
   return found;
@@ -24,5 +28,5 @@ export function findRawHtml(markdown: string): string[] {
 
 /** Renders Markdown to HTML. Raw HTML is dropped, so reject it with `findRawHtml` first. */
 export function renderMarkdown(markdown: string): string {
-  return String(unified().use(remarkParse).use(remarkRehype).use(rehypeStringify).processSync(markdown));
+  return String(unified().use(remarkParse).use(remarkGfm, gfmOptions).use(remarkRehype).use(rehypeStringify).processSync(markdown));
 }

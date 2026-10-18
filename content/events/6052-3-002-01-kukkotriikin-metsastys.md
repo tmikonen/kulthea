@@ -2,8 +2,6 @@
 title: Kukkotriikin metsästys
 location: kert-manor
 ---
-[[count-kert|Kert]] pyysi seuruetta jäljittämään [[cockatrice|kukkotriikin]]. Hän kertoi palkanneensa tehtävään metsästäjiä, mutta ei ollut kuullut heistä mitään.
+Seuraavana aamuna [[count-kert|Kert]] selvensi kutsunsa syytä. Hän pyysi seuruetta jäljittämään mystisen [[cockatrice|kukkotriikin]]. Kyseisellä linnulla ja sen sulilla oli erityisesti rannikon seurapiireissä erityistä arvoa. Kreivi kertoi palkanneensa jo aiemmin tehtävään metsästäjiä, mutta ei ollut sittemmin kuullut heistä mitään.
 
-[[igor|Igor]] antoi seurueelle häkin lintua varten, ennen kuin seurue lähti metsästämään lintua.
-
-Seurue lähti metsään [[pjotr|Pjotrin]] kertomien lintua koskevien tunnettujen paikkojen perusteella jäljittämään joko lintua tai metsästäjiä. Seurue löysi pesän seuraavana aamuna.
+Ennen lähtöä kreivin talonmies [[igor|Igor]] antoi seurueelle tukevan häkin linnun vangitsemista ja kuljettamista varten. Tämän jälkeen he lähtivät metsään [[pjotr|Pjotrin]] antamien suuntamerkkien avulla.

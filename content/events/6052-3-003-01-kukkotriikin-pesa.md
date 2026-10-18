@@ -2,10 +2,10 @@
 title: Kukkotriikin pesä
 location: cockatrice-nest
 ---
-Pesässä syttyi taistelu. [[cockatrice|Kukkotriikki]] juoksi kammiosta toiseen luolastossa.
+Seurue saapui kukkotriikin pesälle seuraavana päivänä. Varovasti he etenivät alas luolan suuaukosta kukkotriikin pesään. Pesässä oli pahaenteisesti useita hyvin elävänoloisia kivipatsaita, sekä ihmisten että eläinten muodoissa.
 
-[[cockatrice|Kukkotriikki]] lamautti [[magnus-bombus|Magnuksen]] ja [[og-og|Og-Ogin]].
+Pesässä syttyi taistelu. [[cockatrice|Kukkotriikki]] juoksi kammiosta toiseen ja lamautti [[magnus-bombus|Magnuksen]] ja [[og-og|Og-Ogin]]. Kukkotriikki herätti myös useita kivettyneitä villipetoja henkiin: suuren hämähäkin ja hirviömäisen suden.
 
-Lopulta taistelu voitettiin. Seurue herätti [[nari-tulenjyske|Narin]] henkiin, mutta suhtautui häneen erittäin epäluuloisesti, ja tiet erosivat. [[nari-tulenjyske|Nari]] otti omat tavaransa: kilven, kirveen ja putkimaisen aseensa.
+Lopulta taistelu kuitenkin voitettiin. Seurue herätti [[nari-tulenjyske|Nari Tulenjyskeen]] henkiin mutta metsästäjän ja hahmojen tiet erosivat epäluuloisissa merkeissä.
 
-Seurue vangitsi linnun ja nyppi sen [[cockatrice-feathers|sulat]]. Seurue hoksasi varsin nopeasti, että sulat ovat maagisia.
+Seurue vangitsi kukkotriikin ja nyppi sen [[cockatrice-feathers|sulat]], oivellettuaan niiden olevan maagisia.

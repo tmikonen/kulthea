@@ -2,6 +2,8 @@
 
 The work is split into small increments, in implementation order. The ids are stable labels, not positions: the order of the sections below is the implementation order, and it can differ from the order of the ids (for example B-15 comes before B-13 and B-14). Each increment adds one testable piece of functionality. Some code will be revisited when a later item extends it, and that is accepted. Requirement ids (FR-n) refer to `REQUIREMENTS.md`, and section names refer to `DESIGN.md`.
 
+Note on folder names: since B-32 the real campaign is in `content/` and the invented demo is in `demo/`. Items before B-32 were written when the demo was in `content/` and the real draft in `campaign/`, and still say so; that is history and is left as it was.
+
 ## Status values
 
 | Status | Meaning |
@@ -1216,7 +1218,7 @@ Feedback wanted:
 
 ## B-32 Moving to the real content
 
-Status: defined
+Status: done
 
 Related: "Folder layout", "Deployment", "Test content".
 
@@ -1234,15 +1236,21 @@ How to check by hand:
 5. Look for `campaign/`: it is gone. Run `npm run draft:check -- test` (the test draft of B-41, if you kept it): it merges over `content/`.
 
 Acceptance criteria:
-- [ ] `content/` holds the real campaign (campaign, interface texts, maps and their images, locations, events, and the journal), `demo/` holds the demo (its events, journal and pictures, and files for the campaign settings, interface texts and locations; its `maps.json` points to the maps in `content/maps/`), and `campaign/` no longer exists. The files are moved with `git mv`.
-- [ ] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` works for the demo.
-- [ ] Both `content/` and `demo/` load with no errors and no warnings, and the unit tests for them (now two) pass; the tests that use the fixtures are unchanged.
-- [ ] The draft tools of B-41 merge over `content/`, and their tests pass with the new setting.
-- [ ] `CLAUDE.md`, `DESIGN.md` (folder layout, deployment, test content, the content tools), `REQUIREMENTS.md` where it applies, and the READMEs of `content/` and `demo/` describe the new layout. `campaign/README.md`'s notes that are still true (the dates of the first session) move to the new `content/README.md`.
-- [ ] `content/README.md` is an authoring guide, in English with Finnish examples, that covers the folder layout, writing an event (the file name, the front matter, languages, links, pictures, journal-only passages), writing an entry, adding a picture, the content tools, reading the warnings, running the site, and publishing; it is short enough to read in ten minutes.
-- [ ] A note at the top of `BACKLOG.md` says that earlier items call the demo folder `content/`.
+- [x] `content/` holds the real campaign (campaign, interface texts, maps and their images, locations, events, and the journal), `demo/` holds the demo (its events, journal and pictures, and files for the campaign settings, interface texts and locations; its `maps.json` points to the maps in `content/maps/`), and `campaign/` no longer exists. The files are moved with `git mv`.
+- [x] The default content folder is still `content/`, so `npm run dev`, `npm run build` and the publishing workflow build the real campaign without further changes; `CONTENT_DIR=demo` works for the demo.
+- [x] Both `content/` and `demo/` load with no errors and no warnings, and the unit tests for them (now two) pass; the tests that use the fixtures are unchanged.
+- [x] The draft tools of B-41 merge over `content/`, and their tests pass with the new setting.
+- [x] `CLAUDE.md`, `DESIGN.md` (folder layout, deployment, test content, the content tools), `REQUIREMENTS.md` where it applies, and the READMEs of `content/` and `demo/` describe the new layout. `campaign/README.md`'s notes that are still true (the dates of the first session) move to the new `content/README.md`.
+- [x] `content/README.md` is an authoring guide, in English with Finnish examples, that covers the folder layout, writing an event (the file name, the front matter, languages, links, pictures, journal-only passages), writing an entry, adding a picture, the content tools, reading the warnings, running the site, and publishing; it is short enough to read in ten minutes.
+- [x] A note at the top of `BACKLOG.md` says that earlier items call the demo folder `content/`.
 
 Automated tests: the unit tests for `content/` and `demo/`, the draft tool tests with the new path, and the whole of `npm run test:all` and the workflow's steps passing.
+
+Implementation notes:
+- The moves were done with `git mv`: the demo files went from `content/` to `demo/` (all but `maps/`), then the files of `campaign/` went to `content/`. `content/maps.json` points to `maps/...` and `demo/maps.json` to `../content/maps/...`. `scripts/content-dir.ts` now says `content`.
+- The tests that named the folders were changed: the checks that both real folders load with no errors and no warnings (`demo/` and `content/`), the tests of the real content (the characters and the first session) that read `content/`, and the draft and link helper tests, whose temporary project roots now have `content/` as the real content. The browser tests use only the fixtures and are unchanged.
+- `content/README.md` is the authoring guide (the examples in it were tried against a copy of the content); `demo/README.md` says how to use the demo. `CLAUDE.md`, `DESIGN.md` (folder layout, the unused-item warnings, test content) and the note at the top of this file are updated; `REQUIREMENTS.md` has nothing about the folders.
+- Checked: `npm run dev` opens "Belladonna palkkaa seurueen", `CONTENT_DIR=demo npm run dev` opens "Demo: Lähtö Izarin satamasta", `npm run build` and `CONTENT_DIR=demo npm run build` have no errors and no warnings, and `npm run draft:check -- test` merges over `content/`. The publishing workflow needs no change: it builds the default folder. The site is published when the product owner pushes.
 
 ### Milestone 9: the real site (after B-32)
 

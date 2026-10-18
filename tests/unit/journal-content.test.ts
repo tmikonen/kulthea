@@ -176,8 +176,8 @@ describe('journal content (B-20)', () => {
     });
   });
 
-  it('FR-6 the demo journal in content/ has every type, some English, and an entry with no image', () => {
-    const { bundle, errors, warnings } = loadContent(path.resolve(__dirname, '../../content'));
+  it('FR-6 the demo journal in demo/ has every type, some English, and an entry with no image', () => {
+    const { bundle, errors, warnings } = loadContent(path.resolve(__dirname, '../../demo'));
     expect(errors).toEqual([]);
     expect(warnings).toEqual([]);
     const journal = bundle!.journal;
@@ -194,14 +194,14 @@ describe('journal content (B-20)', () => {
     }
   });
 
-  it('FR-6 the real campaign in campaign/ is valid with its journal entries', () => {
-    const { errors } = loadContent(path.resolve(__dirname, '../../campaign'));
+  it('FR-6 the real campaign in content/ is valid with its journal entries', () => {
+    const { errors } = loadContent(path.resolve(__dirname, '../../content'));
     expect(errors).toEqual([]);
   });
 });
 
 describe('the player characters of the campaign (B-43)', () => {
-  const campaign = loadContent(path.resolve(__dirname, '../../campaign'));
+  const campaign = loadContent(path.resolve(__dirname, '../../content'));
   const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
   const motto = (id: string) => fi(entry(id).motto);
@@ -620,7 +620,7 @@ describe('images in text in the build (B-27)', () => {
 });
 
 describe('the 2021 session (B-44)', () => {
-  const campaign = loadContent(path.resolve(__dirname, '../../campaign'));
+  const campaign = loadContent(path.resolve(__dirname, '../../content'));
   const event = (id: string) => campaign.bundle!.events.find((e) => e.id === id)!;
   const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
   const plain = (html: string) => html.replace(/<[^>]+>/g, '');

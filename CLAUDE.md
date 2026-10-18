@@ -49,9 +49,9 @@ If code and documents disagree, stop and sort it out with the product owner. Nev
 ## Conventions
 
 - TypeScript in strict mode. Styling with plain CSS and CSS Modules, with no CSS framework.
-- Content (events, journal, JSON) lives in `content/`. Tests use their own fixtures in `tests/fixtures/` and never depend on the demo content in `content/`.
+- Content (events, journal, JSON) lives in `content/`: it is the real campaign, and what the site publishes. The invented demo content, for developing the site, is in `demo/`. Tests use their own fixtures in `tests/fixtures/` and their logic never depends on the real or the demo content (a few tests only check that both load without errors or warnings).
 - Content is Markdown only: raw HTML is not allowed. Content errors must fail the build with a message that names the file and the problem, and warnings must not. See the validation rules in `DESIGN.md`.
-- The content folder is set by the environment variable `CONTENT_DIR` (default `content`). Browser tests build the site from `tests/fixtures/`, the focus-zoom tests from `tests/fixtures-focus/`, and the route-drawing tests from `tests/fixtures-routes/`. The real campaign content is drafted in `campaign/` (use `CONTENT_DIR=campaign`), so `content/` stays free for invented demo content; see `campaign/README.md`. The GM's source notes are in `gm-notes/`, which is git-ignored.
+- The content folder is set by the environment variable `CONTENT_DIR` (default `content`, the real campaign). Browser tests build the site from `tests/fixtures/`, the focus-zoom tests from `tests/fixtures-focus/`, and the route-drawing tests from `tests/fixtures-routes/`. The demo content is used with `CONTENT_DIR=demo`; see `demo/README.md` and, for the real content, `content/README.md` (the authoring guide). The GM's source notes are in `gm-notes/`, which is git-ignored.
 - All positions are percentages of an image, `[x, y]` from the top-left, and are converted to Leaflet coordinates in one function.
 - The URL (hash router) holds the state: current event, `map`, `journal` and `lang`. Do not keep a second copy of that state.
 - Every text shown to the user comes from the content or from `ui.json`, resolved in the chosen language with fallback to the default language. Do not hard-code user-facing strings in components.

@@ -61,10 +61,12 @@ describe('content loading (B-3)', () => {
     ]);
   });
 
-  it('FR-1 the real demo content in content/ is valid', () => {
-    const { errors, warnings } = loadContent(path.resolve(__dirname, '../../content'));
-    expect(errors).toEqual([]);
-    expect(warnings).toEqual([]);
+  it('FR-1 the demo content in demo/ is valid, and so is the real content in content/', () => {
+    for (const dir of ['../../demo', '../../content']) {
+      const { errors, warnings } = loadContent(path.resolve(__dirname, dir));
+      expect(errors, dir).toEqual([]);
+      expect(warnings, dir).toEqual([]);
+    }
   });
 
   describe('errors', () => {
@@ -700,8 +702,8 @@ describe('events that are n/a on the main map (B-34)', () => {
     expect(warnings[1]).toMatch(/6050-4-002-01-b\.md/);
   });
 
-  it('FR-3 the fixture, demo and campaign events give no such warning', () => {
-    for (const dir of [FIXTURES, path.resolve(__dirname, '../../content'), path.resolve(__dirname, '../../campaign')]) {
+  it('FR-3 the fixture, demo and real events give no such warning', () => {
+    for (const dir of [FIXTURES, path.resolve(__dirname, '../../demo'), path.resolve(__dirname, '../../content')]) {
       expect(loadContent(dir).warnings.filter((w) => /is n\/a on the main map/.test(w))).toEqual([]);
     }
   });

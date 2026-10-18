@@ -10,11 +10,11 @@ afterEach(() => {
   for (const dir of temps.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
 });
 
-/** A project root whose real content, `campaign/`, is a copy of the fixtures. */
+/** A project root whose real content, `content/`, is a copy of the fixtures. */
 function makeRoot(): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kulthea-draft-'));
   temps.push(root);
-  fs.cpSync(FIXTURES, path.join(root, 'campaign'), { recursive: true });
+  fs.cpSync(FIXTURES, path.join(root, 'content'), { recursive: true });
   return root;
 }
 
@@ -24,7 +24,7 @@ function draftFile(root: string, item: string, file: string, text: string | Buff
   fs.mkdirSync(path.dirname(full), { recursive: true });
   fs.writeFileSync(full, text);
 }
-const real = (root: string, file: string) => path.join(root, 'campaign', file);
+const real = (root: string, file: string) => path.join(root, 'content', file);
 const read = (root: string, file: string) => fs.readFileSync(real(root, file), 'utf8');
 
 describe('checking a draft (B-41)', () => {

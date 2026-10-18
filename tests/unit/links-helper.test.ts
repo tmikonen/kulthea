@@ -186,11 +186,11 @@ describe('the files of a draft (B-42)', () => {
       fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
       fs.writeFileSync(path.join(root, file), text);
     };
-    write('campaign/campaign.json', '{ "defaultLanguage": "fi" }');
-    write('campaign/locations.json', JSON.stringify([{ id: 'lean', name: 'Lean', positions: {} }, { id: 'bentara', name: 'Bentara', positions: {} }]));
-    write('campaign/journal/lean.md', '---\ntype: location\n---\nKylä.\n');
-    write('campaign/journal/marek-baalik.md', '---\ntype: pc\nname: Marek Baalik\n---\nSankari.\n');
-    write('campaign/journal/og-og.md', '---\ntype: pc\nname:\n  fi: Og-Og\n  en: Og-Og\n---\nSankari.\n');
+    write('content/campaign.json', '{ "defaultLanguage": "fi" }');
+    write('content/locations.json', JSON.stringify([{ id: 'lean', name: 'Lean', positions: {} }, { id: 'bentara', name: 'Bentara', positions: {} }]));
+    write('content/journal/lean.md', '---\ntype: location\n---\nKylä.\n');
+    write('content/journal/marek-baalik.md', '---\ntype: pc\nname: Marek Baalik\n---\nSankari.\n');
+    write('content/journal/og-og.md', '---\ntype: pc\nname:\n  fi: Og-Og\n  en: Og-Og\n---\nSankari.\n');
     write('drafts/test/events/6052-2-021-06-testi.md', '---\ntitle: Testi\nlocation: lean\n---\nMarek kiitti Og-Ogia Leanissa.\n');
     return root;
   }
@@ -214,7 +214,7 @@ describe('the files of a draft (B-42)', () => {
     expect(draftFile(root, 'events/6052-2-021-06-testi.md')).toContain('[[marek-baalik|Marek]] kiitti [[og-og|Og-Ogia]] [[lean|Leanissa]].');
     expect(draftLinks(root, 'test').suggestions).toEqual([]);
     expect(draftLinks(root, 'test', { apply: true }).changed).toEqual([]);
-    expect(fs.readFileSync(path.join(root, 'campaign/journal/og-og.md'), 'utf8')).toBe('---\ntype: pc\nname:\n  fi: Og-Og\n  en: Og-Og\n---\nSankari.\n');
+    expect(fs.readFileSync(path.join(root, 'content/journal/og-og.md'), 'utf8')).toBe('---\ntype: pc\nname:\n  fi: Og-Og\n  en: Og-Og\n---\nSankari.\n');
   });
 
   it('FR-6 knows the names that the draft introduces, and a location only when it has an entry', () => {

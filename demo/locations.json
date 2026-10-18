@@ -14,13 +14,5 @@
   { "id": "ruined-watchtower", "name": { "fi": "Vahtitornin rauniot", "en": "Ruined Watchtower" },
     "positions": { "bay-of-izar": [59.3, 56.6] } },
   { "id": "troll-cave",    "name": { "fi": "Peikkoluola", "en": "Troll Cave" },
-    "positions": { "bay-of-izar": [60.7, 52.6] } },
-  { "id": "sammals-sheep-farm", "name": { "fi": "Sammalin lammastila", "en": "Sammal's Sheep Farm" },
-    "positions": { "bay-of-izar": [60.2, 58.7] } },
-  { "id": "kultavuoret", "name": "Kultavuoret",
-    "positions": {"haestra":[62.6,51.3]} },
-  { "id": "rankavuoret", "name": "Rankavuoret",
-    "positions": {"haestra":[95,46.8]} },
-  { "id": "arakin", "name": "Arakin",
-    "positions": {"haestra":[94,67]} }
+    "positions": { "bay-of-izar": [60.7, 52.6] } }
 ]

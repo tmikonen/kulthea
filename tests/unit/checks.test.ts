@@ -9,7 +9,7 @@ afterEach(cleanupTempContent);
 /** The warnings of B-35 about things that nothing uses. */
 const UNUSED = /the image is not used|is not used by any event|the entry is not used/;
 
-const REAL_FOLDERS = [FIXTURES, path.resolve(__dirname, '../../content'), path.resolve(__dirname, '../../campaign')];
+const REAL_FOLDERS = [FIXTURES, path.resolve(__dirname, '../../demo'), path.resolve(__dirname, '../../content')];
 
 describe('field suggestions (B-28)', () => {
   it('FR-9 counts typing mistakes, a swap of neighbours as one', () => {
@@ -161,7 +161,7 @@ describe('a group that never returns (B-28)', () => {
 });
 
 describe('the real content gives no new warning (B-28)', () => {
-  it('FR-9 the fixtures, the demo content and the campaign content have no warnings about fields and groups', () => {
+  it('FR-9 the fixtures, the demo content and the real content have no warnings about fields and groups', () => {
     for (const dir of [...REAL_FOLDERS, 'tests/fixtures-focus', 'tests/fixtures-routes'].map((d) => path.resolve(d))) {
       const { errors, warnings } = loadContent(dir);
       expect(errors, dir).toEqual([]);

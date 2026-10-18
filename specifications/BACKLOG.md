@@ -1168,7 +1168,7 @@ Implementation notes (decisions made with the product owner while building it):
 
 ## B-44 Extract the 2021 session
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 

@@ -705,18 +705,15 @@ describe('the 2022 session (B-45)', () => {
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
   const session = events.filter((e) => e.year === 6052 && e.month === 2 && e.day >= 42);
 
-  it('FR-1 the session has the ten events on the days that the product owner gave, in order, on the party\'s route', () => {
+  it('FR-1 the session has the seven events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
       '6052-2-042-01-lahto-bentarasta',
       '6052-2-047-01-saapuminen-suonperaan',
       '6052-2-048-01-suon-leiri-ja-erakko',
-      '6052-2-058-01-vanha-temppeli-ja-kaivanto',
-      '6052-2-058-02-taistelu-hiisilaisia-vastaan',
+      '6052-2-058-01-vanha-temppeli-ja-hiisilaiset',
       '6052-2-059-01-luolaston-arvoitukset',
-      '6052-2-060-01-tie-jaaluolaan',
-      '6052-2-060-02-portti-avataan',
-      '6052-2-060-03-taistelu-mentalistia-vastaan',
-      '6052-2-060-04-portti-suljetaan',
+      '6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu',
+      '6052-2-060-02-portti-suljetaan',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
     expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-2-030-01-paluu-bentaraan') + 1);
@@ -724,7 +721,7 @@ describe('the 2022 session (B-45)', () => {
 
   it('FR-1 the places of the events: Bentara, Bog End, the swamp, the ruins, the base and the ice cave', () => {
     expect(session.map((e) => e.location)).toEqual([
-      'bentara', 'bog-end', 'swamp', 'ancient-jinteni-ruins', 'ancient-jinteni-ruins', 'jinteni-base', 'jinteni-base', 'ice-cave', 'ice-cave', 'ice-cave',
+      'bentara', 'bog-end', 'swamp', 'ancient-jinteni-ruins', 'jinteni-base', 'ice-cave', 'ice-cave',
     ]);
   });
 
@@ -751,25 +748,35 @@ describe('the 2022 session (B-45)', () => {
     expect(entry('hermit-dagger').events.fi).toEqual(['6052-2-048-01-suon-leiri-ja-erakko']);
   });
 
-  it('FR-6 the base events: the riddles, the trap and the way to the ice cave', () => {
+  it('FR-6 the base event: the riddles and the trap', () => {
     const text = plain(event('6052-2-059-01-luolaston-arvoitukset').text.fi);
     expect(text).toContain('Marekin ja Bainin ansiosta');
-    expect(entry('jinteni-base').events.fi).toEqual(['6052-2-059-01-luolaston-arvoitukset', '6052-2-060-01-tie-jaaluolaan']);
+    expect(entry('jinteni-base').events.fi).toEqual(['6052-2-059-01-luolaston-arvoitukset']);
+  });
+
+  it('FR-6 the temple and the kobolds are one event, and the ice cave, the portal and the fight are one event', () => {
+    const temple = event('6052-2-058-01-vanha-temppeli-ja-hiisilaiset');
+    expect(fi(temple.title)).toBe('Vanha temppeli ja hiisiläiset');
+    expect(entry('kobold').events.fi).toEqual([temple.id]);
+    const cave = event('6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu');
+    expect(fi(cave.title)).toBe('Jääluola, ulottuvuusportti, ja taistelu');
+    expect(plain(cave.text.fi)).toContain('löysi portin ja aktivoi sen');
+    expect(entry('ice-cave').events.fi).toEqual([cave.id, '6052-2-060-02-portti-suljetaan']);
   });
 
   it('FR-6 the mentalist: the dragon illusion, Magnus, controlled Marek who hurt Bain, and the end of the session', () => {
-    const fight = plain(event('6052-2-060-03-taistelu-mentalistia-vastaan').text.fi);
+    const fight = plain(event('6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu').text.fi);
     expect(fight).toContain('illuusion portista tulevasta lohikäärmeestä');
     expect(fight).toContain('Hänen näkönsä palasi samana päivänä');
     expect(fight).toContain('haavoitti Bainia asekäteen');
     expect(entry('jinteni-mentalist').type).toBe('npc');
     expect(entry('jinteni-mentalist').image).not.toBeNull();
     for (const id of ['magnus-bombus', 'marek-baalik', 'bain-pitkavihainen']) {
-      expect(entry(id).events.fi, id).toContain('6052-2-060-03-taistelu-mentalistia-vastaan');
+      expect(entry(id).events.fi, id).toContain('6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu');
     }
-    const end = plain(event('6052-2-060-04-portti-suljetaan').text.fi);
+    const end = plain(event('6052-2-060-02-portti-suljetaan').text.fi);
     expect(end).toContain('Og-Og sulki portin');
-    expect(entry('og-og').events.fi).toContain('6052-2-060-04-portti-suljetaan');
+    expect(entry('og-og').events.fi).toContain('6052-2-060-02-portti-suljetaan');
   });
 
   it('FR-6 the items of the mentalist have the names that the product owner gave, with the figures of the notes and a picture each', () => {
@@ -783,7 +790,7 @@ describe('the 2022 session (B-45)', () => {
       expect(entry(id).type, id).toBe('item');
       expect(fi(entry(id).name), id).toBe(name);
       expect(entry(id).image, id).not.toBeNull();
-      expect(entry(id).events.fi, id).toContain('6052-2-060-04-portti-suljetaan');
+      expect(entry(id).events.fi, id).toContain('6052-2-060-02-portti-suljetaan');
     }
     expect(plain(entry('mentalist-dagger').text.fi)).toContain('+15');
     expect(plain(entry('telekinesis-gauntlet').text.fi)).toContain('-30');

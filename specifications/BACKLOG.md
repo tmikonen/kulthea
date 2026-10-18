@@ -1265,11 +1265,16 @@ Feedback wanted:
 
 ## B-45 Extract the 2022 session
 
-Status: defined
+Status: done
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
-Depends on: B-44 and B-32. It starts with what B-44 taught (written here when that item is done).
+Depends on: B-44 and B-32. What B-44 taught:
+- The outcome is short and the plan holds the detail, so the draft starts from a `REVIEW.md` that proposes the list of events with their sources and asks the questions in groups (the events, the places, the people, the items, the pictures, the typing mistakes); the product owner answers group by group, and the draft is changed after each answer.
+- Dates and map positions are the product owner's, so they are asked before the events are written; each event is one file on the party's route unless the product owner says otherwise, and each sentence that names a character is a paragraph of its own, so that the character's list shows it.
+- The pictures are taken from the PDF, which has larger copies and some that the Markdown lacks; the notes' pictures can be stock photos with a watermark, so the product owner chooses which are published.
+- Forms of names that the link helper cannot work out go to `aliases.json`; changed files are applied with `--overwrite` after their diff has been seen; the product owner may edit the content afterwards, so the tests check what matters (the events, the entries, the links) and not the exact wording.
+- Game figures are left out of the entries unless the product owner asks for them.
 
 Scope note: the second session, "Osa II, Lapua 2022". The outcome is the start of `Osa III`; the plan is `Osa II` (the camp at the swamp and the hermit, the kobold castle on the old Jinteni ruins, the base under it, the portal and the demon, with pictures). The way of working and the rules are those of B-44 and of the track introduction, including the rules for the session extractions (the plan is read in full, doubts are asked, the items are identified, and so on). The entries that already exist (the characters, Lean, the dwarves, the Jinteni ruins) are extended and not made again: the check shows the changed files with their diff, and a new paragraph is added to an entry only when the outcome says something new. The content goes to `content/`, so after the review it is live after you push. The date of the session is a question (the plan says spring 6052).
 
@@ -1278,11 +1283,18 @@ You will see: the second session on the site, continuing the story from the firs
 How to check by hand: as in B-44, with `npm run draft:dev -- session-2022`; then, on the real site, the whole timeline from the first event through the new ones.
 
 Acceptance criteria: those of B-44 for this session, and in addition:
-- [ ] No entry or location is made twice: a thing that exists is reused or extended (the diff is shown), and an alias for a name that the notes use differently is recorded in `aliases.json`.
-- [ ] The first event of the session follows the last of the 2021 session in date order, and its date is confirmed by you.
-- [ ] The tests and the build pass without warnings after the apply, and the live site's timeline has no break or gap that you have not accepted.
+- [x] No entry or location is made twice: a thing that exists is reused or extended (the diff is shown), and an alias for a name that the notes use differently is recorded in `aliases.json`.
+- [x] The first event of the session follows the last of the 2021 session in date order, and its date is confirmed by you.
+- [x] The tests and the build pass without warnings after the apply, and the live site's timeline has no break or gap that you have not accepted.
 
 Automated tests: as in B-44.
+
+Implementation notes (decisions made with the product owner while building it; the questions and answers are in the git-ignored `drafts/session-2022/REVIEW.md`):
+- Ten events on the party's route, 12 days after the return to Bentara (the 42nd of Spring, 6052) to the 60th: the departure from Bentara (with the situation of the plan's first paragraph, in the past tense), the arrival at Bog End (the text is a single sentence: the product owner writes the description by hand), the camp at the swamp and the hermit, the old temple and the dig, the fight with the kobolds, the riddles of the base, the way to the ice cave, the activation of the portal, the fight with the mentalist, and the closing of the portal. The events say what the outcome says and what the product owner confirmed (the rats, the hermit's sling and its battle mosquitoes, Bain's dagger, the quick kobold fight, the trap that hurt the party, Marek and Bain finding the way, the dragon illusion, Magnus's blindness for the day, controlled Marek wounding Bain, Og-Og closing the portal by taking out the crystal). Not confirmed, so not written: the hermit's guiding and medicines, the plan's details of the tunnel and the base rooms (except in the descriptions of the places), who dealt the last blow to the mentalist, and whose hand activated the portal.
+- New places: the swamp (the product owner's positions on the Bay of Izar and Bog End maps), the Jinteni base and the ice cave (at the positions of the ruins on all three maps, so that their markers coincide). The entries of the ruins (changed: the plan's description without its guesses, with the view from the slope), the base (with the plan map) and the ice cave (with the picture of the portal) are place entries; events at the base and in the ice cave are held there.
+- New entries: the hermit and "Erakon tikari" (Bain's dagger, a different dagger from the mentalist's), the note "Hiisiläinen" (with the kobold picture), the mentalist (with his picture), the four items of the mentalist (the dagger, the pendant, the ring and the "Telekinesiahansikas", each with its picture and, as the product owner asked for the items, the figures of the notes), and the crystal of the portal. Everything is identified. The pictures were taken from the PDF; the stock photo with a watermark and the picture of the door of the base were not used.
+- Waits in B-50: who got the mentalist's items, who dealt the last blow, the arrival at Bog End, and the hermit's berries, fish and medicines.
+- The build of `content/` has no content warnings. It prints one hint of Vite, not of the content: the data bundle is now 516 kB, over its limit of 500 kB for one chunk. It is the whole text of the campaign in one file and will grow with every session; B-31 (performance with a large campaign) is the place to split it or to raise the limit.
 
 ### Milestone 10: the second session (after B-45)
 
@@ -1571,6 +1583,18 @@ Feedback wanted:
 Status: backlog
 
 Scope note (to be refined with the product owner): some entries have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Sel-Kai, Katra and Mynistra (made in B-43 for the names in the characters' backgrounds), the note "Peikot" for the trolls of the cave (B-44), and the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret, Arakin, Bog End, the ancient Jinteni ruins and Bentara. The descriptions are written by the product owner or taken from the notes (the later session items, B-45 onward, give some of them, for example the Jinteni ruins and Bog End), and the entries may get pictures and English texts.
+
+
+## B-50 Tidbits and details to collect
+
+Status: backlog
+
+Scope note (to be refined with the product owner): a running list of small facts and details that the product owner remembers or finds in the hand-written notes, and that are not yet in the content. The product owner gives them as they come, and they are put into the events and entries in one go (a change to the existing files, with the check and the diff shown), with the tests and the build passing. The list grows with every extraction item, so this item is done when the product owner says the list is empty. What is on it so far:
+- **Who got which of the mentalist's items** (the dagger, the pendant, the ring and the telekinesis gauntlet, which were left undivided in 2022), and who has the other items found so far: the product owner checks the hand-written notes (B-45). The item entries then say who has them, and the events of the later sessions say when they were used.
+- **Who dealt the last blow to the mentalist** (2022; "perhaps Og-Og").
+- **The description of the arrival at Bog End** (the event of the 47th of Spring, 6052), which the product owner writes by hand.
+- Whether the party got the hermit's berries, dried fish and medicines, and whether he guided them (2022).
+- The descriptions of the stub entries are not here but in B-49.
 
 ---
 

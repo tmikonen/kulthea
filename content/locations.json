@@ -22,5 +22,11 @@
   { "id": "rankavuoret", "name": "Rankavuoret",
     "positions": {"haestra":[95,46.8]} },
   { "id": "arakin", "name": "Arakin",
-    "positions": {"haestra":[94,67]} }
+    "positions": {"haestra":[94,67]} },
+  { "id": "swamp", "name": {"fi":"Suo","en":"Swamp"},
+    "positions": {"bay-of-izar":[68.8,39.8],"bog-end":[58.2,47]} },
+  { "id": "jinteni-base", "name": {"fi":"Jinteni-tukikohta","en":"Jinteni Base"},
+    "positions": {"bay-of-izar":[64.3,39.1],"haestra":[55.6,59.9],"bog-end":[36.8,36]} },
+  { "id": "ice-cave", "name": {"fi":"Jääluola","en":"Ice Cave"},
+    "positions": {"bay-of-izar":[64.3,39.1],"haestra":[55.6,59.9],"bog-end":[36.8,36]} }
 ]

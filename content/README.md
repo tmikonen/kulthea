@@ -121,7 +121,7 @@ A **warning** does not stop the build, but this folder is kept free of them. The
 3. Commit the change.
 4. Publishing is a push to the `master` branch on GitHub. A workflow runs the tests and the content check and, only if they pass, publishes the site at `https://tmikonen.github.io/kulthea/`. An error in the content stops the publishing, and the old site stays.
 
-## 9. About the dates of the first session
+## 9. About the dates of the sessions
 
-- The first session starts at the old watchtower on TE 6052, 21st of Spring (`6052-2-021`).
-- Belladonna hires the party at Bentara on the 12th of Spring (the first event of the party's route); the two events at the troll cave are on the 22nd; the night at Sammal's farm and the arrival in Lean are on the 23rd (the farm first); the return to Bentara is on the 30th.
+- **2021:** the first session starts at the old watchtower on TE 6052, 21st of Spring (`6052-2-021`). Belladonna hires the party at Bentara on the 12th of Spring (the first event of the party's route); the two events at the troll cave are on the 22nd; the night at Sammal's farm and the arrival in Lean are on the 23rd (the farm first); the return to Bentara is on the 30th.
+- **2022:** the party leaves Bentara on the 42nd (12 days after the return), arrives at Bog End on the 47th (5 days), camps at the swamp on the 48th, reaches the old temple and the kobolds on the 58th (10 days), solves the riddles on the 59th, and on the 60th enters the ice cave and fights the mentalist. The order number counts the events of one day.

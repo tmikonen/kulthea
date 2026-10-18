@@ -261,7 +261,7 @@ describe('the player characters of the campaign (B-43)', () => {
   it('FR-6 the map found in the troll cave is the item "Muinaisten jintenirauniojen kartta", linked from the event of the stone door', () => {
     expect(entry('jinteni-ruins-map').type).toBe('item');
     expect(fi(entry('jinteni-ruins-map').name)).toBe('Muinaisten jintenirauniojen kartta');
-    expect(entry('jinteni-ruins-map').events.fi).toEqual(['6052-2-022-02-kiviovi']);
+    expect(entry('jinteni-ruins-map').events.fi).toContain('6052-2-022-02-kiviovi');
   });
 
   it('FR-6 each character has the portrait from the notes as the lead image', () => {
@@ -271,7 +271,7 @@ describe('the player characters of the campaign (B-43)', () => {
   });
 
   it('FR-1 the events of the 2021 session are on the days that the product owner gave', () => {
-    expect(campaign.bundle!.events.map((e) => e.id)).toEqual([
+    expect(campaign.bundle!.events.map((e) => e.id).filter((id) => /^6052-2-0(12|21|22|23|30)-/.test(id))).toEqual([
       '6052-2-012-01-belladonna-palkkaa-seurueen',
       '6052-2-021-01-vahtitorni',
       '6052-2-022-01-peikkoluola-hyokkays',
@@ -692,5 +692,114 @@ describe('the 2021 session (B-44)', () => {
     expect(plain(entry('jinteni-ruins-map').text.fi)).toContain('Horin Puusilmä antoi seurueelle');
     expect(entry('jinteni-ruins-map').text.fi).toContain('data-journal="bog-end"');
     expect(entry('jinteni-ruins-map').text.fi).toContain('data-journal="ancient-jinteni-ruins"');
+  });
+});
+
+describe('the 2022 session (B-45)', () => {
+  const campaign = loadContent(path.resolve(__dirname, '../../content'));
+  const events = campaign.bundle!.events;
+  const event = (id: string) => events.find((e) => e.id === id)!;
+  const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
+  const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
+  const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+  const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
+  const session = events.filter((e) => e.year === 6052 && e.month === 2 && e.day >= 42);
+
+  it('FR-1 the session has the ten events on the days that the product owner gave, in order, on the party\'s route', () => {
+    expect(session.map((e) => e.id)).toEqual([
+      '6052-2-042-01-lahto-bentarasta',
+      '6052-2-047-01-saapuminen-suonperaan',
+      '6052-2-048-01-suon-leiri-ja-erakko',
+      '6052-2-058-01-vanha-temppeli-ja-kaivanto',
+      '6052-2-058-02-taistelu-hiisilaisia-vastaan',
+      '6052-2-059-01-luolaston-arvoitukset',
+      '6052-2-060-01-tie-jaaluolaan',
+      '6052-2-060-02-portti-avataan',
+      '6052-2-060-03-taistelu-mentalistia-vastaan',
+      '6052-2-060-04-portti-suljetaan',
+    ]);
+    expect(session.every((e) => e.track === null)).toBe(true);
+    expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-2-030-01-paluu-bentaraan') + 1);
+  });
+
+  it('FR-1 the places of the events: Bentara, Bog End, the swamp, the ruins, the base and the ice cave', () => {
+    expect(session.map((e) => e.location)).toEqual([
+      'bentara', 'bog-end', 'swamp', 'ancient-jinteni-ruins', 'ancient-jinteni-ruins', 'jinteni-base', 'jinteni-base', 'ice-cave', 'ice-cave', 'ice-cave',
+    ]);
+  });
+
+  it('FR-1 the new places have the positions that the product owner gave, and the base and the ice cave are at the ruins', () => {
+    expect(location('swamp').positions).toEqual({ 'bay-of-izar': [68.8, 39.8], 'bog-end': [58.2, 47.0] });
+    for (const id of ['jinteni-base', 'ice-cave']) {
+      expect(location(id).positions, id).toEqual(location('ancient-jinteni-ruins').positions);
+    }
+  });
+
+  it('FR-6 the first event tells the situation, and the arrival at Bog End waits for the product owner\'s own text', () => {
+    const text = plain(event('6052-2-042-01-lahto-bentarasta').text.fi);
+    expect(text).toContain('Oli kevät 6052');
+    expect(text).toContain('reilun viikon verran Bentarassa');
+    expect(plain(event('6052-2-047-01-saapuminen-suonperaan').text.fi)).toContain('Seurue saapui Suonperään');
+  });
+
+  it('FR-6 the camp, the hermit and Bain\'s dagger', () => {
+    const camp = plain(event('6052-2-048-01-suon-leiri-ja-erakko').text.fi);
+    expect(camp).toContain('suorotat');
+    expect(camp).toContain('linkoamalla');
+    expect(entry('hermit').events.fi).toEqual(['6052-2-048-01-suon-leiri-ja-erakko']);
+    expect(entry('hermit-dagger').type).toBe('item');
+    expect(entry('hermit-dagger').events.fi).toEqual(['6052-2-048-01-suon-leiri-ja-erakko']);
+  });
+
+  it('FR-6 the base events: the riddles, the trap and the way to the ice cave', () => {
+    const text = plain(event('6052-2-059-01-luolaston-arvoitukset').text.fi);
+    expect(text).toContain('Marekin ja Bainin ansiosta');
+    expect(entry('jinteni-base').events.fi).toEqual(['6052-2-059-01-luolaston-arvoitukset', '6052-2-060-01-tie-jaaluolaan']);
+  });
+
+  it('FR-6 the mentalist: the dragon illusion, Magnus, controlled Marek who hurt Bain, and the end of the session', () => {
+    const fight = plain(event('6052-2-060-03-taistelu-mentalistia-vastaan').text.fi);
+    expect(fight).toContain('illuusion portista tulevasta lohikäärmeestä');
+    expect(fight).toContain('Hänen näkönsä palasi samana päivänä');
+    expect(fight).toContain('haavoitti Bainia asekäteen');
+    expect(entry('jinteni-mentalist').type).toBe('npc');
+    expect(entry('jinteni-mentalist').image).not.toBeNull();
+    for (const id of ['magnus-bombus', 'marek-baalik', 'bain-pitkavihainen']) {
+      expect(entry(id).events.fi, id).toContain('6052-2-060-03-taistelu-mentalistia-vastaan');
+    }
+    const end = plain(event('6052-2-060-04-portti-suljetaan').text.fi);
+    expect(end).toContain('Og-Og sulki portin');
+    expect(entry('og-og').events.fi).toContain('6052-2-060-04-portti-suljetaan');
+  });
+
+  it('FR-6 the items of the mentalist have the names that the product owner gave, with the figures of the notes and a picture each', () => {
+    const names: Record<string, string> = {
+      'mentalist-dagger': 'Mentalistin tikari',
+      'mentalist-pendant': 'Mentalistin riipus',
+      'mentalist-ring': 'Mentalistin sormus',
+      'telekinesis-gauntlet': 'Telekinesiahansikas',
+    };
+    for (const [id, name] of Object.entries(names)) {
+      expect(entry(id).type, id).toBe('item');
+      expect(fi(entry(id).name), id).toBe(name);
+      expect(entry(id).image, id).not.toBeNull();
+      expect(entry(id).events.fi, id).toContain('6052-2-060-04-portti-suljetaan');
+    }
+    expect(plain(entry('mentalist-dagger').text.fi)).toContain('+15');
+    expect(plain(entry('telekinesis-gauntlet').text.fi)).toContain('-30');
+    expect(entry('energy-crystal').type).toBe('item');
+  });
+
+  it('FR-4 the places and creatures have their pictures: the view of the ruins, the kobold, the plan of the base and the portal', () => {
+    expect(entry('ancient-jinteni-ruins').image).not.toBeNull();
+    expect(entry('kobold').image).not.toBeNull();
+    expect(fi(entry('kobold').name)).toBe('Hiisiläinen');
+    expect(entry('jinteni-base').text.fi).toContain('alt="Jinteni-tukikohdan pohjapiirros"');
+    expect(entry('ice-cave').text.fi).toContain('alt="Jääluolan portaali"');
+  });
+
+  it('FR-9 the real content still loads with no warnings at all', () => {
+    expect(campaign.errors).toEqual([]);
+    expect(campaign.warnings).toEqual([]);
   });
 });

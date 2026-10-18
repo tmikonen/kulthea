@@ -221,11 +221,11 @@ describe('the player characters of the campaign (B-43)', () => {
   it('FR-6 each character starts with a line of race, class and level, and the background follows', () => {
     const first = (id: string) => entry(id).text.fi.split('\n')[0];
     for (const [id, line] of [
-      ['og-og', 'Puolipeikko, soturi, taso 1'],
-      ['marek-baalik', 'Ihminen (Shay), Mynistran paladiini, taso 1'],
-      ['taelaran-quirinion', 'Haltia, bardi, taso 1'],
-      ['bain-pitkavihainen', 'Kääpiö, rosvo, taso 1'],
-      ['magnus-bombus', 'Suur-Ihminen (Laan), velho, taso 1'],
+      ['og-og', 'Puolipeikko, soturi'],
+      ['marek-baalik', 'Ihminen (Shay), Mynistran paladiini'],
+      ['taelaran-quirinion', 'Haltia, bardi'],
+      ['bain-pitkavihainen', 'Kääpiö, rosvo'],
+      ['magnus-bombus', 'Suur-Ihminen (Laan), velho'],
     ]) {
       expect(first(id).startsWith('<p><em>'), id).toBe(true);
       expect(plain(first(id)), id).toBe(line);

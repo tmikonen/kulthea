@@ -4,7 +4,7 @@ name: "Bain Pitkävihainen"
 motto: "Kyllä. Bain PITKÄvihainen. Oliko siinä jotain hauskaa, häh?"
 image: images/bain-pitkavihainen.webp
 ---
-*Kääpiö, rosvo, taso 1*
+*Kääpiö, rosvo*
 
 Bain on kotoisin [[kultavuoret|Kultavuorten]] [[ton-bor|Ton-Borista]], suurimmasta, mahtavimmasta ja rikkaimmasta kääpiökaupungista [[rankavuoret|Rankavuorten]] tällä puolen. [[ton-bor|Ton-Bor]] on kuuluisa taitavista jalokivi- ja metallisepistään, vuorenalaisista rikkauksistaan ja iänikuisista, henkeäsalpaavan kauniista kivisaleistaan. [[ton-bor|Ton-Borin]] porteista virtaavien kalleuksien ansiosta [[ton-bor|Ton-Borin]] asukkaista vähävaraisimmatkin ovat lähes satumaisen rikkaita ihmismaiden mittapuulla.
 

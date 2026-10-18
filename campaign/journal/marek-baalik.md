@@ -4,7 +4,7 @@ name: "Marek Baalik"
 motto: "Painu helvettiin!"
 image: images/marek-baalik.webp
 ---
-*Ihminen (Shay), [[mynistra|Mynistran]] paladiini, taso 1*
+*Ihminen (Shay), [[mynistra|Mynistran]] paladiini*
 
 Marek Baalik on armoitettu soturi, [[mynistra|Mynistran]] pyhä palvelija, kaikkien kurjien ja rähjäisten pastori.
 

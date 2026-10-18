@@ -4,7 +4,7 @@ name: "Og-Og"
 motto: "Og-Og lyö!"
 image: images/og-og.webp
 ---
-*Puolipeikko, soturi, taso 1*
+*Puolipeikko, soturi*
 
 Og-Og on puolipeikko. Menemättä sen tarkemmin tämän asian biologisiin taustoihin, todetaan vain, että Og-Og on liian iso ja ruma ihmiseksi ja toivoton rääpäle peikkojen mittapuulla. Mutta jukelittoman vahva hän on. Ja varsin hyvännäköinen. Puolipeikoksi. Eli kunnes samanlainen luonnonoikku sattuu eteen, niistä säihkysilmistä ei ole puolen pennin vertaa hyötyä. Ja siinäkin tapauksessa on syytä toivoa, että kumppanikokelas on soveltuvaa sukupuolta. Vaan liekö sillä Og-Ogille niin merkitystä.
 

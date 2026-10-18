@@ -4,7 +4,7 @@ name: "Magnus Bombus"
 motto: "BUUUM!"
 image: images/magnus-bombus.webp
 ---
-*Suur-Ihminen (Laan), velho, taso 1*
+*Suur-Ihminen (Laan), velho*
 
 Magnus Bombus on vaikutusvaltaisen Izarilaisen perheen nuorin lapsi. Useimmat perheen jäsenet, mukaanlukien Magnuksen sisaret kuuluvat yhteen Izarin merkittävimmistä killoista, rahanvaihtajien kiltaan. He ovat pankkiireja ja  koronkiskureita. Ansaitsevat siis ihan sikamaisen paljon rahaa.
 

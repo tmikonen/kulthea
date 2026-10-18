@@ -1218,7 +1218,7 @@ Feedback wanted:
 
 ## B-32 Moving to the real content
 
-Status: done
+Status: accepted
 
 Related: "Folder layout", "Deployment", "Test content".
 

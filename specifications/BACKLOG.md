@@ -1063,7 +1063,7 @@ How to check by hand:
 4. Run `npm run draft:apply -- test`: the event is copied into `campaign/events/`.
 
 Acceptance criteria:
-- [x] `draft:check` merges the draft over the real content, reports errors and warnings with the file names of the draft, lists the new files, the changed files with a diff, and the open questions of `REVIEW.md` (lines that start with `- [x]`), and exits with an error when there are errors.
+- [x] `draft:check` merges the draft over the real content, reports errors and warnings with the file names of the draft, lists the new files, the changed files with a diff, and the open questions of `REVIEW.md` (lines that start with `- [ ]`), and exits with an error when there are errors.
 - [x] `locations.add.json` is merged into the locations of the merged folder: a new id is added, the same entry again is fine, a different entry with an existing id is an error.
 - [x] `draft:dev` serves the merged folder on the dev server, and the real content is not touched.
 - [x] `draft:apply` refuses when the check has errors or a changed file is not allowed with `--overwrite`, otherwise copies the files and merges the locations, and a second run changes nothing.

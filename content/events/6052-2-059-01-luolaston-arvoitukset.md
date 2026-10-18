@@ -2,8 +2,6 @@
 title: Luolaston arvoitukset
 location: jinteni-base
 ---
-Seurue käytti paljon aikaa ja vaivaa selvittääkseen luolaston arvoitukset. Hahmot löysivät ovien arvoitusten ratkaisut.
+Rauniotemppelin alapuolisista tunneleista löytyi reitti muinaisiin jinteni-tukikohdan käytäviin. Sisäänkäynti oli suojattu arvoituksilla, jotka seurue selvitti pitkällisen pohdinnan jälkeen. Sisemmällä käytävä aukeni suureksi huoneeksi, joka osoittautui yhdeksi suureksi labyrinttimäiseksi ansaksi. Yksi väärä askel, ja huoneen lattiaan ja kattoon varastoitu energia purkautui salaman lailla. Toinen väärä askel, ja energiaisku kasvoi eksponentiaalisesti.
 
-Lattian ansa vei pitkän ajan, ja hahmot loukkaantuivat vakavasti sen sähköpurkauksissa.
-
-Lopulta seurue löysi reitin ansan läpi, pääosin [[marek-baalik|Marekin]] ja [[bain-pitkavihainen|Bainin]] ansiosta.
+Lopulta, pääosin [[marek-baalik|Marekin]] ja [[bain-pitkavihainen|Bainin]] ansiosta, seikkailijat löysivät reitin ansan ohi ja saivat sen kytkettyä pois päältä.

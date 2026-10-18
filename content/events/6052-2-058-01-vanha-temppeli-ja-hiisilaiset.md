@@ -2,6 +2,6 @@
 title: Vanha temppeli ja hiisiläiset
 location: ancient-jinteni-ruins
 ---
-Seurue löysi vanhan temppelin ja kaivannon. Seurue tutki temppelin ulkopuolta jonkin aikaa.
+Pitkän ja vaivalloisen matkan jälkeen seurue löysi korkealta vuorilta vanhan linnatemppelin. Tuuli, satava lumi ja pimeys tekivät tutkimisesta hidasta ja vaikeaa.
 
-Seurue taisteli [[kobold|hiisiläisiä]] vastaan. Taistelu oli nopea, ja hahmot voittivat hiisiläiset nopeasti.
+Raunioilla toimi useita [[kobold|hiisiläisiä]], jotka ovat kaivamassa raunioiden alaisia tunneleita. Hiisiläisten ja hahmojen välille seurasi lyhyt taistelu.

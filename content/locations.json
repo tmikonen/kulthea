@@ -28,5 +28,9 @@
   { "id": "jinteni-base", "name": {"fi":"Jinteni-tukikohta","en":"Jinteni Base"},
     "positions": {"bay-of-izar":[64.3,39.1],"haestra":[55.6,59.9],"bog-end":[36.8,36]} },
   { "id": "ice-cave", "name": {"fi":"Jääluola","en":"Ice Cave"},
-    "positions": {"bay-of-izar":[64.3,39.1],"haestra":[55.6,59.9],"bog-end":[36.8,36]} }
+    "positions": {"bay-of-izar":[64.3,39.1],"haestra":[55.6,59.9],"bog-end":[36.8,36]} },
+  { "id": "kert-manor", "name": {"fi":"Kreivi Kertin kartano","en":"Count Kert's Manor"},
+    "positions": {"bay-of-izar":[74.6,39.9]} },
+  { "id": "cockatrice-nest", "name": {"fi":"Kukkotriikin pesä","en":"Cockatrice Nest"},
+    "positions": {"bay-of-izar":[78,38.8]} }
 ]

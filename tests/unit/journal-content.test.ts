@@ -703,7 +703,7 @@ describe('the 2022 session (B-45)', () => {
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const plain = (html: string) => html.replace(/<[^>]+>/g, '');
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
-  const session = events.filter((e) => e.year === 6052 && e.month === 2 && e.day >= 42);
+  const session = events.filter((e) => e.year === 6052 && e.month === 2 && e.day >= 42 && e.day <= 60);
 
   it('FR-1 the session has the seven events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
@@ -805,3 +805,76 @@ describe('the 2022 session (B-45)', () => {
     expect(campaign.warnings).toEqual([]);
   });
 });
+
+describe('the 2023 session (B-46)', () => {
+  const campaign = loadContent(path.resolve(__dirname, '../../content'));
+  const events = campaign.bundle!.events;
+  const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
+  const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
+  const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
+  const session = events.filter((e) => e.year === 6052 && (e.month === 3 || (e.month === 2 && e.day >= 61)));
+
+  it('FR-1 the session has the six events on the days that the product owner gave, in order, on the party\'s route', () => {
+    expect(session.map((e) => e.id)).toEqual([
+      '6052-2-067-01-alas-vuorilta-suonperaan',
+      '6052-3-001-01-kreivin-kutsu',
+      '6052-3-002-01-kukkotriikin-metsastys',
+      '6052-3-003-01-kukkotriikin-pesa',
+      '6052-3-004-01-takaisin-kreivin-kartanolle',
+      '6052-3-005-01-takaisin-suonperaan',
+    ]);
+    expect(session.every((e) => e.track === null)).toBe(true);
+    const lastOf2022 = events.findIndex((e) => e.id === '6052-2-060-02-portti-suljetaan');
+    expect(events.indexOf(session[0])).toBe(lastOf2022 + 1);
+  });
+
+  it('FR-1 the places of the events: Bog End, the manor, the nest, the manor and Bog End again', () => {
+    expect(session.map((e) => e.location)).toEqual(['bog-end', 'kert-manor', 'kert-manor', 'cockatrice-nest', 'kert-manor', 'bog-end']);
+  });
+
+  it('FR-1 the new places have the positions that the product owner gave, on the Bay of Izar map', () => {
+    expect(location('kert-manor').positions).toEqual({ 'bay-of-izar': [74.6, 39.9] });
+    expect(location('cockatrice-nest').positions).toEqual({ 'bay-of-izar': [78.0, 38.8] });
+  });
+
+  it('FR-6 the people of the manor have entries with pictures, and are in the events where they were', () => {
+    for (const id of ['count-kert', 'pjotr', 'igor', 'pso', 'nari-tulenjyske']) {
+      expect(entry(id).type, id).toBe('npc');
+      expect(entry(id).image, id).not.toBeNull();
+    }
+    expect(entry('pjotr').events.fi).toContain('6052-3-001-01-kreivin-kutsu');
+    expect(entry('pso').events.fi).toEqual(['6052-3-001-01-kreivin-kutsu', '6052-3-004-01-takaisin-kreivin-kartanolle']);
+    expect(entry('igor').events.fi).toEqual(['6052-3-002-01-kukkotriikin-metsastys']);
+    expect(entry('nari-tulenjyske').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
+  });
+
+  it('FR-6 the characters named in the events have them in their lists', () => {
+    expect(entry('bain-pitkavihainen').events.fi).toContain('6052-2-067-01-alas-vuorilta-suonperaan');
+    expect(entry('magnus-bombus').events.fi).toContain('6052-3-003-01-kukkotriikin-pesa');
+    expect(entry('og-og').events.fi).toContain('6052-3-003-01-kukkotriikin-pesa');
+    expect(entry('taelaran-quirinion').events.fi).toContain('6052-3-004-01-takaisin-kreivin-kartanolle');
+  });
+
+  it('FR-6 the cockatrice, its feathers and the nest are entries, and the feathers are described as the party knew them', () => {
+    expect(entry('cockatrice').type).toBe('note');
+    expect(fi(entry('cockatrice').name)).toBe('Kukkotriikki');
+    expect(entry('cockatrice-feathers').type).toBe('item');
+    expect(entry('cockatrice-feathers').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
+    expect(entry('cockatrice-nest').type).toBe('location');
+    expect(entry('cockatrice-nest').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
+    expect(entry('kert-manor').type).toBe('location');
+    expect(entry('kert-manor').events.fi).toEqual(['6052-3-001-01-kreivin-kutsu', '6052-3-002-01-kukkotriikin-metsastys', '6052-3-004-01-takaisin-kreivin-kartanolle']);
+  });
+
+  it('FR-4 the manor has its outside picture as the lead image, and the nest its entrance and its plan', () => {
+    expect(entry('kert-manor').image).not.toBeNull();
+    expect(entry('cockatrice-nest').image).not.toBeNull();
+    expect(entry('cockatrice-nest').text.fi).toContain('alt="Pesäluolan pohjapiirros"');
+  });
+
+  it('FR-9 the real content still loads with no warnings at all', () => {
+    expect(campaign.errors).toEqual([]);
+    expect(campaign.warnings).toEqual([]);
+  });
+});
+

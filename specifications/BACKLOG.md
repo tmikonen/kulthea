@@ -1309,7 +1309,7 @@ Feedback wanted:
 
 ## B-46 Extract the 2023 session
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
@@ -1326,7 +1326,7 @@ Acceptance criteria: those of B-44 and B-45 for this session; the pictures are p
 Automated tests: as in B-44.
 
 Implementation notes (decisions made with the product owner while building it; the questions and answers are in the git-ignored `drafts/session-2023/REVIEW.md`):
-- Six events on the party's route, from the 67th of Spring to the 5th of Summer, TE 6052: the way back down to Bog End (3 days of rest at the ruins, 4 of descent, 5 in the village, where a herbalist gave Bain herbs but no quick help), Pjotr's invitation and the evening at the manor (Pso served the tea), Kert's request and the start of the hunt (Igor gave the cage), the battle at the nest (the cockatrice paralysed Magnus and Og-Og; Nari was revived, the party was suspicious of her and they parted; the bird was captured and plucked, and the feathers were soon seen to be magical), the return to the manor (a dinner served by Pso, and Kert's bargaining for the feathers; the green one went to Taelaran) and the way back to Bog End. Each sentence about a character is a paragraph of its own. All five characters were present.
+- Five events on the party's route, from the 67th of Spring to the 4th of Summer, TE 6052 (the product owner has since rewritten them, and folded the way back to Bog End into the last event): the way back down to Bog End (3 days of rest at the ruins, 4 of descent, 5 in the village, where a herbalist gave Bain herbs but no quick help), Pjotr's invitation and the evening at the manor (Pso served the tea), Kert's request and the start of the hunt (Igor gave the cage), the battle at the nest (the cockatrice paralysed Magnus and Og-Og; Nari was revived, the party was suspicious of her and they parted; the bird was captured and plucked, and the feathers were soon seen to be magical), the return to the manor (a dinner, and Kert's bargaining for the feathers) and the way back toward Bog End. Each sentence about a character is a paragraph of its own. All five characters were present.
 - New places (the product owner's positions on the Bay of Izar map): the manor and the nest. New entries: Count Kert, Pjotr, Igor, Pso (always very pale) and Nari Tulenjyske, each with a picture; the note "Kukkotriikki"; the item "Kukkotriikin sulat", described as the party knew them (the feathers are not identified); the places of the manor (the outside as the lead picture, the hall, the dining room and the guest room) and the nest (the plan's description of the chambers except the portal, the entrance and the plan map). The name "kukkotriikki" is used everywhere, also where the plan says "kukkohirviö".
 - Left out, because it did not happen or the product owner did not give it: the hunter Alf and the rumours of inquisitors, the count's bedroom and laboratory, and the four rulebook excerpts of the plan (they are not pictures).
 - Waits in B-50: the feathers (how many, which colours, who has each now, and how the party knew they are magical).

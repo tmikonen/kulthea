@@ -814,22 +814,21 @@ describe('the 2023 session (B-46)', () => {
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
   const session = events.filter((e) => e.year === 6052 && (e.month === 3 || (e.month === 2 && e.day >= 61)));
 
-  it('FR-1 the session has the six events on the days that the product owner gave, in order, on the party\'s route', () => {
+  it('FR-1 the session has the five events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
       '6052-2-067-01-alas-vuorilta-suonperaan',
       '6052-3-001-01-kreivin-kutsu',
       '6052-3-002-01-kukkotriikin-metsastys',
       '6052-3-003-01-kukkotriikin-pesa',
       '6052-3-004-01-takaisin-kreivin-kartanolle',
-      '6052-3-005-01-takaisin-suonperaan',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
     const lastOf2022 = events.findIndex((e) => e.id === '6052-2-060-02-portti-suljetaan');
     expect(events.indexOf(session[0])).toBe(lastOf2022 + 1);
   });
 
-  it('FR-1 the places of the events: Bog End, the manor, the nest, the manor and Bog End again', () => {
-    expect(session.map((e) => e.location)).toEqual(['bog-end', 'kert-manor', 'kert-manor', 'cockatrice-nest', 'kert-manor', 'bog-end']);
+  it('FR-1 the places of the events: Bog End, the manor, the manor, the nest and the manor', () => {
+    expect(session.map((e) => e.location)).toEqual(['bog-end', 'kert-manor', 'kert-manor', 'cockatrice-nest', 'kert-manor']);
   });
 
   it('FR-1 the new places have the positions that the product owner gave, on the Bay of Izar map', () => {
@@ -843,7 +842,7 @@ describe('the 2023 session (B-46)', () => {
       expect(entry(id).image, id).not.toBeNull();
     }
     expect(entry('pjotr').events.fi).toContain('6052-3-001-01-kreivin-kutsu');
-    expect(entry('pso').events.fi).toEqual(['6052-3-001-01-kreivin-kutsu', '6052-3-004-01-takaisin-kreivin-kartanolle']);
+    expect(entry('pso').events.fi).toEqual(['6052-3-001-01-kreivin-kutsu']);
     expect(entry('igor').events.fi).toEqual(['6052-3-002-01-kukkotriikin-metsastys']);
     expect(entry('nari-tulenjyske').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
   });

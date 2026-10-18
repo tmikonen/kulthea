@@ -958,8 +958,19 @@ How the work goes, for every extraction item (B-43 to B-48):
 1. `npm run notes:split` prepares the notes again from the file (B-38), so that a new version of the notes is used.
 2. I read the outcome and the plan of the session and write proposals as ordinary content files in `drafts/<item>/` (B-41): events, journal entries, additions to the locations, and prepared pictures (B-39), in Finnish, with `[[links]]` suggested by the link helper (B-42). A file `REVIEW.md` lists every proposal with where in the notes it comes from, how sure it is, and the open questions. Nothing is invented: what is not in the notes is a question, not a guess.
 3. `npm run draft:check` validates the draft over the real content, and `draft:dev` shows it on the site for review, with the positions proposed (B-40 helps you correct them).
-4. You answer the questions in `REVIEW.md`: the dates, the places, who was present, and, for each session, which places, NPCs and items that appear only in the plans are included (decided per session, as you chose). A plan-only item is left out until you say so.
+4. You answer the questions in `REVIEW.md`: the dates, the places, who was present, and, for each session, which places, NPCs and items that appear only in the plans are included (decided per session, as you chose). A plan-only item is not an event or a fact until you confirm it (see the rules below).
 5. `draft:apply` copies the accepted files into the real content, the tests and the build pass, and I commit it as `B-<n>: <title>`. You accept the item after seeing it on the site.
+
+Rules for the session extractions (B-44 to B-48), decided with the product owner while B-43 was made. They apply to every one of these items, and the items below refer to them:
+- **Read the whole session, not only the outcome.** The outcome at the start of the next part is the account of what happened, but the plan of the session (the starting situation, the ways to solve it, the NPCs, places, maps, creatures, items, hooks, with their pictures and descriptions) holds much of the interesting content and is read in full for every session. It is a source for entries (characters, NPCs, places, maps, items, creatures), their descriptions and their pictures, and for the detail of events.
+- **Ask when it is not certain.** A plan says what could happen, not what did. Whether an event occurred, a character or NPC was met, a place was visited or an item was found is never assumed from the plan alone: where the outcome does not settle it, it is a question in `REVIEW.md`, and the product owner confirms it. Only what the outcome or the product owner confirms becomes an event or a fact in an entry; the rest of the plan can still describe the place, the NPC or the item.
+- **Items are identified.** Write the items by what they turned out to be, with their identified names and properties from the plan, except the items of the last session of 2025 and the feathers that were found from the bird: those are not yet identified, and are described as the party knew them.
+- **The events are as detailed as the product owner wants.** The first study made short events. Each extraction item makes or completes the events to the level of detail of the notes (outcome and plan together), and does not stop at a sentence or two; an event that exists is extended, with the diff shown.
+- **Pictures.** The Markdown export of the notes leaves out some pictures that the PDF has (the portraits of the characters were only in the PDF), so the PDF is searched too, on the pages of the text that it illustrates. The pictures of NPCs, places, creatures and items are prepared (B-39) for the entries they belong to. The product owner decides which are used.
+- **Dates and places on the maps are the product owner's.** An unknown date is a question; the product owner gives it. A new place is made as a location when the product owner says so, with the map and the position (percent, `[x, y]`) that the product owner gives, with the position helper (B-40); a proposed position is marked as a proposal. A name of the notes is made a note, a location, an entry for an existing location, or nothing, as the product owner chooses in the review.
+- **The GM's words stay.** The text is the GM's, including the crude language, and is not rewritten; only a clear typing mistake is corrected, and that is listed in `REVIEW.md` and agreed. The strikethrough `~~text~~` of the notes is kept (the site draws it). Game figures such as levels, bonuses and statistics tables are not put into the entries unless the product owner asks for them.
+- **Names and links.** A form of a name that the link helper cannot work out (a stem change such as "Kultavuorten") is written into `aliases.json`, and a name that is linked has an entry. When an entry is needed only so that a name can be linked, or a location is not otherwise used, it gets an entry with the placeholder "Kuvaus puuttuu vielä." and is listed for B-49.
+- **Warnings.** After the apply, the build has no errors. The only warnings that are accepted are the "not used" ones that `REVIEW.md` explains (an entry or a place that no event names yet, but a later one will); anything else is fixed first.
 
 The real content folder is `campaign/` until B-32 and `content/` after it; the tools take it from one setting. The notes are in Finnish, and so is the content; English texts are added later, a few at a time, and are not part of this track. The pictures in the notes may not be yours to publish: you decide which are used, and nothing in these tools decides it.
 
@@ -1120,7 +1131,7 @@ Feedback wanted:
 
 ## B-43 Extract the player characters
 
-Status: in progress
+Status: accepted
 
 Related: FR-6, "Content from the GM notes", "Journal entries".
 
@@ -1139,7 +1150,7 @@ Acceptance criteria:
 - [x] One entry for each used player character (five), with the right id, name, motto and body, taken only from the notes and word for word apart from the removed escapes and the added first line; each is valid (`draft:check` has no errors or warnings).
 - [x] `REVIEW.md` has, for each entry, the source lines in the notes; the left-out character with the reason; the world details that could be notes or locations; and an open question for each doubt.
 - [x] Links are added by the link helper only where an entry or location exists; names in the backgrounds that have no entry are listed, not linked.
-- [ ] After your review the accepted files are applied to the real content, the unit and browser tests and the build pass with no warnings, and the entries are committed.
+- [x] After your review the accepted files are applied to the real content, the unit and browser tests and the build pass with no warnings, and the entries are committed.
 
 Automated tests: a unit test that the real content (`campaign/` until B-32) loads without errors or warnings with the entries; the checks of B-41 for the draft; no new browser test is needed, since the journal is tested already.
 
@@ -1152,7 +1163,8 @@ Implementation notes (decisions made with the product owner while building it):
 - The last sentence of the event at Sammal's farm is "Magnus Bombus hyräili iloisesti matkalla Leaniin." (a change by the product owner).
 - Portraits: the Markdown export of the notes leaves out the pictures of the characters, but the PDF has them, on the pages of the descriptions (pages 1, 3, 5, 6 and 7). They were extracted from the PDF into `gm-notes/work/images/` as `image-86` to `image-90`, which `notes:split` would delete if it is run again, and converted with `notes:image` into `campaign/images/<id>.webp`; each is the lead image of its character. The picture of Og-Og is small in the PDF (274 x 207 px).
 - Dates set by the product owner: the troll cave events are on the 22nd of Spring (`6052-2-022`), the night at Sammal's farm on the 23rd, and the return to Bentara on the 30th; the watchtower stays on the 21st. The event files were renamed accordingly (see `campaign/README.md`).
-- The criterion of no warnings could not be met: the build has the three unused places that `campaign/` already had (Bog End, the ancient Jinteni ruins, Lean) and "not used" for Bain, Magnus, Marek, Taelaran and Niév, because no event links to them yet. B-44 links the characters from the events of the session; Niév is named only in the text of the left-out character, so it stays unused until an event or an entry names it.
+- The criterion of no warnings could not be met, and the product owner has accepted the warnings: the build has the three unused places that `campaign/` already had (Bog End, the ancient Jinteni ruins, Lean) and "not used" for Bain, Magnus, Marek, Taelaran and Niév, because no event links to them yet. B-44 links the characters from the events of the session; Niév is named only in the text of the left-out character, so it stays unused until an event or an entry names it.
+- Accepted by the product owner, with these warnings left in the build until later items remove them: the three locations that `campaign/` already had unused (Bog End, the ancient Jinteni ruins, Lean), and "not used" for Bain, Magnus, Marek, Taelaran and Niév.
 
 ## B-44 Extract the 2021 session
 
@@ -1162,7 +1174,7 @@ Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
 Depends on: B-43 and B-40 (the position helper).
 
-Scope note: the first session, "Osa I, Koskenkorvan Kulthea-kampanja 2021". The outcome of the session is the start of `Osa II`; the plan is `Osa I` (the watchtower, the troll cave with its prisoners, Lean, the old Jinteni ruins, the hooks). The real content folder already has five events for this session from the first study (the watchtower, the troll cave, the stone door, Sammal's sheep farm, back to Bentara). This item takes them up again: the events are checked and, where needed, corrected and completed against the outcome text, their dates are confirmed (the product owner has already set them in B-43: the watchtower on the 21st of Spring, TE 6052, the troll cave events on the 22nd, Sammal's farm on the 23rd and the return to Bentara on the 30th; any new event of the session needs a date from the product owner), and the places, NPCs and items that the outcome mentions become entries and locations, with proposed positions. Which of the plan-only places, NPCs and items are included is decided by you in the review. Pictures of the plan (the picture of the tower and cave) are prepared and used where they fit. This item also checks the whole way of working on a small case, and what it teaches is written at the top of the next item.
+Scope note: the first session, "Osa I, Koskenkorvan Kulthea-kampanja 2021". The outcome of the session is the start of `Osa II`; the plan is `Osa I` (the watchtower, the troll cave with its prisoners, Lean, the old Jinteni ruins, the hooks). The real content folder already has five events for this session from the first study (the watchtower, the troll cave, the stone door, Sammal's sheep farm, back to Bentara). This item takes them up again: the events are checked and, where needed, corrected and completed against the outcome text, their dates are confirmed (the product owner has already set them in B-43: the watchtower on the 21st of Spring, TE 6052, the troll cave events on the 22nd, Sammal's farm on the 23rd and the return to Bentara on the 30th; any new event of the session needs a date from the product owner), and the places, NPCs and items that the outcome mentions become entries and locations, with proposed positions. The plan of `Osa I` is read in full as well (the places, the NPCs, the creatures and items, and their pictures and descriptions), under the rules for the session extractions above: what is not settled by the outcome is a question, and you confirm what happened and which names become entries. Pictures of the plan (the picture of the tower and cave) are prepared and used where they fit. This item also checks the whole way of working on a small case, and what it teaches is written at the top of the next item.
 
 You will see: the first session in full on the site: a story of events on the map, with links to NPCs, places and items in the journal and with pictures.
 
@@ -1175,10 +1187,11 @@ How to check by hand:
 Acceptance criteria:
 - [ ] The events of the session in order, each with a title, a date and order number, a place (a location, a position, or `n/a` with `showOn`), a Finnish text that follows the outcome of the notes (every statement has a source line in `REVIEW.md`), the track and `newSegment` where the party split or jumped, and one sentence per paragraph where a character is mentioned.
 - [ ] The existing five events are updated and not duplicated; changed files are listed with their diff in the check.
-- [ ] Each entry is made from the notes: type, name, text in Finnish, a picture where the notes have one that you chose, and links; an NPC, a place or an item that is named in the outcome has an entry, one that is only in the plan has none until you say so.
+- [ ] Each entry is made from the notes: type, name, text in Finnish, a picture where the notes have one that you chose, and links; an NPC, a place or an item that is named in the outcome has an entry, with the description and the picture from the plan where there are some; one that is only in the plan is a question, and has an entry when you confirm it.
 - [ ] New locations are in `locations.add.json` with positions that are marked as proposals in `REVIEW.md` and that you have confirmed or corrected (with the helper), and the pictures are prepared with alt texts and captions in Finnish.
 - [ ] The dates that are not known are listed as questions, not invented.
-- [ ] After your review the content is applied, the tests and the build pass without warnings, and it is committed.
+- [ ] The events are as detailed as the outcome and the plan allow, and the existing short events are extended; every doubt about whether something happened is a question that you have answered.
+- [ ] After your review the content is applied, the tests pass, the build has no errors and no warnings except the accepted "not used" ones that `REVIEW.md` explains, and it is committed.
 
 Automated tests: the real content loads without errors or warnings; the checks of B-41 and B-42 for the draft; no new browser test.
 
@@ -1243,7 +1256,7 @@ Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
 Depends on: B-44 and B-32. It starts with what B-44 taught (written here when that item is done).
 
-Scope note: the second session, "Osa II, Lapua 2022". The outcome is the start of `Osa III`; the plan is `Osa II` (the camp at the swamp and the hermit, the kobold castle on the old Jinteni ruins, the base under it, the portal and the demon, with pictures). The way of working and the rules are those of B-44 and of the track introduction. The entries that already exist (the characters, Lean, the dwarves, the Jinteni ruins) are extended and not made again: the check shows the changed files with their diff, and a new paragraph is added to an entry only when the outcome says something new. The content goes to `content/`, so after the review it is live after you push. The date of the session is a question (the plan says spring 6052).
+Scope note: the second session, "Osa II, Lapua 2022". The outcome is the start of `Osa III`; the plan is `Osa II` (the camp at the swamp and the hermit, the kobold castle on the old Jinteni ruins, the base under it, the portal and the demon, with pictures). The way of working and the rules are those of B-44 and of the track introduction, including the rules for the session extractions (the plan is read in full, doubts are asked, the items are identified, and so on). The entries that already exist (the characters, Lean, the dwarves, the Jinteni ruins) are extended and not made again: the check shows the changed files with their diff, and a new paragraph is added to an entry only when the outcome says something new. The content goes to `content/`, so after the review it is live after you push. The date of the session is a question (the plan says spring 6052).
 
 You will see: the second session on the site, continuing the story from the first, with the new places, creatures and NPCs.
 
@@ -1275,7 +1288,7 @@ Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
 Depends on: B-45.
 
-Scope note: the third session, "Osa III, Lapua 2023" (a large set of pictures, 23, and a subheading for a monster's nest, "Kukkohirviön pesä"). The outcome is the start of `Osa IV` (they met Count Kert, hunted the cockatrice, "kukkotriikki", and had a short meeting with Nari Tulenjyske). The rules and the way of working are those of B-44 and B-45. If the outcome says that the party split, a new `track` is used and the rejoin is checked in the preview. If this item turns out to be too large, it is split into the events and the entries.
+Scope note: the third session, "Osa III, Lapua 2023" (a large set of pictures, 23, and a subheading for a monster's nest, "Kukkohirviön pesä"). The outcome is the start of `Osa IV` (they met Count Kert, hunted the cockatrice, "kukkotriikki", and had a short meeting with Nari Tulenjyske). The rules and the way of working are those of B-44 and B-45 and of the rules for the session extractions (the plan with its many pictures is read in full, and doubts are asked). If the outcome says that the party split, a new `track` is used and the rejoin is checked in the preview. If this item turns out to be too large, it is split into the events and the entries.
 
 You will see: the third session on the site, with its many pictures.
 
@@ -1293,7 +1306,7 @@ Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
 Depends on: B-46.
 
-Scope note: the fourth session, "Osa IV, Lapua 2024" (resting at Suonperä and the journey to the dimension portal in the mountains). The notes have no recap at the start of `Osa V`, where it would be, so the outcome of 2024 has not been found. This is the first question of the item: whether the outcome is somewhere else in the notes (the PDF is available to look at), is written elsewhere, or has to be told by you from memory. Until it is answered, the item only makes the plan-derived lists of places, NPCs and items for your decision, and no events, because an event is something that happened. The rest is as in B-44 and B-45.
+Scope note: the fourth session, "Osa IV, Lapua 2024" (resting at Suonperä and the journey to the dimension portal in the mountains). The notes have no recap at the start of `Osa V`, where it would be, so the outcome of 2024 has not been found. This is the first question of the item: whether the outcome is somewhere else in the notes (the PDF is available to look at), is written elsewhere, or has to be told by you from memory. Until it is answered, the item only makes the plan-derived lists of places, NPCs and items for your decision, and no events, because an event is something that happened. The rest is as in B-44 and B-45 and the rules for the session extractions: the plan is read in full for its places, NPCs, items and pictures, and what happened is confirmed by you.
 
 You will see: first a question from me; then, when the outcome is known, the fourth session on the site.
 
@@ -1313,7 +1326,7 @@ Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
 Depends on: B-47.
 
-Scope note: the fifth session, "Osa V, Lapua 2025" (the return to Bentara, the alchemist or sage Dirhavel, the temple of Eissa, the extortion league, the demon, the arrest). The outcome is in `Osa VI`: the party found the league and met three of its members in the tavern called Örkinpää, with the dwarf boy band; the fight in the league's warehouse in which two escaped; the return to the inn, the guard, the massacre in the temple, the arrest, and "the game ended there". The rest of `Osa VI` is the summary written by ChatGPT and the plan for the finale of 2026 (the interrogation): they are not events, and the extraction leaves them out. When the 2026 session has been played, its outcome is a new item.
+Scope note: the fifth session, "Osa V, Lapua 2025" (the return to Bentara, the alchemist or sage Dirhavel, the temple of Eissa, the extortion league, the demon, the arrest). The outcome is in `Osa VI`: the party found the league and met three of its members in the tavern called Örkinpää, with the dwarf boy band; the fight in the league's warehouse in which two escaped; the return to the inn, the guard, the massacre in the temple, the arrest, and "the game ended there". The items of this last session of 2025 are not identified, and are described as the party knew them (as are the feathers found from the bird, wherever they come up); the plan of `Osa V` is read in full for the places, NPCs and items, with doubts asked. The rest of `Osa VI` is the summary written by ChatGPT and the plan for the finale of 2026 (the interrogation): they are not events, and the extraction leaves them out. When the 2026 session has been played, its outcome is a new item.
 
 You will see: the last session played, ending with the arrest, so that the timeline reaches the present.
 

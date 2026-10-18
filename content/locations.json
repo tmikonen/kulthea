@@ -12,7 +12,7 @@
   { "id": "lean",          "name": "Lean",
     "positions": { "bay-of-izar": [61.0, 60.7] } },
   { "id": "ruined-watchtower", "name": { "fi": "Vahtitornin rauniot", "en": "Ruined Watchtower" },
-    "positions": { "bay-of-izar": [59.3, 56.6] } },
+    "positions": { "bay-of-izar": [60.0, 54.2] } },
   { "id": "troll-cave",    "name": { "fi": "Peikkoluola", "en": "Troll Cave" },
     "positions": { "bay-of-izar": [60.7, 52.6] } },
   { "id": "sammals-sheep-farm", "name": { "fi": "Sammalin lammastila", "en": "Sammal's Sheep Farm" },

@@ -2,4 +2,4 @@
 type: item
 name: "Erakon tikari"
 ---
-Hieno tikari, jonka [[bain-pitkavihainen|Bain]] sai erakolta.
+Hieno tikari (+10), jonka [[bain-pitkavihainen|Bain]] sai erakolta.

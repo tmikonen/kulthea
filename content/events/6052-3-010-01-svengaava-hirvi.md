@@ -1,7 +1,7 @@
 ---
-title: Svengaava Hirvi
+title: Svengaavan Hirven tapaus
 location: bentara
 ---
-Seurue saapui [[bentara|Bentaraan]] hakemaan parannusta [[bain-pitkavihainen|Bainin]] kädelle ja tietoa esineistään. Sulat jäivät edelleen osittaiseksi arvoitukseksi. [[og-og|Og-Og]] jäi kaupungin ulkopuolelle.
+Seurue saapui [[bentara|Bentaraan]] etsimään parantajaa [[bain-pitkavihainen|Bainin]] vammautuneelle kädelle, hankkimaan tietoa esineistään, ja varustautumaan uutta matkaa varten. [[og-og|Og-Og]] jäi kaupungin ulkopuolelle, jotta ei herättäisi kaupungissa vielä mahdollisesti liikkuvien inkvisiittorien huomiota.
 
-[[taelaran-quirinion|Taelaran]] kokeili [[telekinesis-gauntlet|telekinesiahansikasta]] ja rikkoi vahingossa [[svengaava-hirvi|Svengaavan Hirven]] majatalon lasi-ikkunan. Hän hyppäsi sisälle perässä ja onnistui käsittämättömällä tuurilla vierittämään syyn toisen vieraan niskoille.
+Alkemistipuoskarin epämääräisestä kuvauksesta turhautuneena [[taelaran-quirinion|Taelaran]] päätti kokeilla [[telekinesis-gauntlet|telekinesiahansikasta]]. Varomaton ranteen heilautus rikkoi [[svengaava-hirvi|Svengaavan Hirven]] majatalon lasi-ikkunan. Taelaran luonnollisesti hyppäsi rikkoutuneesta ikkunasta majatalon sisään ja käsittämättömällä tuurilla onnistui vierittämään syyn koko tapauksesta äimistyneen majatalovieraan niskoille.

@@ -2,10 +2,10 @@
 title: Sopimus Eissan kanssa
 location: bentara
 ---
-[[bain-pitkavihainen|Bain]] päätyi [[eissa|Eissan]] temppelille, jossa hänen kättään parannettiin rituaalilla. Vamma paranee lopullisesti vasta viikkojen kuluttua.
+[[bain-pitkavihainen|Bain]] päätyi etsinnöissään [[eissa|Eissan]] temppelille. Eissan papit suostuivat rukoilemaan Bainin parantumisen puolesta, jos hän ja hänen kumppaninsa suostuisivat Eissan palvelukseen. Näin seurue tekikin ([[og-og|Og-Ogia]] lukuunottamatta). Solmittuaan maagisen sopimuksen, ryhmä sai tehtäväkseen tutkia vuorila löydetyn portin takaisen maailman ja raportoida löydöksistä Eissan temppelille. [[rel|Rel]]-munkki liittyi seurueen mukaan, varmistamaan että velvoite suoritetaan asianmukaisella tavalla.
 
-Seurue teki [[eissa|Eissan]] kanssa maagisen [[eissa|sopimuksen]], joka velvoitti sen [[eissa|Eissan]] palvelijoiksi. Seurue sai tehtäväkseen tutkia portin.
+Kaikenkaikkiaan asiassa oli huijauksen makua. [[bain-pitkavihainen|Bainin]] käden täysi paraneminen kestäisi vielä useita viikkoja
 
-[[rel|Rel]]-munkki liittyi seurueen mukaan tälle tehtävälle, kun seurue lähti [[eissa|Eissan]] temppeliltä. Seurue osti matkalle mukaan [[porsse|Porsse]]-muulin.
+Lisäksi Bentaran kaupunginportin kupeesta mukaan ostettu [[porsse|Porsse]]-poni osoittautui kitukasvuiseksi muuliksi.
 
-Heti [[bentara|Bentarasta]] lähdettyään seurueeseen liittyi takaisin [[og-og|Og-Og]].
+[[og-og|Og-Og]] liittyi mukaan seurueen poistuessa kaupungin porteista jälleen kohti Suonperän kylää.

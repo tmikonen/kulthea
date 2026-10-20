@@ -32,5 +32,7 @@
   { "id": "kert-manor", "name": {"fi":"Kreivi Kertin kartano","en":"Count Kert's Manor"},
     "positions": {"bay-of-izar":[74.6,39.9]} },
   { "id": "cockatrice-nest", "name": {"fi":"Kukkotriikin pesä","en":"Cockatrice Nest"},
-    "positions": {"bay-of-izar":[78,38.8]} }
+    "positions": {"bay-of-izar":[78,38.8]} },
+  { "id": "svengaava-hirvi", "name": "Svengaava Hirvi",
+    "positions": {"bay-of-izar":[75.4,57.7],"haestra":[58.3,65.8]} }
 ]

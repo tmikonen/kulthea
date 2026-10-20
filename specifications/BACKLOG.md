@@ -954,7 +954,7 @@ Feedback wanted:
 
 The real campaign content is made in pieces from the GM's notes in `gm-notes/` (git-ignored, so the notes themselves are never published): first the player characters, then one session at a time. The items B-38 to B-48 below are this track. It is semi-automatic: small tools (B-38 to B-42) do the mechanical work and check the result, I read the notes and write the proposals, and the product owner decides what goes in.
 
-What the notes are (checked in October 2026): one Markdown file, `Kulthea-kampanja-2026-1.md` (50 MB), and a PDF with the same content (120 MB), in Finnish. The text is only about 57 KB (930 lines): the rest is 85 embedded pictures (PNG, 36 MB in all, mostly 600 px wide, 7 over 1 MB), stored as base64 at the end of the file and used in the text as `![][image12]`. The text has these parts: `Hahmot` (six player characters: Og-Og, Marek Baalik, Jenel Idarien, Taelaran Quirinion, Bain Pitkävihainen and Magnus Bombus, of whom Jenel Idarien was never used in the campaign), then `Osa I` (2021) to `Osa V` (2025) as headings, and `Osa VI` (2026) as a plain line. Each part is mostly the GM's plan for that year's session: the starting situation, ways to solve it, NPCs, places, hooks and pictures. What really happened is written at the start of the next year's part ("Edellisellä kerralla tapahtunutta"), so the outcome of the 2021 session is at the start of `Osa II`, 2022 at the start of `Osa III`, 2023 at the start of `Osa IV` and 2025 in `Osa VI`. There is no such recap at the start of `Osa V`, so the outcome of 2024 has not been found (a question for B-47). `Osa VI` also holds a summary written by ChatGPT and a plan for the finale of 2026, which has not been played: planned and future events are not content (`REQUIREMENTS.md`, section 1).
+What the notes are (checked in October 2026): one Markdown file, `Kulthea-kampanja-2026-1.md` (50 MB), and a PDF with the same content (120 MB), in Finnish. The text is only about 57 KB (930 lines): the rest is 85 embedded pictures (PNG, 36 MB in all, mostly 600 px wide, 7 over 1 MB), stored as base64 at the end of the file and used in the text as `![][image12]`. The text has these parts: `Hahmot` (six player characters: Og-Og, Marek Baalik, Jenel Idarien, Taelaran Quirinion, Bain Pitkävihainen and Magnus Bombus, of whom Jenel Idarien was never used in the campaign), then `Osa I` (2021) to `Osa V` (2025) as headings, and `Osa VI` (2026) as a plain line. Each part is mostly the GM's plan for that year's session: the starting situation, ways to solve it, NPCs, places, hooks and pictures. What really happened is written at the start of the next year's part ("Edellisellä kerralla tapahtunutta"), so the outcome of the 2021 session is at the start of `Osa II`, 2022 at the start of `Osa III`, 2023 at the start of `Osa IV` and 2025 in `Osa VI`. The outcome of 2024 is not at the start of `Osa V` but at the end of the `Osa IV` part, as an event log ("Tapahtumia: Iltapeli, Päiväpeli, Lopputilanne") that B-47 found. `Osa VI` also holds a summary written by ChatGPT and a plan for the finale of 2026, which has not been played: planned and future events are not content (`REQUIREMENTS.md`, section 1).
 
 How the work goes, for every extraction item (B-43 to B-48):
 1. `npm run notes:split` prepares the notes again from the file (B-38), so that a new version of the notes is used.
@@ -1333,23 +1333,29 @@ Implementation notes (decisions made with the product owner while building it; t
 
 ## B-47 Extract the 2024 session
 
-Status: defined
+Status: done
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
 Depends on: B-46.
 
-Scope note: the fourth session, "Osa IV, Lapua 2024" (resting at Suonperä and the journey to the dimension portal in the mountains). The notes have no recap at the start of `Osa V`, where it would be, so the outcome of 2024 has not been found. This is the first question of the item: whether the outcome is somewhere else in the notes (the PDF is available to look at), is written elsewhere, or has to be told by you from memory. Until it is answered, the item only makes the plan-derived lists of places, NPCs and items for your decision, and no events, because an event is something that happened. The rest is as in B-44 and B-45 and the rules for the session extractions: the plan is read in full for its places, NPCs, items and pictures, and what happened is confirmed by you.
+Scope note: the fourth session, "Osa IV, Lapua 2024" (resting at Suonperä and the journey to the dimension portal in the mountains). The outcome of 2024 is in the notes after all: the plan part `Osa IV` ends with an event log, "Tapahtumia" with an "Iltapeli" (the evening game: the visit to Bentara and the temple of Eissa) and a "Päiväpeli" (the day game: the expedition through the portal to the base behind it), and a "Lopputilanne" (the situation at the end), written in the product owner's own account of the games. It is the source of the events, as the outcome texts were for the other sessions. The rest is as in B-44 and B-45 and the rules for the session extractions: the plan is read in full for its places, NPCs, items and pictures, and what happened is confirmed by you.
 
-You will see: first a question from me; then, when the outcome is known, the fourth session on the site.
+You will see: the fourth session on the site: the visit to Bentara and the temple of Eissa, and the expedition to the base behind the portal.
 
 How to check by hand: as in B-44 and B-45.
 
 Acceptance criteria: those of B-44 and B-45 for this session, and:
-- [ ] The source of the outcome is settled and written in `REVIEW.md`: where in the notes it is, or that it comes from you.
-- [ ] No event is written from the plan alone; each event's source is the outcome or your own telling, and is marked as such.
+- [x] The source of the outcome is settled and written in `REVIEW.md`: where in the notes it is, or that it comes from you.
+- [x] No event is written from the plan alone; each event's source is the outcome or your own telling, and is marked as such.
 
 Automated tests: as in B-44.
+
+Implementation notes (decisions made with the product owner while building it; the questions and answers are in the git-ignored `drafts/session-2024/REVIEW.md`):
+- The outcome was found in the plan part `Osa IV` itself (lines 118-157 of the split file: the event log with "Iltapeli", "Päiväpeli" and "Lopputilanne"), not at the start of `Osa V`; the backlog text and the track introduction are corrected. The log is the source of the events; the plan was read in full for the entries and the pictures.
+- Eleven events on the party's route, from the 5th of Summer to the 21st, TE 6052: the night at Suonperä (the product owner writes its description), the inn Svengaava Hirvi in Bentara on the 10th (Og-Og stays outside the city; Taelaran's telekinesis glove breaks the window), the pact with Eissa on the 11th (Bain's hand healed, the party bound as Eissa's servants and set to investigate the portal, Rel joins, the mule Porsse is bought; Og-Og joins at once when the party has left Bentara), and the day at the portal on the 21st, 10 days later: back at the portal in the ice cave, through the portal, the cryopod room, the weapon store and the airlock, the lower levels, the golem and the larvae, the retreat and the demons, and the return through the portal with the items divided. The events beyond the portal are held at the ice cave, since an event that is `n/a` on the main map cannot be shown on it. The harvest festival at Suonperä of the plan was not played, and is not an event.
+- The base beyond the portal is a note, "Portin takainen Jinteni-tukikohta", with the plans of all four levels and the pictures inside it; the players are not told what the base is, so nothing in the content, the entries, the captions or the file names of the pictures says it. New entries: Eissa, the inn Svengaava Hirvi (a place at Bentara's positions), Porsse, the parasite demons (with the larva and an adult), the dragonkin, the golem, the Jinteni (a placeholder, B-49), Rel, and the four items of the weapon store with the notes' figures and their owners (Magnus the fire staff, Og-Og two charge tanks, Bain the glass sword, Marek the glass shield). The entry of the mentalist is corrected: he was left to guard the base for thousands of years and survived in a pod, not held in a pocket dimension.
+- No picture of a game table or statistics is used; 18 pictures were prepared from the PDF.
 
 ## B-48 Extract the 2025 session
 
@@ -1588,7 +1594,7 @@ Feedback wanted:
 
 Status: backlog
 
-Scope note (to be refined with the product owner): some entries have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Sel-Kai, Katra and Mynistra (made in B-43 for the names in the characters' backgrounds), the note "Peikot" for the trolls of the cave (B-44), and the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret, Arakin, Bog End, the ancient Jinteni ruins and Bentara. The descriptions are written by the product owner or taken from the notes (the later session items, B-45 onward, give some of them, for example the Jinteni ruins and Bog End), and the entries may get pictures and English texts.
+Scope note (to be refined with the product owner): some entries have only the placeholder "Kuvaus puuttuu vielä.": the notes Stroane, Miir, Vornia, Sel-Kai, Katra and Mynistra (made in B-43 for the names in the characters' backgrounds), the note "Peikot" for the trolls of the cave (B-44), and the location entries Ton-Bor, Izarinportti, Kultavuoret, Rankavuoret, Arakin, Bog End, the ancient Jinteni ruins and Bentara, and (from B-47) the note "Jinteni" (the people); the entries of Eissa, the inn Svengaava Hirvi and the mule Porsse have only what the log says. The descriptions are written by the product owner or taken from the notes (the later session items, B-45 onward, give some of them, for example the Jinteni ruins and Bog End), and the entries may get pictures and English texts.
 
 
 ## B-50 Tidbits and details to collect
@@ -1601,6 +1607,7 @@ Scope note (to be refined with the product owner): a running list of small facts
 - **The description of the arrival at Bog End** (the event of the 47th of Spring, 6052), which the product owner writes by hand.
 - Whether the party got the hermit's berries, dried fish and medicines, and whether he guided them (2022).
 - **The feathers of the cockatrice** (2023): how many there are, which colours, and who has each of them now (the green one was Taelaran's), and how the party knew that they are magical; the product owner checks who has what.
+- **The description of the night at Suonperä** (the event of the 5th of Summer, 6052; one sentence now), which the product owner writes by hand.
 - The descriptions of the stub entries are not here but in B-49.
 
 ---

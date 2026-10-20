@@ -760,7 +760,7 @@ describe('the 2022 session (B-45)', () => {
     expect(entry('kobold').events.fi).toEqual([temple.id]);
     const cave = event('6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu');
     expect(fi(cave.title)).toBe('Jääluola, ulottuvuusportti, ja taistelu');
-    expect(entry('ice-cave').events.fi).toEqual([cave.id, '6052-2-060-02-portti-suljetaan']);
+    expect(entry('ice-cave').events.fi).toEqual(expect.arrayContaining([cave.id, '6052-2-060-02-portti-suljetaan']));
   });
 
   it('FR-6 the mentalist fight names the mentalist, Magnus, Marek and Bain, and the end of the session closes the portal', () => {
@@ -812,7 +812,7 @@ describe('the 2023 session (B-46)', () => {
   const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
-  const session = events.filter((e) => e.year === 6052 && (e.month === 3 || (e.month === 2 && e.day >= 61)));
+  const session = events.filter((e) => e.year === 6052 && ((e.month === 3 && e.day <= 4) || (e.month === 2 && e.day >= 61)));
 
   it('FR-1 the session has the five events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
@@ -869,6 +869,89 @@ describe('the 2023 session (B-46)', () => {
     expect(entry('kert-manor').image).not.toBeNull();
     expect(entry('cockatrice-nest').image).not.toBeNull();
     expect(entry('cockatrice-nest').text.fi).toContain('alt="Pesäluolan pohjapiirros"');
+  });
+
+  it('FR-9 the real content still loads with no warnings at all', () => {
+    expect(campaign.errors).toEqual([]);
+    expect(campaign.warnings).toEqual([]);
+  });
+});
+
+describe('the 2024 session (B-47)', () => {
+  const campaign = loadContent(path.resolve(__dirname, '../../content'));
+  const events = campaign.bundle!.events;
+  const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
+  const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
+  const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
+  const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 5);
+
+  it('FR-1 the session has the eleven events on the days that the product owner gave, in order, on the party\'s route', () => {
+    expect(session.map((e) => e.id)).toEqual([
+      '6052-3-005-01-yopyminen-suonperassa',
+      '6052-3-010-01-svengaava-hirvi',
+      '6052-3-011-01-sopimus-eissan-kanssa',
+      '6052-3-021-01-takaisin-portilla',
+      '6052-3-021-02-portin-lapi',
+      '6052-3-021-03-cryopodihuone',
+      '6052-3-021-04-asevarasto-ja-ilmalukko',
+      '6052-3-021-05-alakerrat',
+      '6052-3-021-06-golem-ja-toukat',
+      '6052-3-021-07-peraantyminen-ja-demonit',
+      '6052-3-021-08-paluu-portista',
+    ]);
+    expect(session.every((e) => e.track === null)).toBe(true);
+    const lastOf2023 = events.findIndex((e) => e.id === '6052-3-004-01-takaisin-kreivin-kartanolle');
+    expect(events.indexOf(session[0])).toBe(lastOf2023 + 1);
+  });
+
+  it('FR-1 the places of the events: Bog End, the inn, Bentara, and the ice cave for the day at the portal', () => {
+    expect(session.map((e) => e.location)).toEqual([
+      'bog-end', 'svengaava-hirvi', 'bentara', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave',
+    ]);
+    expect(location('svengaava-hirvi').positions).toEqual(location('bentara').positions);
+  });
+
+  it('FR-6 Bentara: Og-Og stays outside the city, the glove breaks the window, Bain\'s hand is healed, the pact, Rel, the mule', () => {
+    expect(plain(events.find((e) => e.id === '6052-3-010-01-svengaava-hirvi')!.text.fi)).toContain('Og-Og jäi kaupungin ulkopuolelle');
+    const pact = events.find((e) => e.id === '6052-3-011-01-sopimus-eissan-kanssa')!;
+    expect(plain(pact.text.fi)).toContain('Og-Og');
+    for (const id of ['eissa', 'porsse', 'rel', 'bain-pitkavihainen']) expect(entry(id).events.fi, id).toContain(pact.id);
+    expect(entry('telekinesis-gauntlet').events.fi).toContain('6052-3-010-01-svengaava-hirvi');
+  });
+
+  it('FR-6 the people and creatures of the day at the portal have entries, and are in the events where they were', () => {
+    expect(entry('rel').type).toBe('npc');
+    expect(entry('rel').image).not.toBeNull();
+    expect(entry('porsse').type).toBe('npc');
+    for (const id of ['parasite-demons', 'dragonkin', 'juggernaut', 'jinteni', 'portal-base', 'eissa']) expect(entry(id).type, id).toBe('note');
+    expect(entry('parasite-demons').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit']);
+    expect(entry('juggernaut').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat']);
+    expect(entry('portal-base').events.fi).toEqual(['6052-3-021-02-portin-lapi']);
+    expect(fi(entry('portal-base').name)).toBe('Portin takainen Jinteni-tukikohta');
+  });
+
+  it('FR-4 the entry of the base has the plans of all four levels', () => {
+    const html = entry('portal-base').text.fi;
+    for (const n of ['ensimmäisen', 'toisen', 'kolmannen', 'neljännen']) expect(html).toContain(`Tukikohdan ${n} kerroksen pohjapiirros`);
+  });
+
+  it('FR-6 the four items of the weapon store have entries with pictures, and the owners are in the last event', () => {
+    for (const id of ['fire-staff', 'glass-sword', 'glass-shield']) {
+      expect(entry(id).type, id).toBe('item');
+      expect(entry(id).image, id).not.toBeNull();
+    }
+    expect(entry('fire-staff-charges').type).toBe('item');
+    for (const id of ['fire-staff', 'fire-staff-charges', 'glass-sword', 'glass-shield']) {
+      expect(entry(id).events.fi, id).toContain('6052-3-021-08-paluu-portista');
+    }
+    expect(plain(entry('glass-sword').text.fi)).toContain('+15');
+  });
+
+  it('FR-6 the entry of the mentalist is corrected: he was left to guard the base, not held in a pocket dimension', () => {
+    const text = plain(entry('jinteni-mentalist').text.fi);
+    expect(text).toContain('vartioimaan tukikohtaa');
+    expect(text).not.toContain('ulottuvuustaskuun');
   });
 
   it('FR-9 the real content still loads with no warnings at all', () => {

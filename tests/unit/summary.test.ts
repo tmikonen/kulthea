@@ -129,6 +129,14 @@ describe('unused entries (B-35)', () => {
       writeEntry(dir, 'extra.md', 'type: location');
     })).toEqual([expect.stringMatching(/no text links to it and no event is held at it/)]);
   });
+
+  it('FR-9 a location entry that an event links to is used, although no event is held at the place (BUG-14)', () => {
+    expect(entryWarnings((dir) => {
+      editJson(dir, 'locations.json', (d) => { d.push({ id: 'extra', name: 'Extra', positions: { 'main-map': [5, 5] } }); });
+      writeEntry(dir, 'extra.md', 'type: location');
+      writeEvent(dir, '6050-4-001-01-a.md', 'title: X\nlocation: main-only', 'Seurue meni paikkaan [[extra|Extra]].');
+    })).toEqual([]);
+  });
 });
 
 describe('the translation summary (B-35)', () => {

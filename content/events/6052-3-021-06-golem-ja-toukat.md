@@ -1,6 +1,6 @@
 ---
 title: Golem ja toukat
-location: ice-cave
+location: jinteni-outpost
 ---
 [[og-og|Og-Og]], [[marek-baalik|Marek]], [[magnus-bombus|Magnus]] ja [[rel|Rel]] kiersivät toista kautta [[juggernaut|kaivurigolemin]] luokse. [[og-og|Og-Og]] läimäytti golemia, joka heräsi henkiin ja alkoi liikkua. [[og-og|Og-Og]] yritti kiivetä golemin, jota seurue kutsui madoksi, päälle, onnistumatta. Golem lähti liikkeelle kovalla metelillä, törmäsi osittain portaikkoon ja lopulta seinään käytävän vieressä. Golem ryhtyi kaivamaan tietä seinän läpi cryokammioon.
 

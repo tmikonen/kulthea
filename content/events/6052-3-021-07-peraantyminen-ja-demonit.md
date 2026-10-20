@@ -1,6 +1,6 @@
 ---
 title: Perääntyminen ja demonit
-location: ice-cave
+location: jinteni-outpost
 ---
 Seurue palasi yläkerran cryopodihuoneeseen ja touhusi siellä aikansa. Se havahtui portaikosta kuuluviin ääniin ja lähti perääntymään kohti porttihuonetta.
 

@@ -403,6 +403,7 @@ function validateEvents(
           const logged = linkLog.get(id) ?? {};
           logged[lang] = { links: rendered.links, passageIds, items };
           linkLog.set(id, logged);
+          for (const linked of rendered.links) usage.links.add(linked);
         });
       }
     }

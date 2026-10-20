@@ -34,5 +34,7 @@
   { "id": "cockatrice-nest", "name": {"fi":"Kukkotriikin pesä","en":"Cockatrice Nest"},
     "positions": {"bay-of-izar":[78,38.8]} },
   { "id": "svengaava-hirvi", "name": "Svengaava Hirvi",
-    "positions": {"bay-of-izar":[75.4,57.7],"haestra":[58.3,65.8]} }
+    "positions": {"bay-of-izar":[75.4,57.7],"haestra":[58.3,65.8]} },
+  { "id": "jinteni-outpost", "name": { "fi": "Jintenien etuvartioasema", "en": "Jinteni Outpost" },
+    "positions": { "bay-of-izar": [64.3, 39.1], "haestra": [55.6, 59.9], "bog-end": [36.8, 36.0] } }
 ]

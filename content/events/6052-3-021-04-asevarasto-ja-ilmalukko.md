@@ -1,6 +1,6 @@
 ---
 title: Asevarasto ja ilmalukko
-location: ice-cave
+location: jinteni-outpost
 ---
 Ylimmässä kerroksessa [[magnus-bombus|Magnus]] käräytti [[fire-staff|tulisauvalla]] varastohuonetta ja kaikkia huoneessa olleita. [[rel|Rel]] loikkasi sivuun.
 

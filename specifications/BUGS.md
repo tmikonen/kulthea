@@ -27,6 +27,7 @@ Bugs found by the product owner while testing. This is not the list of planned w
 | BUG-11 | A step is lost when Next or Previous is clicked again before the page has been redrawn | fixed | B-12 |
 | BUG-12 | The map image stays behind while the markers and lines move on, when a move is made in one jump | fixed | B-33 |
 | BUG-13 | A broken link before a good one in the same text is not reported | fixed | B-23 |
+| BUG-14 | A location entry that only an event's text links to is reported as unused | fixed | B-35 |
 
 ## BUG-1: Large map is not fitted to the window on load
 
@@ -174,3 +175,13 @@ Bugs found by the product owner while testing. This is not the list of planned w
 - Root cause: the loop of `renderWithLinks` in `plugin/links.ts` cuts a text at each good link and checked for a stray bracket only in the piece after the last link, not in the pieces before.
 - Fix: every piece of text that is left between and after the links is checked.
 - Verified by: `tests/unit/links.test.ts`, "FR-6 a broken link before a good one in the same text is an error too (BUG-13)". It failed before the fix (no error for `Saapui [[aldric|Aldric], jossa [[mira]] odotti.`) and passes now. The text of the event was corrected too (`[[bentara|Bentaraan]]`).
+
+## BUG-14: A location entry that only an event's text links to is reported as unused
+
+- Status: fixed
+- Related item: B-35 (the warnings for unused items), found while making content for B-47
+- Found: by Claude, when the inn "Svengaava Hirvi" had a location entry that an event links to, but no event was held at it (the event was held at Bentara). The build warned "the entry is not used, no text links to it and no event is held at it", although a text did link to it.
+- Description: `DESIGN.md` says that an entry is unused when no `[[link]]` in any event or in the text of another entry names it (and, for a location entry, no event is held at it). A link in the text of another entry counted, but a link in an event did not, so a location entry that an event only mentioned was reported.
+- Root cause: the names that texts link to were collected from the texts of the entries only. The links of the events were used for the lists of events on the other kinds of entry, but not for this check, and a location entry has no such list (it lists the events held at the place).
+- Fix: the links of the events are collected as well.
+- Verified by: `tests/unit/summary.test.ts`, "FR-9 a location entry that an event links to is used, although no event is held at the place (BUG-14)". It failed before the fix and passes now.

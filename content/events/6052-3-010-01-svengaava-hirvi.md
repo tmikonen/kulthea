@@ -1,6 +1,6 @@
 ---
 title: Svengaava Hirvi
-location: svengaava-hirvi
+location: bentara
 ---
 Seurue saapui [[bentara|Bentaraan]] hakemaan parannusta [[bain-pitkavihainen|Bainin]] kädelle ja tietoa esineistään. Sulat jäivät edelleen osittaiseksi arvoitukseksi. [[og-og|Og-Og]] jäi kaupungin ulkopuolelle.
 

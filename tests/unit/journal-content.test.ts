@@ -905,11 +905,15 @@ describe('the 2024 session (B-47)', () => {
     expect(events.indexOf(session[0])).toBe(lastOf2023 + 1);
   });
 
-  it('FR-1 the places of the events: Bog End, the inn, Bentara, and the ice cave for the day at the portal', () => {
+  it('FR-1 the places of the events: Bog End, Bentara, the ice cave, the Jinteni outpost from the portal to the retreat, and the ice cave again', () => {
     expect(session.map((e) => e.location)).toEqual([
-      'bog-end', 'svengaava-hirvi', 'bentara', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave', 'ice-cave',
+      'bog-end', 'bentara', 'bentara', 'ice-cave', 'jinteni-outpost', 'jinteni-outpost', 'jinteni-outpost', 'jinteni-outpost', 'jinteni-outpost', 'jinteni-outpost', 'ice-cave',
     ]);
     expect(location('svengaava-hirvi').positions).toEqual(location('bentara').positions);
+    expect(entry('svengaava-hirvi').type).toBe('location');
+    expect(entry('svengaava-hirvi').events.fi).toEqual([]);
+    expect(fi(location('jinteni-outpost').name)).toBe('Jintenien etuvartioasema');
+    expect(location('jinteni-outpost').positions).toEqual(location('ice-cave').positions);
   });
 
   it('FR-6 Bentara: Og-Og stays outside the city, the glove breaks the window, Bain\'s hand is healed, the pact, Rel, the mule', () => {
@@ -924,16 +928,19 @@ describe('the 2024 session (B-47)', () => {
     expect(entry('rel').type).toBe('npc');
     expect(entry('rel').image).not.toBeNull();
     expect(entry('porsse').type).toBe('npc');
-    for (const id of ['parasite-demons', 'dragonkin', 'juggernaut', 'jinteni', 'portal-base', 'eissa']) expect(entry(id).type, id).toBe('note');
+    for (const id of ['parasite-demons', 'dragonkin', 'juggernaut', 'jinteni', 'eissa']) expect(entry(id).type, id).toBe('note');
+    expect(entry('jinteni-outpost').type).toBe('location');
     expect(entry('parasite-demons').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit']);
     expect(entry('juggernaut').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat']);
-    expect(entry('portal-base').events.fi).toEqual(['6052-3-021-02-portin-lapi']);
-    expect(fi(entry('portal-base').name)).toBe('Portin takainen Jinteni-tukikohta');
+    expect(entry('jinteni-outpost').events.fi).toEqual([
+      '6052-3-021-02-portin-lapi', '6052-3-021-03-cryopodihuone', '6052-3-021-04-asevarasto-ja-ilmalukko',
+      '6052-3-021-05-alakerrat', '6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit',
+    ]);
   });
 
-  it('FR-4 the entry of the base has the plans of all four levels', () => {
-    const html = entry('portal-base').text.fi;
-    for (const n of ['ensimmäisen', 'toisen', 'kolmannen', 'neljännen']) expect(html).toContain(`Tukikohdan ${n} kerroksen pohjapiirros`);
+  it('FR-4 the entry of the outpost has the plans of all four levels', () => {
+    const html = entry('jinteni-outpost').text.fi;
+    for (const n of ['ensimmäisen', 'toisen', 'kolmannen', 'neljännen']) expect(html).toContain(`Etuvartioaseman ${n} kerroksen pohjapiirros`);
   });
 
   it('FR-6 the four items of the weapon store have entries with pictures, and the owners are in the last event', () => {
@@ -948,9 +955,9 @@ describe('the 2024 session (B-47)', () => {
     expect(plain(entry('glass-sword').text.fi)).toContain('+15');
   });
 
-  it('FR-6 the entry of the mentalist is corrected: he was left to guard the base, not held in a pocket dimension', () => {
+  it('FR-6 the entry of the mentalist is corrected: he was left to guard the outpost, not held in a pocket dimension', () => {
     const text = plain(entry('jinteni-mentalist').text.fi);
-    expect(text).toContain('vartioimaan tukikohtaa');
+    expect(text).toContain('vartioimaan etuvartioasemaa');
     expect(text).not.toContain('ulottuvuustaskuun');
   });
 

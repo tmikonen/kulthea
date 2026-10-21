@@ -884,7 +884,7 @@ describe('the 2024 session (B-47)', () => {
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
   const plain = (html: string) => html.replace(/<[^>]+>/g, '');
-  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 5);
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 5 && e.day <= 21);
 
   it('FR-1 the session has the eleven events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
@@ -930,7 +930,7 @@ describe('the 2024 session (B-47)', () => {
     expect(entry('porsse').type).toBe('npc');
     for (const id of ['parasite-demons', 'dragonkin', 'juggernaut', 'jinteni', 'eissa']) expect(entry(id).type, id).toBe('note');
     expect(entry('jinteni-outpost').type).toBe('location');
-    expect(entry('parasite-demons').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit']);
+    expect(entry('parasite-demons').events.fi.filter((id) => id.startsWith('6052-3-021'))).toEqual(['6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit']);
     expect(entry('juggernaut').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat']);
     expect(entry('jinteni-outpost').events.fi).toEqual([
       '6052-3-021-02-portin-lapi', '6052-3-021-03-cryopodihuone', '6052-3-021-04-asevarasto-ja-ilmalukko',
@@ -967,3 +967,67 @@ describe('the 2024 session (B-47)', () => {
   });
 });
 
+
+describe('the 2025 session (B-48)', () => {
+  const campaign = loadContent(path.resolve(__dirname, '../../content'));
+  const events = campaign.bundle!.events;
+  const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
+  const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
+  const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 31);
+
+  it('FR-1 the session has five events on the days that the product owner gave, in order, after the 2024 session, on the party\'s route', () => {
+    expect(session.map((e) => e.id)).toEqual([
+      '6052-3-031-01-paluu-bentaraan',
+      '6052-3-033-01-dirhavel-palkkaa-seurueen',
+      '6052-3-034-01-orkinpaa',
+      '6052-3-034-02-taistelu-varastolla',
+      '6052-3-035-01-pidatys',
+    ]);
+    expect(session.every((e) => e.track === null)).toBe(true);
+    expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-3-021-08-paluu-portista') + 1);
+    expect(events[events.length - 1].id).toBe('6052-3-035-01-pidatys');
+  });
+
+  it('FR-1 the places: Bentara, the tavern Örkinpää and the warehouse at the positions of Bentara', () => {
+    expect(session.map((e) => e.location)).toEqual(['bentara', 'bentara', 'orkinpaa', 'harbour-warehouse', 'bentara']);
+    for (const id of ['orkinpaa', 'harbour-warehouse']) {
+      expect(location(id).positions, id).toEqual(location('bentara').positions);
+      expect(entry(id).type, id).toBe('location');
+    }
+    expect(entry('orkinpaa').events.fi).toEqual(['6052-3-034-01-orkinpaa']);
+    expect(entry('harbour-warehouse').events.fi).toEqual(['6052-3-034-02-taistelu-varastolla']);
+  });
+
+  it('FR-6 the people of the story have entries as NPCs, and the league members are in the events where they were met', () => {
+    for (const id of ['dirhavel', 'hiiri', 'merwai', 'werla', 'orcare', 'barkwell', 'thrangul', 'irimon', 'aladil', 'ibal', 'serinde', 'viljami-voioklotti', 'justiina-ruisjuuri', 'igor-drunkard']) {
+      expect(entry(id).type, id).toBe('npc');
+    }
+    for (const id of ['merwai', 'werla', 'orcare']) expect(entry(id).events.fi, id).toContain('6052-3-034-01-orkinpaa');
+    for (const id of ['thrangul', 'barkwell', 'werla']) expect(entry(id).events.fi, id).toContain('6052-3-034-02-taistelu-varastolla');
+    expect(entry('hiiri').events.fi).toContain('6052-3-035-01-pidatys');
+    expect(entry('horinin-kaapiot').events.fi).toContain('6052-3-034-01-orkinpaa');
+  });
+
+  it('FR-4 the entry of Bentara has the city map and the warehouse has the plans of both floors', () => {
+    expect(entry('bentara').text.fi).toContain('Bentaran kartta');
+    expect(entry('harbour-warehouse').text.fi).toContain('toisen kerroksen pohjapiirros');
+  });
+
+  it('FR-6 the last event is the arrest, and it says that the game ended there', () => {
+    const last = events[events.length - 1];
+    expect(plain(last.text.fi)).toContain('Tähän peli päättyi');
+    expect(plain(last.text.fi)).toContain('verilöyly');
+  });
+
+  it('FR-6 nothing from the plan for 2026 is in the content', () => {
+    for (const id of ['albrecht-von-lethys', 'senex-nomikoslainen', 'asa-benne']) {
+      expect(campaign.bundle!.journal.find((e) => e.id === id), id).toBeUndefined();
+    }
+  });
+
+  it('FR-9 the real content still loads with no warnings at all', () => {
+    expect(campaign.errors).toEqual([]);
+    expect(campaign.warnings).toEqual([]);
+  });
+});

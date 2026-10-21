@@ -1357,9 +1357,14 @@ Implementation notes (decisions made with the product owner while building it; t
 - The base beyond the portal is the place "Jintenien etuvartioasema" (the name chosen by the product owner), with the plans of all four levels and the pictures inside it; the players are not told what the base is, so nothing in the content, the entries, the captions or the file names of the pictures says it. New entries: Eissa, the inn Svengaava Hirvi (a place at Bentara's positions, which the events only link to), Porsse, the parasite demons (with the larva and an adult), the dragonkin, the golem, the Jinteni (a placeholder, B-49), Rel, and the four items of the weapon store with the notes' figures and their owners (Magnus the fire staff, Og-Og two charge tanks, Bain the glass sword, Marek the glass shield). The entry of the mentalist is corrected: he was left to guard the base for thousands of years and survived in a pod, not held in a pocket dimension.
 - No picture of a game table or statistics is used; 18 pictures were prepared from the PDF.
 
+Implementation notes for B-48 (decisions made with the product owner while building it; the questions and answers are in the git-ignored `drafts/session-2025/REVIEW.md`):
+- Five events on the party's route, from the 31st to the 35th of Summer, TE 6052: the return to Bentara (Rel's preservation spell on the demon corpse before the descent, 4 + 6 days of travel, Rel brings priests of Eissa to pass the guards, an inn), Dirhavel hires the party (the cube was stolen from him; the merchants interviewed; Hiiri and the people of the harbour taverns met in passing), Örkinpää (a meeting only, with Oin, Loin and Groin dancing), the battle at the warehouse the same night (Thrangul and Barkwell there; no finds are written, as the product owner checks the handwritten notes), and the arrest in the morning (the guard says there was a massacre in the temple, eye witnesses saw a demonic beast). The harvest festival is still to come, so it is not an event; how the party found Örkinpää is not remembered (collected in B-50).
+- New places `orkinpaa` and `harbour-warehouse` at the positions of Bentara; the entry of Bentara has the city map and the warehouse has the plans of its floors. Entries for all the NPCs of the plan (14, as the party met them in passing), with their pictures; Oin, Loin and Groin are in the existing entry of Horin's dwarves.
+- Nothing from the plan for 2026 or the ChatGPT summary is used. The portrait of Merwai has a copyright notice of a games company in its corner; it is not used until the product owner decides (the notice is not removed).
+
 ## B-48 Extract the 2025 session
 
-Status: in progress
+Status: done
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
@@ -1608,6 +1613,7 @@ Scope note (to be refined with the product owner): a running list of small facts
 - Whether the party got the hermit's berries, dried fish and medicines, and whether he guided them (2022).
 - **The feathers of the cockatrice** (2023): how many there are, which colours, and who has each of them now (the green one was Taelaran's), and how the party knew that they are magical; the product owner checks who has what.
 - **The description of the night at Suonperä** (the event of the 5th of Summer, 6052; one sentence now), which the product owner writes by hand.
+- **The 2025 session** (B-48): what the party found in the harbour warehouse (the product owner checks the hand-written notes), whether the cube was recovered, how the party found the tavern Örkinpää, whether Merwai and Orcare died at the warehouse, and whether Irimon's platinum chain (for a feather) comes into the story.
 - The descriptions of the stub entries are not here but in B-49.
 
 ---

@@ -2,8 +2,8 @@
 title: Dirhavel palkkaa seurueen
 location: bentara
 ---
-[[dirhavel|Dirhavel]] palkkasi seurueen etsimään kiristäjäliigaa, joka uhkasi hänen kauppansa tuhoamista. Häneltä oli myös varastettu maaginen, kuution muotoinen esine.
+Ryhmän etsiessä tietäjää selvittämään löytämiensä taikaesineiden saloja, paikallinen alkemisti [[dirhavel|Dirhavel]] tarjosi heille paitsi palveluksiaan, myös työtä. Bentarassa liikkui kiristäjäliiga, joka uhkasi hänen kauppansa tuhoamista. Liiga oli jo polttanut paikallisen nahkurin rakennuksen maan tasalle. (Jotkin pahat kielet toki huusivat kaduilla "Vakuutuspetos!")
 
-Seurue haastatteli kaupungin kauppiaita: [[ilbo|Ilboa]], [[irimon|Irimonia]], [[aladil|Aladilia]], [[ibal|Ibalia]] ja [[serinde|Serindeä]]. Myös [[hiiri|Hiiri]] tapasi seurueen.
+Seurue haastatteli kaupungin kauppiaita: [[ilbo|Ilboa]], [[irimon|Irimonia]], [[aladil|Aladilia]], [[ibal|Ibalia]] ja [[serinde|Serindeä]], joilta he saivat vaihtelevia vihjeitä kiristäjien olinpaikasta.
 
-Satamassa seurue tapasi ohimennen kapakoiden väkeä: [[justiina-ruisjuuri|Justiina Ruisjuuren]], [[viljami-voioklotti|Viljami Voiöklötin]] ja paikallisen juopon, [[igor-drunkard|Igorin]].
+Vihjeet johtivat satama-alueelle ja niiden kapakoihin.Satamassa seurue tapasi ohimennen kapakoiden väkeä: Katkenneen Airon [[justiina-ruisjuuri|Justiina Ruisjuuren]], sekä Örkinpään omistajan [[viljami-voioklotti|Viljami Voiöklötin]] sekä paikallisen juopon, [[igor-drunkard|Igorin]]. Täällä he tapasivat myös ensimmäistä kertaa kiristäjät.

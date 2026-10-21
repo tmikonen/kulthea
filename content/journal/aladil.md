@@ -3,4 +3,4 @@ type: npc
 name: "Aladil"
 image: images/aladil.webp
 ---
-Laatuyrttien omistaja. Kieltää tietävänsä asiasta mitään, mutta on hyvin pelokkaan oloinen.
+Laatuyrttien omistaja. Kielsi tietävänsä kiristäjäliigata mitään, mutta oli hyvin pelokkaan oloinen.

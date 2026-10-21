@@ -107,7 +107,7 @@ demo/              the same layout, with invented events, entries and pictures; 
 Campaign settings (`campaign.json`): the calendar and site text live here, so nothing about the calendar is hard-coded.
 ```json
 {
-  "title": "Kulthea Campaign Chronicles",
+  "title": "Kulthean Kampanjan Kronikat",
   "languages": ["fi", "en"],
   "defaultLanguage": "fi",
   "era": {

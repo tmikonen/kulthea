@@ -1333,7 +1333,7 @@ Implementation notes (decisions made with the product owner while building it; t
 
 ## B-47 Extract the 2024 session
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 
@@ -1359,7 +1359,7 @@ Implementation notes (decisions made with the product owner while building it; t
 
 ## B-48 Extract the 2025 session
 
-Status: defined
+Status: in progress
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 

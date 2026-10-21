@@ -22,7 +22,7 @@ The invented demo content, for developing the site, is in `demo/`. Use it with `
 
 ## 2. Writing an event
 
-An event is a file in `events/` named `year-month-day-order-slug.md`, for example `6052-2-022-02-kiviovi.md`:
+An event is a file in `events/` named `year-month-day-order-slug.md`, for example `6052-2-052-02-kiviovi.md`:
 - the year, the month number (1 Talvi, 2 Kevät, 3 Kesä, 4 Ruska, 5 Marras), the day (1 to 70), an order number for the events of the same day, and a short slug in lower case, with dashes;
 - the date is only in the file name. Two events must not have the same date and order number.
 
@@ -123,8 +123,8 @@ A **warning** does not stop the build, but this folder is kept free of them. The
 
 ## 9. About the dates of the sessions
 
-- **2021:** the first session starts at the old watchtower on TE 6052, 21st of Spring (`6052-2-021`). Belladonna hires the party at Bentara on the 12th of Spring (the first event of the party's route); the two events at the troll cave are on the 22nd; the night at Sammal's farm and the arrival in Lean are on the 23rd (the farm first); the return to Bentara is on the 30th.
-- **2022:** the party leaves Bentara on the 42nd (12 days after the return), arrives at Bog End on the 47th (5 days), camps at the swamp on the 48th, reaches the old temple and the kobolds on the 58th (10 days), solves the riddles on the 59th, and on the 60th enters the ice cave and fights the mentalist. The order number counts the events of one day.
-- **2023:** the party rests 3 days at the Jinteni ruins and descends for 4 days, arriving at Bog End on the 67th of Spring; it stays 5 days in the village, and on the 1st of Summer Pjotr's invitation takes it to Count Kert's manor. The hunt of the cockatrice is on the 2nd and 3rd, and the return to the manor, and from there back toward Bog End, on the 4th of Summer.
-- **2024:** the party spends a night at Suonperä on the 5th of Summer, arrives in Bentara on the 10th (the inn Svengaava Hirvi), the pact with Eissa and the healing of Bain's hand are on the 11th, and on the 21st (10 days later) the party is back at the portal in the ice cave and spends the whole day beyond it, all in one day. The order number counts the events of one day.
-- **2025:** the party returns to Bentara on the 31st of Summer (4 days to Suonperä and 6 more, 10 days after the 21st), Dirhavel hires it on the 33rd, it meets the league in the tavern Örkinpää on the 34th, the battle at the warehouse is the same night, and the arrest is in the morning of the 35th, where the last event ends. The harvest festival at Suonperä has not happened yet.
+- **2021:** the first session starts at the old watchtower on TE 6052, 51st of Spring (`6052-2-051`). Belladonna hires the party at Bentara on the 42nd of Spring (the first event of the party's route); the two events at the troll cave are on the 52nd; the night at Sammal's farm and the arrival in Lean are on the 53rd (the farm first); the return to Bentara is on the 60th.
+- **2022:** the party leaves Bentara on the 2nd of Summer (12 days after the return), arrives at Bog End on the 7th (5 days), camps at the swamp on the 8th, reaches the old temple and the kobolds on the 18th (10 days), solves the riddles on the 19th, and on the 20th enters the ice cave and fights the mentalist. The order number counts the events of one day.
+- **2023:** the party rests 3 days at the Jinteni ruins and descends for 4 days, arriving at Bog End on the 27th of Summer; it stays 5 days in the village, and on the 31st Pjotr's invitation takes it to Count Kert's manor. The hunt of the cockatrice is on the 32nd and 33rd, and the return to the manor, and from there back toward Bog End, on the 34th.
+- **2024:** the party spends a night at Suonperä on the 35th of Summer, arrives in Bentara on the 40th (the inn Svengaava Hirvi), the pact with Eissa and the healing of Bain's hand are on the 41st, and on the 51st (10 days later) the party is back at the portal in the ice cave and spends the whole day beyond it, all in one day. The order number counts the events of one day.
+- **2025:** the party returns to Bentara on the 61st of Summer (4 days to Suonperä and 6 more, 10 days after the 51st), Dirhavel hires it on the 63rd, it meets the league in the tavern Örkinpää on the 64th, the battle at the warehouse is the next day, the 65th, and the arrest is in the early morning of the 66th, where the last event ends. The harvest festival at Suonperä has not happened yet.

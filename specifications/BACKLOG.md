@@ -956,6 +956,8 @@ The real campaign content is made in pieces from the GM's notes in `gm-notes/` (
 
 What the notes are (checked in October 2026): one Markdown file, `Kulthea-kampanja-2026-1.md` (50 MB), and a PDF with the same content (120 MB), in Finnish. The text is only about 57 KB (930 lines): the rest is 85 embedded pictures (PNG, 36 MB in all, mostly 600 px wide, 7 over 1 MB), stored as base64 at the end of the file and used in the text as `![][image12]`. The text has these parts: `Hahmot` (six player characters: Og-Og, Marek Baalik, Jenel Idarien, Taelaran Quirinion, Bain Pitkävihainen and Magnus Bombus, of whom Jenel Idarien was never used in the campaign), then `Osa I` (2021) to `Osa V` (2025) as headings, and `Osa VI` (2026) as a plain line. Each part is mostly the GM's plan for that year's session: the starting situation, ways to solve it, NPCs, places, hooks and pictures. What really happened is written at the start of the next year's part ("Edellisellä kerralla tapahtunutta"), so the outcome of the 2021 session is at the start of `Osa II`, 2022 at the start of `Osa III`, 2023 at the start of `Osa IV` and 2025 in `Osa VI`. The outcome of 2024 is not at the start of `Osa V` but at the end of the `Osa IV` part, as an event log ("Tapahtumia: Iltapeli, Päiväpeli, Lopputilanne") that B-47 found. `Osa VI` also holds a summary written by ChatGPT and a plan for the finale of 2026, which has not been played: planned and future events are not content (`REQUIREMENTS.md`, section 1).
 
+After B-48 the product owner shifted all the event dates of the real campaign 30 days forward (the file names of `content/events/` changed; a day number over 70 moves to the next month, so the 2022 session now starts on the 2nd of Summer). The dates written in the implementation notes of B-44 to B-48 below are the dates as they were when each item was made; the dates now are in the event file names and in section 9 of `content/README.md`.
+
 How the work goes, for every extraction item (B-43 to B-48):
 1. `npm run notes:split` prepares the notes again from the file (B-38), so that a new version of the notes is used.
 2. I read the outcome and the plan of the session and write proposals as ordinary content files in `drafts/<item>/` (B-41): events, journal entries, additions to the locations, and prepared pictures (B-39), in Finnish, with `[[links]]` suggested by the link helper (B-42). A file `REVIEW.md` lists every proposal with where in the notes it comes from, how sure it is, and the open questions. Nothing is invented: what is not in the notes is a question, not a guess.
@@ -1378,7 +1380,7 @@ How to check by hand: as in B-44 and B-45; then step to the last event and read 
 
 Acceptance criteria: those of B-44 and B-45 for this session, and:
 - [ ] Nothing from the plan for 2026 or from the ChatGPT summary is in an event or an entry.
-- [ ] The last event is the arrest, and its text says the session ended there.
+- [ ] The last event is the arrest, and its text says the session ended there. (The product owner's editorial version of the last event does not say it in words; the day after the tavern, the battle at the warehouse, and the arrest in the next early morning are the product owner's own order.)
 
 Automated tests: as in B-44.
 

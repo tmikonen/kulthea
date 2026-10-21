@@ -261,7 +261,7 @@ describe('the player characters of the campaign (B-43)', () => {
   it('FR-6 the map found in the troll cave is the item "Muinaisten jintenirauniojen kartta", linked from the event of the stone door', () => {
     expect(entry('jinteni-ruins-map').type).toBe('item');
     expect(fi(entry('jinteni-ruins-map').name)).toBe('Muinaisten jintenirauniojen kartta');
-    expect(entry('jinteni-ruins-map').events.fi).toContain('6052-2-022-02-kiviovi');
+    expect(entry('jinteni-ruins-map').events.fi).toContain('6052-2-052-02-kiviovi');
   });
 
   it('FR-6 each character has the portrait from the notes as the lead image', () => {
@@ -271,14 +271,14 @@ describe('the player characters of the campaign (B-43)', () => {
   });
 
   it('FR-1 the events of the 2021 session are on the days that the product owner gave', () => {
-    expect(campaign.bundle!.events.map((e) => e.id).filter((id) => /^6052-2-0(12|21|22|23|30)-/.test(id))).toEqual([
-      '6052-2-012-01-belladonna-palkkaa-seurueen',
-      '6052-2-021-01-vahtitorni',
-      '6052-2-022-01-peikkoluola-hyokkays',
-      '6052-2-022-02-kiviovi',
-      '6052-2-023-01-sammalin-lammastila',
-      '6052-2-023-02-saapuminen-leaniin',
-      '6052-2-030-01-paluu-bentaraan',
+    expect(campaign.bundle!.events.map((e) => e.id).filter((id) => /^6052-2-0(42|51|52|53|60)-/.test(id))).toEqual([
+      '6052-2-042-01-belladonna-palkkaa-seurueen',
+      '6052-2-051-01-vahtitorni',
+      '6052-2-052-01-peikkoluola-hyokkays',
+      '6052-2-052-02-kiviovi',
+      '6052-2-053-01-sammalin-lammastila',
+      '6052-2-053-02-saapuminen-leaniin',
+      '6052-2-060-01-paluu-bentaraan',
     ]);
   });
 
@@ -627,35 +627,35 @@ describe('the 2021 session (B-44)', () => {
 
   it('FR-1 the hiring is the first event of the party\'s route, and is not a standalone event', () => {
     const first = campaign.bundle!.events[0];
-    expect(first.id).toBe('6052-2-012-01-belladonna-palkkaa-seurueen');
+    expect(first.id).toBe('6052-2-042-01-belladonna-palkkaa-seurueen');
     expect(first.track).toBeNull();
     expect(first.location).toBe('bentara');
   });
 
   it('FR-6 all five characters are named in the first event, so it is in each of their lists', () => {
     for (const id of ['og-og', 'marek-baalik', 'taelaran-quirinion', 'bain-pitkavihainen', 'magnus-bombus']) {
-      expect(entry(id).events.fi, id).toContain('6052-2-012-01-belladonna-palkkaa-seurueen');
+      expect(entry(id).events.fi, id).toContain('6052-2-042-01-belladonna-palkkaa-seurueen');
     }
   });
 
   it('FR-6 the watchtower event has the trail and the details of the tower', () => {
-    const text = plain(event('6052-2-021-01-vahtitorni').text.fi);
+    const text = plain(event('6052-2-051-01-vahtitorni').text.fi);
     expect(text).toContain('Lean-nimisen kylän läpi');
     expect(text).toContain('sivurakennuksen');
   });
 
   it('FR-6 the troll cave events have the three trolls, the teleport, the stone in front of the cave and the map from Horin', () => {
-    expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('kolme peikkoa');
-    expect(plain(event('6052-2-022-01-peikkoluola-hyokkays').text.fi)).toContain('teleporttaamaan');
-    const door = plain(event('6052-2-022-02-kiviovi').text.fi);
+    expect(plain(event('6052-2-052-01-peikkoluola-hyokkays').text.fi)).toContain('kolme peikkoa');
+    expect(plain(event('6052-2-052-01-peikkoluola-hyokkays').text.fi)).toContain('teleporttaamaan');
+    const door = plain(event('6052-2-052-02-kiviovi').text.fi);
     expect(door).toContain('luolan edustalla olevaa kiveä');
     expect(door).toContain('Horin Puusilmä antoi seurueelle');
-    expect(entry('bain-pitkavihainen').events.fi).toContain('6052-2-022-02-kiviovi');
+    expect(entry('bain-pitkavihainen').events.fi).toContain('6052-2-052-02-kiviovi');
   });
 
   it('FR-1 the farm and the arrival in Lean are on the same day, in that order, and the fire is in the early morning (aamuyöstä)', () => {
-    const farm = event('6052-2-023-01-sammalin-lammastila');
-    const lean = event('6052-2-023-02-saapuminen-leaniin');
+    const farm = event('6052-2-053-01-sammalin-lammastila');
+    const lean = event('6052-2-053-02-saapuminen-leaniin');
     expect([farm.year, farm.month, farm.day]).toEqual([lean.year, lean.month, lean.day]);
     expect(farm.order).toBeLessThan(lean.order);
     expect(plain(farm.text.fi)).toContain('aamuyöstä');
@@ -663,9 +663,9 @@ describe('the 2021 session (B-44)', () => {
   });
 
   it('FR-6 Marek\'s offering is at Lean, and the dwarves part from Ilbo and the party there', () => {
-    expect(entry('mynistra').events.fi).toContain('6052-2-023-02-saapuminen-leaniin');
-    expect(plain(event('6052-2-023-02-saapuminen-leaniin').text.fi)).toContain('pitkin hampain');
-    expect(plain(event('6052-2-023-02-saapuminen-leaniin').text.fi)).toContain('erosivat');
+    expect(entry('mynistra').events.fi).toContain('6052-2-053-02-saapuminen-leaniin');
+    expect(plain(event('6052-2-053-02-saapuminen-leaniin').text.fi)).toContain('pitkin hampain');
+    expect(plain(event('6052-2-053-02-saapuminen-leaniin').text.fi)).toContain('erosivat');
   });
 
   it('FR-6 the new entries: Ilbo, Belladonna, the dwarves, the trolls, Lean, the watchtower and the troll cave', () => {
@@ -674,10 +674,10 @@ describe('the 2021 session (B-44)', () => {
     expect(entry('horinin-kaapiot').type).toBe('npc');
     expect(entry('trolls').type).toBe('note');
     for (const id of ['lean', 'ruined-watchtower', 'troll-cave']) expect(entry(id).type).toBe('location');
-    expect(entry('ilbo').events.fi).toContain('6052-2-030-01-paluu-bentaraan');
-    expect(entry('horinin-kaapiot').events.fi).toContain('6052-2-022-02-kiviovi');
+    expect(entry('ilbo').events.fi).toContain('6052-2-060-01-paluu-bentaraan');
+    expect(entry('horinin-kaapiot').events.fi).toContain('6052-2-052-02-kiviovi');
     expect(plain(entry('horinin-kaapiot').text.fi)).toContain('Kimi, Keke, ja Obl');
-    expect(entry('lean').events.fi).toEqual(['6052-2-023-02-saapuminen-leaniin']);
+    expect(entry('lean').events.fi).toEqual(['6052-2-053-02-saapuminen-leaniin']);
     expect(plain(entry('lean').text.fi)).not.toContain('Finlines');
     expect(plain(entry('lean').text.fi)).not.toContain('Orov');
   });
@@ -703,20 +703,20 @@ describe('the 2022 session (B-45)', () => {
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const plain = (html: string) => html.replace(/<[^>]+>/g, '');
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
-  const session = events.filter((e) => e.year === 6052 && e.month === 2 && e.day >= 42 && e.day <= 60);
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 2 && e.day <= 20);
 
   it('FR-1 the session has the seven events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
-      '6052-2-042-01-lahto-bentarasta',
-      '6052-2-047-01-saapuminen-suonperaan',
-      '6052-2-048-01-suon-leiri-ja-erakko',
-      '6052-2-058-01-vanha-temppeli-ja-hiisilaiset',
-      '6052-2-059-01-luolaston-arvoitukset',
-      '6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu',
-      '6052-2-060-02-portti-suljetaan',
+      '6052-3-002-01-lahto-bentarasta',
+      '6052-3-007-01-saapuminen-suonperaan',
+      '6052-3-008-01-suon-leiri-ja-erakko',
+      '6052-3-018-01-vanha-temppeli-ja-hiisilaiset',
+      '6052-3-019-01-luolaston-arvoitukset',
+      '6052-3-020-01-jaaluola-ulottuvuusportti-ja-taistelu',
+      '6052-3-020-02-portti-suljetaan',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
-    expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-2-030-01-paluu-bentaraan') + 1);
+    expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-2-060-01-paluu-bentaraan') + 1);
   });
 
   it('FR-1 the places of the events: Bentara, Bog End, the swamp, the ruins, the base and the ice cave', () => {
@@ -733,45 +733,45 @@ describe('the 2022 session (B-45)', () => {
   });
 
   it('FR-6 the first event leaves Bentara after the treasure map, and the arrival at Bog End is at Bog End', () => {
-    const leaving = event('6052-2-042-01-lahto-bentarasta');
+    const leaving = event('6052-3-002-01-lahto-bentarasta');
     expect(plain(leaving.text.fi)).toContain('reilun viikon verran');
     expect(leaving.text.fi).toContain('data-journal="jinteni-ruins-map"');
-    expect(plain(event('6052-2-047-01-saapuminen-suonperaan').text.fi).length).toBeGreaterThan(0);
+    expect(plain(event('6052-3-007-01-saapuminen-suonperaan').text.fi).length).toBeGreaterThan(0);
   });
 
   it('FR-6 the camp, the hermit and Bain\'s dagger', () => {
-    const camp = plain(event('6052-2-048-01-suon-leiri-ja-erakko').text.fi);
+    const camp = plain(event('6052-3-008-01-suon-leiri-ja-erakko').text.fi);
     expect(camp).toContain('suorotat');
     expect(camp).toContain('linkoamalla');
-    expect(entry('hermit').events.fi).toEqual(['6052-2-048-01-suon-leiri-ja-erakko']);
+    expect(entry('hermit').events.fi).toEqual(['6052-3-008-01-suon-leiri-ja-erakko']);
     expect(entry('hermit-dagger').type).toBe('item');
-    expect(entry('hermit-dagger').events.fi).toEqual(['6052-2-048-01-suon-leiri-ja-erakko']);
+    expect(entry('hermit-dagger').events.fi).toEqual(['6052-3-008-01-suon-leiri-ja-erakko']);
   });
 
   it('FR-6 the base event: the riddles and the trap', () => {
-    const text = plain(event('6052-2-059-01-luolaston-arvoitukset').text.fi);
+    const text = plain(event('6052-3-019-01-luolaston-arvoitukset').text.fi);
     expect(text).toContain('Marekin ja Bainin ansiosta');
-    expect(entry('jinteni-base').events.fi).toEqual(['6052-2-059-01-luolaston-arvoitukset']);
+    expect(entry('jinteni-base').events.fi).toEqual(['6052-3-019-01-luolaston-arvoitukset']);
   });
 
   it('FR-6 the temple and the kobolds are one event, and the ice cave, the portal and the fight are one event', () => {
-    const temple = event('6052-2-058-01-vanha-temppeli-ja-hiisilaiset');
+    const temple = event('6052-3-018-01-vanha-temppeli-ja-hiisilaiset');
     expect(fi(temple.title)).toBe('Vanha temppeli ja hiisiläiset');
     expect(entry('kobold').events.fi).toEqual([temple.id]);
-    const cave = event('6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu');
+    const cave = event('6052-3-020-01-jaaluola-ulottuvuusportti-ja-taistelu');
     expect(fi(cave.title)).toBe('Jääluola, ulottuvuusportti, ja taistelu');
-    expect(entry('ice-cave').events.fi).toEqual(expect.arrayContaining([cave.id, '6052-2-060-02-portti-suljetaan']));
+    expect(entry('ice-cave').events.fi).toEqual(expect.arrayContaining([cave.id, '6052-3-020-02-portti-suljetaan']));
   });
 
   it('FR-6 the mentalist fight names the mentalist, Magnus, Marek and Bain, and the end of the session closes the portal', () => {
     expect(entry('jinteni-mentalist').type).toBe('npc');
     expect(entry('jinteni-mentalist').image).not.toBeNull();
     for (const id of ['magnus-bombus', 'marek-baalik', 'bain-pitkavihainen']) {
-      expect(entry(id).events.fi, id).toContain('6052-2-060-01-jaaluola-ulottuvuusportti-ja-taistelu');
+      expect(entry(id).events.fi, id).toContain('6052-3-020-01-jaaluola-ulottuvuusportti-ja-taistelu');
     }
-    const end = plain(event('6052-2-060-02-portti-suljetaan').text.fi);
+    const end = plain(event('6052-3-020-02-portti-suljetaan').text.fi);
     expect(end).toContain('Og-Og sulki portin');
-    expect(entry('og-og').events.fi).toContain('6052-2-060-02-portti-suljetaan');
+    expect(entry('og-og').events.fi).toContain('6052-3-020-02-portti-suljetaan');
   });
 
   it('FR-6 the items of the mentalist have the names that the product owner gave, with the figures of the notes and a picture each', () => {
@@ -785,7 +785,7 @@ describe('the 2022 session (B-45)', () => {
       expect(entry(id).type, id).toBe('item');
       expect(fi(entry(id).name), id).toBe(name);
       expect(entry(id).image, id).not.toBeNull();
-      expect(entry(id).events.fi, id).toContain('6052-2-060-02-portti-suljetaan');
+      expect(entry(id).events.fi, id).toContain('6052-3-020-02-portti-suljetaan');
     }
     expect(plain(entry('mentalist-dagger').text.fi)).toContain('+15');
     expect(plain(entry('telekinesis-gauntlet').text.fi)).toContain('-30');
@@ -812,18 +812,18 @@ describe('the 2023 session (B-46)', () => {
   const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
-  const session = events.filter((e) => e.year === 6052 && ((e.month === 3 && e.day <= 4) || (e.month === 2 && e.day >= 61)));
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 27 && e.day <= 34);
 
   it('FR-1 the session has the five events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
-      '6052-2-067-01-alas-vuorilta-suonperaan',
-      '6052-3-001-01-kreivin-kutsu',
-      '6052-3-002-01-kukkotriikin-metsastys',
-      '6052-3-003-01-kukkotriikin-pesa',
-      '6052-3-004-01-takaisin-kreivin-kartanolle',
+      '6052-3-027-01-alas-vuorilta-suonperaan',
+      '6052-3-031-01-kreivin-kutsu',
+      '6052-3-032-01-kukkotriikin-metsastys',
+      '6052-3-033-01-kukkotriikin-pesa',
+      '6052-3-034-01-takaisin-kreivin-kartanolle',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
-    const lastOf2022 = events.findIndex((e) => e.id === '6052-2-060-02-portti-suljetaan');
+    const lastOf2022 = events.findIndex((e) => e.id === '6052-3-020-02-portti-suljetaan');
     expect(events.indexOf(session[0])).toBe(lastOf2022 + 1);
   });
 
@@ -841,28 +841,28 @@ describe('the 2023 session (B-46)', () => {
       expect(entry(id).type, id).toBe('npc');
       expect(entry(id).image, id).not.toBeNull();
     }
-    expect(entry('pjotr').events.fi).toContain('6052-3-001-01-kreivin-kutsu');
-    expect(entry('pso').events.fi).toEqual(['6052-3-001-01-kreivin-kutsu']);
-    expect(entry('igor').events.fi).toEqual(['6052-3-002-01-kukkotriikin-metsastys']);
-    expect(entry('nari-tulenjyske').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
+    expect(entry('pjotr').events.fi).toContain('6052-3-031-01-kreivin-kutsu');
+    expect(entry('pso').events.fi).toEqual(['6052-3-031-01-kreivin-kutsu']);
+    expect(entry('igor').events.fi).toEqual(['6052-3-032-01-kukkotriikin-metsastys']);
+    expect(entry('nari-tulenjyske').events.fi).toEqual(['6052-3-033-01-kukkotriikin-pesa']);
   });
 
   it('FR-6 the characters named in the events have them in their lists', () => {
-    expect(entry('bain-pitkavihainen').events.fi).toContain('6052-2-067-01-alas-vuorilta-suonperaan');
-    expect(entry('magnus-bombus').events.fi).toContain('6052-3-003-01-kukkotriikin-pesa');
-    expect(entry('og-og').events.fi).toContain('6052-3-003-01-kukkotriikin-pesa');
-    expect(entry('taelaran-quirinion').events.fi).toContain('6052-3-004-01-takaisin-kreivin-kartanolle');
+    expect(entry('bain-pitkavihainen').events.fi).toContain('6052-3-027-01-alas-vuorilta-suonperaan');
+    expect(entry('magnus-bombus').events.fi).toContain('6052-3-033-01-kukkotriikin-pesa');
+    expect(entry('og-og').events.fi).toContain('6052-3-033-01-kukkotriikin-pesa');
+    expect(entry('taelaran-quirinion').events.fi).toContain('6052-3-034-01-takaisin-kreivin-kartanolle');
   });
 
   it('FR-6 the cockatrice, its feathers and the nest are entries, and the feathers are described as the party knew them', () => {
     expect(entry('cockatrice').type).toBe('note');
     expect(fi(entry('cockatrice').name)).toBe('Kukkotriikki');
     expect(entry('cockatrice-feathers').type).toBe('item');
-    expect(entry('cockatrice-feathers').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
+    expect(entry('cockatrice-feathers').events.fi).toEqual(['6052-3-033-01-kukkotriikin-pesa']);
     expect(entry('cockatrice-nest').type).toBe('location');
-    expect(entry('cockatrice-nest').events.fi).toEqual(['6052-3-003-01-kukkotriikin-pesa']);
+    expect(entry('cockatrice-nest').events.fi).toEqual(['6052-3-033-01-kukkotriikin-pesa']);
     expect(entry('kert-manor').type).toBe('location');
-    expect(entry('kert-manor').events.fi).toEqual(['6052-3-001-01-kreivin-kutsu', '6052-3-002-01-kukkotriikin-metsastys', '6052-3-004-01-takaisin-kreivin-kartanolle']);
+    expect(entry('kert-manor').events.fi).toEqual(['6052-3-031-01-kreivin-kutsu', '6052-3-032-01-kukkotriikin-metsastys', '6052-3-034-01-takaisin-kreivin-kartanolle']);
   });
 
   it('FR-4 the manor has its outside picture as the lead image, and the nest its entrance and its plan', () => {
@@ -884,24 +884,24 @@ describe('the 2024 session (B-47)', () => {
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const fi = (value: unknown) => (typeof value === 'string' ? value : (value as { fi: string }).fi);
   const plain = (html: string) => html.replace(/<[^>]+>/g, '');
-  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 5 && e.day <= 21);
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 35 && e.day <= 51);
 
   it('FR-1 the session has the eleven events on the days that the product owner gave, in order, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
-      '6052-3-005-01-yopyminen-suonperassa',
-      '6052-3-010-01-svengaava-hirvi',
-      '6052-3-011-01-sopimus-eissan-kanssa',
-      '6052-3-021-01-takaisin-portilla',
-      '6052-3-021-02-portin-lapi',
-      '6052-3-021-03-cryopodihuone',
-      '6052-3-021-04-asevarasto-ja-ilmalukko',
-      '6052-3-021-05-alakerrat',
-      '6052-3-021-06-golem-ja-toukat',
-      '6052-3-021-07-peraantyminen-ja-demonit',
-      '6052-3-021-08-paluu-portista',
+      '6052-3-035-01-yopyminen-suonperassa',
+      '6052-3-040-01-svengaava-hirvi',
+      '6052-3-041-01-sopimus-eissan-kanssa',
+      '6052-3-051-01-takaisin-portilla',
+      '6052-3-051-02-portin-lapi',
+      '6052-3-051-03-cryopodihuone',
+      '6052-3-051-04-asevarasto-ja-ilmalukko',
+      '6052-3-051-05-alakerrat',
+      '6052-3-051-06-golem-ja-toukat',
+      '6052-3-051-07-peraantyminen-ja-demonit',
+      '6052-3-051-08-paluu-portista',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
-    const lastOf2023 = events.findIndex((e) => e.id === '6052-3-004-01-takaisin-kreivin-kartanolle');
+    const lastOf2023 = events.findIndex((e) => e.id === '6052-3-034-01-takaisin-kreivin-kartanolle');
     expect(events.indexOf(session[0])).toBe(lastOf2023 + 1);
   });
 
@@ -917,11 +917,11 @@ describe('the 2024 session (B-47)', () => {
   });
 
   it('FR-6 Bentara: Og-Og stays outside the city, the glove breaks the window, Bain\'s hand is healed, the pact, Rel, the mule', () => {
-    expect(plain(events.find((e) => e.id === '6052-3-010-01-svengaava-hirvi')!.text.fi)).toContain('Og-Og jäi kaupungin ulkopuolelle');
-    const pact = events.find((e) => e.id === '6052-3-011-01-sopimus-eissan-kanssa')!;
+    expect(plain(events.find((e) => e.id === '6052-3-040-01-svengaava-hirvi')!.text.fi)).toContain('Og-Og jäi kaupungin ulkopuolelle');
+    const pact = events.find((e) => e.id === '6052-3-041-01-sopimus-eissan-kanssa')!;
     expect(plain(pact.text.fi)).toContain('Og-Og');
     for (const id of ['eissa', 'porsse', 'rel', 'bain-pitkavihainen']) expect(entry(id).events.fi, id).toContain(pact.id);
-    expect(entry('telekinesis-gauntlet').events.fi).toContain('6052-3-010-01-svengaava-hirvi');
+    expect(entry('telekinesis-gauntlet').events.fi).toContain('6052-3-040-01-svengaava-hirvi');
   });
 
   it('FR-6 the people and creatures of the day at the portal have entries, and are in the events where they were', () => {
@@ -930,11 +930,11 @@ describe('the 2024 session (B-47)', () => {
     expect(entry('porsse').type).toBe('npc');
     for (const id of ['parasite-demons', 'dragonkin', 'juggernaut', 'jinteni', 'eissa']) expect(entry(id).type, id).toBe('note');
     expect(entry('jinteni-outpost').type).toBe('location');
-    expect(entry('parasite-demons').events.fi.filter((id) => id.startsWith('6052-3-021'))).toEqual(['6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit']);
-    expect(entry('juggernaut').events.fi).toEqual(['6052-3-021-06-golem-ja-toukat']);
+    expect(entry('parasite-demons').events.fi.filter((id) => id.startsWith('6052-3-051'))).toEqual(['6052-3-051-06-golem-ja-toukat', '6052-3-051-07-peraantyminen-ja-demonit']);
+    expect(entry('juggernaut').events.fi).toEqual(['6052-3-051-06-golem-ja-toukat']);
     expect(entry('jinteni-outpost').events.fi).toEqual([
-      '6052-3-021-02-portin-lapi', '6052-3-021-03-cryopodihuone', '6052-3-021-04-asevarasto-ja-ilmalukko',
-      '6052-3-021-05-alakerrat', '6052-3-021-06-golem-ja-toukat', '6052-3-021-07-peraantyminen-ja-demonit',
+      '6052-3-051-02-portin-lapi', '6052-3-051-03-cryopodihuone', '6052-3-051-04-asevarasto-ja-ilmalukko',
+      '6052-3-051-05-alakerrat', '6052-3-051-06-golem-ja-toukat', '6052-3-051-07-peraantyminen-ja-demonit',
     ]);
   });
 
@@ -950,7 +950,7 @@ describe('the 2024 session (B-47)', () => {
     }
     expect(entry('fire-staff-charges').type).toBe('item');
     for (const id of ['fire-staff', 'fire-staff-charges', 'glass-sword', 'glass-shield']) {
-      expect(entry(id).events.fi, id).toContain('6052-3-021-08-paluu-portista');
+      expect(entry(id).events.fi, id).toContain('6052-3-051-08-paluu-portista');
     }
     expect(plain(entry('glass-sword').text.fi)).toContain('+15');
   });
@@ -974,19 +974,19 @@ describe('the 2025 session (B-48)', () => {
   const entry = (id: string) => campaign.bundle!.journal.find((e) => e.id === id)!;
   const location = (id: string) => campaign.bundle!.locations.find((l) => l.id === id)!;
   const plain = (html: string) => html.replace(/<[^>]+>/g, '');
-  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 31);
+  const session = events.filter((e) => e.year === 6052 && e.month === 3 && e.day >= 61);
 
   it('FR-1 the session has five events on the days that the product owner gave, in order, after the 2024 session, on the party\'s route', () => {
     expect(session.map((e) => e.id)).toEqual([
-      '6052-3-031-01-paluu-bentaraan',
-      '6052-3-033-01-dirhavel-palkkaa-seurueen',
-      '6052-3-034-01-orkinpaa',
-      '6052-3-035-01-taistelu-varastolla',
-      '6052-3-036-01-pidatys',
+      '6052-3-061-01-paluu-bentaraan',
+      '6052-3-063-01-dirhavel-palkkaa-seurueen',
+      '6052-3-064-01-orkinpaa',
+      '6052-3-065-01-taistelu-varastolla',
+      '6052-3-066-01-pidatys',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
-    expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-3-021-08-paluu-portista') + 1);
-    expect(events[events.length - 1].id).toBe('6052-3-036-01-pidatys');
+    expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-3-051-08-paluu-portista') + 1);
+    expect(events[events.length - 1].id).toBe('6052-3-066-01-pidatys');
   });
 
   it('FR-1 the places: Bentara, the tavern Örkinpää and the warehouse at the positions of Bentara', () => {
@@ -995,18 +995,18 @@ describe('the 2025 session (B-48)', () => {
       expect(location(id).positions, id).toEqual(location('bentara').positions);
       expect(entry(id).type, id).toBe('location');
     }
-    expect(entry('orkinpaa').events.fi).toEqual(['6052-3-034-01-orkinpaa']);
-    expect(entry('extortion-league-warehouse').events.fi).toEqual(['6052-3-035-01-taistelu-varastolla']);
+    expect(entry('orkinpaa').events.fi).toEqual(['6052-3-064-01-orkinpaa']);
+    expect(entry('extortion-league-warehouse').events.fi).toEqual(['6052-3-065-01-taistelu-varastolla']);
   });
 
   it('FR-6 the people of the story have entries as NPCs, and the league members are in the events where they were met', () => {
     for (const id of ['dirhavel', 'hiiri', 'merwai', 'werla', 'orcare', 'barkwell', 'thrangul', 'irimon', 'aladil', 'ibal', 'serinde', 'viljami-voioklotti', 'justiina-ruisjuuri', 'igor-drunkard']) {
       expect(entry(id).type, id).toBe('npc');
     }
-    for (const id of ['merwai', 'werla', 'orcare']) expect(entry(id).events.fi, id).toContain('6052-3-034-01-orkinpaa');
-    for (const id of ['barkwell', 'werla', 'hiiri']) expect(entry(id).events.fi, id).toContain('6052-3-035-01-taistelu-varastolla');
-    expect(entry('hiiri').events.fi).toContain('6052-3-036-01-pidatys');
-    expect(entry('horinin-kaapiot').events.fi).toContain('6052-3-034-01-orkinpaa');
+    for (const id of ['merwai', 'werla', 'orcare']) expect(entry(id).events.fi, id).toContain('6052-3-064-01-orkinpaa');
+    for (const id of ['barkwell', 'werla', 'hiiri']) expect(entry(id).events.fi, id).toContain('6052-3-065-01-taistelu-varastolla');
+    expect(entry('hiiri').events.fi).toContain('6052-3-066-01-pidatys');
+    expect(entry('horinin-kaapiot').events.fi).toContain('6052-3-064-01-orkinpaa');
   });
 
   it('FR-6 the chain of Irimon is an item, the guard is a note with a picture, and the league leaders died at the warehouse', () => {
@@ -1015,10 +1015,10 @@ describe('the 2025 session (B-48)', () => {
     expect(plain(entry('irimon').text.fi)).not.toContain('Kert');
     expect(entry('bentara-guard').type).toBe('note');
     expect(entry('bentara-guard').image).not.toBeNull();
-    expect(entry('bentara-guard').events.fi).toEqual(['6052-3-036-01-pidatys']);
-    const battle = events.find((e) => e.id === '6052-3-035-01-taistelu-varastolla')!;
+    expect(entry('bentara-guard').events.fi).toEqual(['6052-3-066-01-pidatys']);
+    const battle = events.find((e) => e.id === '6052-3-065-01-taistelu-varastolla')!;
     for (const id of ['merwai', 'orcare', 'thrangul']) expect(plain(entry(id).text.fi), id).toContain('kuoli taistelussa');
-    expect(battle.id).toBe('6052-3-035-01-taistelu-varastolla');
+    expect(battle.id).toBe('6052-3-065-01-taistelu-varastolla');
   });
 
   it('FR-4 the entry of Bentara has the city map and the warehouse has the plans of both floors', () => {

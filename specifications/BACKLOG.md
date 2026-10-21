@@ -1364,7 +1364,7 @@ Implementation notes for B-48 (decisions made with the product owner while build
 
 ## B-48 Extract the 2025 session
 
-Status: done
+Status: accepted
 
 Related: FR-3, FR-5, FR-6, "Content from the GM notes".
 

@@ -990,13 +990,13 @@ describe('the 2025 session (B-48)', () => {
   });
 
   it('FR-1 the places: Bentara, the tavern Örkinpää and the warehouse at the positions of Bentara', () => {
-    expect(session.map((e) => e.location)).toEqual(['bentara', 'bentara', 'orkinpaa', 'harbour-warehouse', 'bentara']);
-    for (const id of ['orkinpaa', 'harbour-warehouse']) {
+    expect(session.map((e) => e.location)).toEqual(['bentara', 'bentara', 'orkinpaa', 'extortion-league-warehouse', 'bentara']);
+    for (const id of ['orkinpaa', 'extortion-league-warehouse']) {
       expect(location(id).positions, id).toEqual(location('bentara').positions);
       expect(entry(id).type, id).toBe('location');
     }
     expect(entry('orkinpaa').events.fi).toEqual(['6052-3-034-01-orkinpaa']);
-    expect(entry('harbour-warehouse').events.fi).toEqual(['6052-3-034-02-taistelu-varastolla']);
+    expect(entry('extortion-league-warehouse').events.fi).toEqual(['6052-3-034-02-taistelu-varastolla']);
   });
 
   it('FR-6 the people of the story have entries as NPCs, and the league members are in the events where they were met', () => {
@@ -1009,9 +1009,20 @@ describe('the 2025 session (B-48)', () => {
     expect(entry('horinin-kaapiot').events.fi).toContain('6052-3-034-01-orkinpaa');
   });
 
+  it('FR-6 the chain of Irimon is an item, the guard is a note with a picture, and the league leaders died at the warehouse', () => {
+    expect(entry('irimon-chain').type).toBe('item');
+    expect(plain(entry('irimon-chain').text.fi)).not.toContain('Kert');
+    expect(plain(entry('irimon').text.fi)).not.toContain('Kert');
+    expect(entry('bentara-guard').type).toBe('note');
+    expect(entry('bentara-guard').image).not.toBeNull();
+    expect(entry('bentara-guard').events.fi).toEqual(['6052-3-035-01-pidatys']);
+    const battle = events.find((e) => e.id === '6052-3-034-02-taistelu-varastolla')!;
+    for (const id of ['merwai', 'orcare', 'thrangul']) expect(entry(id).events.fi, id).toContain(battle.id);
+  });
+
   it('FR-4 the entry of Bentara has the city map and the warehouse has the plans of both floors', () => {
     expect(entry('bentara').text.fi).toContain('Bentaran kartta');
-    expect(entry('harbour-warehouse').text.fi).toContain('toisen kerroksen pohjapiirros');
+    expect(entry('extortion-league-warehouse').text.fi).toContain('toisen kerroksen pohjapiirros');
   });
 
   it('FR-6 the last event is the arrest, and it says that the game ended there', () => {

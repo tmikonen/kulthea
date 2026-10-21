@@ -981,12 +981,12 @@ describe('the 2025 session (B-48)', () => {
       '6052-3-031-01-paluu-bentaraan',
       '6052-3-033-01-dirhavel-palkkaa-seurueen',
       '6052-3-034-01-orkinpaa',
-      '6052-3-034-02-taistelu-varastolla',
-      '6052-3-035-01-pidatys',
+      '6052-3-035-01-taistelu-varastolla',
+      '6052-3-036-01-pidatys',
     ]);
     expect(session.every((e) => e.track === null)).toBe(true);
     expect(events.indexOf(session[0])).toBe(events.findIndex((e) => e.id === '6052-3-021-08-paluu-portista') + 1);
-    expect(events[events.length - 1].id).toBe('6052-3-035-01-pidatys');
+    expect(events[events.length - 1].id).toBe('6052-3-036-01-pidatys');
   });
 
   it('FR-1 the places: Bentara, the tavern Örkinpää and the warehouse at the positions of Bentara', () => {
@@ -996,7 +996,7 @@ describe('the 2025 session (B-48)', () => {
       expect(entry(id).type, id).toBe('location');
     }
     expect(entry('orkinpaa').events.fi).toEqual(['6052-3-034-01-orkinpaa']);
-    expect(entry('extortion-league-warehouse').events.fi).toEqual(['6052-3-034-02-taistelu-varastolla']);
+    expect(entry('extortion-league-warehouse').events.fi).toEqual(['6052-3-035-01-taistelu-varastolla']);
   });
 
   it('FR-6 the people of the story have entries as NPCs, and the league members are in the events where they were met', () => {
@@ -1004,8 +1004,8 @@ describe('the 2025 session (B-48)', () => {
       expect(entry(id).type, id).toBe('npc');
     }
     for (const id of ['merwai', 'werla', 'orcare']) expect(entry(id).events.fi, id).toContain('6052-3-034-01-orkinpaa');
-    for (const id of ['thrangul', 'barkwell', 'werla']) expect(entry(id).events.fi, id).toContain('6052-3-034-02-taistelu-varastolla');
-    expect(entry('hiiri').events.fi).toContain('6052-3-035-01-pidatys');
+    for (const id of ['barkwell', 'werla', 'hiiri']) expect(entry(id).events.fi, id).toContain('6052-3-035-01-taistelu-varastolla');
+    expect(entry('hiiri').events.fi).toContain('6052-3-036-01-pidatys');
     expect(entry('horinin-kaapiot').events.fi).toContain('6052-3-034-01-orkinpaa');
   });
 
@@ -1015,9 +1015,10 @@ describe('the 2025 session (B-48)', () => {
     expect(plain(entry('irimon').text.fi)).not.toContain('Kert');
     expect(entry('bentara-guard').type).toBe('note');
     expect(entry('bentara-guard').image).not.toBeNull();
-    expect(entry('bentara-guard').events.fi).toEqual(['6052-3-035-01-pidatys']);
-    const battle = events.find((e) => e.id === '6052-3-034-02-taistelu-varastolla')!;
-    for (const id of ['merwai', 'orcare', 'thrangul']) expect(entry(id).events.fi, id).toContain(battle.id);
+    expect(entry('bentara-guard').events.fi).toEqual(['6052-3-036-01-pidatys']);
+    const battle = events.find((e) => e.id === '6052-3-035-01-taistelu-varastolla')!;
+    for (const id of ['merwai', 'orcare', 'thrangul']) expect(plain(entry(id).text.fi), id).toContain('kuoli taistelussa');
+    expect(battle.id).toBe('6052-3-035-01-taistelu-varastolla');
   });
 
   it('FR-4 the entry of Bentara has the city map and the warehouse has the plans of both floors', () => {
@@ -1025,9 +1026,9 @@ describe('the 2025 session (B-48)', () => {
     expect(entry('extortion-league-warehouse').text.fi).toContain('toisen kerroksen pohjapiirros');
   });
 
-  it('FR-6 the last event is the arrest, and it says that the game ended there', () => {
+  it('FR-6 the last event is the arrest: the guard comes, and tells of the massacre at the temple', () => {
     const last = events[events.length - 1];
-    expect(plain(last.text.fi)).toContain('Tähän peli päättyi');
+    expect(plain(last.text.fi)).toContain('pidättämään');
     expect(plain(last.text.fi)).toContain('verilöyly');
   });
 
